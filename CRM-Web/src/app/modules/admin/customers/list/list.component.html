@@ -1,0 +1,148 @@
+<div class="flex flex-col flex-auto min-w-0 bg-gray-100 dark:bg-transparent">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-b bg-card dark:bg-transparent">
+        <div class="flex flex-col">
+            <!-- Breadcrumbs -->
+            <div class="flex items-center text-sm font-medium text-secondary whitespace-nowrap">
+                <a class="text-blue-500 cursor-pointer" [routerLink]="['/dashboard']">Home</a>
+                <mat-icon class="icon-size-4 mx-1" [svgIcon]="'heroicons_mini:chevron-right'"></mat-icon>
+                <span>Contacts</span>
+            </div>
+            <!-- Title -->
+            <div class="mt-2 text-3xl font-bold leading-none tracking-tight">Contacts</div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-auto p-6 sm:p-10">
+        
+        <!-- Filter Bar (Matching Photo 2) -->
+        <div class="flex flex-col sm:flex-row items-center justify-between bg-card rounded-t-xl p-4 border-b border-teal-100 bg-teal-50/10">
+            <div class="flex flex-wrap items-center gap-4">
+                
+                <!-- Filter by Contact Type -->
+                <div class="flex items-center gap-2">
+                    <span class="text-md font-bold text-teal-800">Filter by Contact Type:</span>
+                    <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-40">
+                        <mat-select [(ngModel)]="filters.contactType" (selectionChange)="onFilterChange()">
+                            <mat-option [value]="0">All</mat-option>
+                            <mat-option *ngFor="let type of contactTypes" [value]="type.id">{{type.name}}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+
+                <!-- Verified Type -->
+                <div class="flex items-center gap-2">
+                    <span class="text-md font-bold text-teal-800">Verified Type:</span>
+                    <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-40">
+                        <mat-select>
+                            <mat-option [value]="'all'">All</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+
+                <!-- Checkboxes -->
+                <div class="flex items-center space-x-4">
+                    <mat-checkbox class="text-teal-800 font-medium" color="primary">Include Excluded</mat-checkbox>
+                    <mat-checkbox class="text-teal-800 font-medium" color="primary" [(ngModel)]="filters.includeInactive" (change)="onFilterChange()">Include Inactive</mat-checkbox>
+                    <mat-checkbox class="text-teal-800 font-medium" color="primary">Archived</mat-checkbox>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-3 mt-4 sm:mt-0">
+                <button mat-flat-button class="bg-teal-600 text-white rounded-md" color="primary">
+                    <mat-icon [svgIcon]="'heroicons_outline:arrow-up-tray'"></mat-icon>
+                    <span class="ml-2">Upload File</span>
+                </button>
+                <button mat-flat-button class="bg-teal-600 text-white rounded-md" color="primary" [routerLink]="['./new']">
+                    <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                    <span class="ml-2">Add Contact</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="flex items-center justify-end bg-card p-4 border-b">
+            <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-full sm:w-80">
+                <mat-icon matPrefix [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+                <input matInput [placeholder]="'Search (Name, Code, etc...)'" (input)="onSearch($event)">
+            </mat-form-field>
+        </div>
+
+        <!-- Customer Table -->
+        <div class="bg-card shadow rounded-b-xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table mat-table [dataSource]="dataSource" class="w-full">
+
+                    <!-- Code Column -->
+                    <ng-container matColumnDef="code">
+                        <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-teal-800 font-bold uppercase tracking-wider text-xs"> Code </th>
+                        <td mat-cell *matCellDef="let customer" class="font-medium"> {{customer.code}} </td>
+                    </ng-container>
+
+                    <!-- Name Column -->
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-teal-800 font-bold uppercase tracking-wider text-xs"> Name </th>
+                        <td mat-cell *matCellDef="let customer" class="font-bold"> {{customer.name}} </td>
+                    </ng-container>
+
+                    <!-- Type Column -->
+                    <ng-container matColumnDef="type">
+                        <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-teal-800 font-bold uppercase tracking-wider text-xs"> Customer Type </th>
+                        <td mat-cell *matCellDef="let customer"> 
+                            {{customer.clientType === 1 ? 'Individual' : (customer.clientType === 2 ? 'Company' : 'Sole Proprietor')}} 
+                        </td>
+                    </ng-container>
+
+                    <!-- Email Column -->
+                    <ng-container matColumnDef="email">
+                        <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-teal-800 font-bold uppercase tracking-wider text-xs"> Email </th>
+                        <td mat-cell *matCellDef="let customer" class="text-blue-500"> {{customer.email}} </td>
+                    </ng-container>
+
+                    <!-- Status Column -->
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-teal-800 font-bold uppercase tracking-wider text-xs"> Status </th>
+                        <td mat-cell *matCellDef="let customer">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800" *ngIf="customer.isActive">
+                                Active
+                            </span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800" *ngIf="!customer.isActive">
+                                Inactive
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Action Column -->
+                    <ng-container matColumnDef="action">
+                        <th mat-header-cell *matHeaderCellDef class="bg-gray-50 text-teal-800 font-bold uppercase tracking-wider text-xs"> Action </th>
+                        <td mat-cell *matCellDef="let customer">
+                            <div class="flex items-center gap-1">
+                                <button mat-icon-button class="text-teal-600" [routerLink]="['./', customer.id]">
+                                    <mat-icon [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+                                </button>
+                                <button mat-icon-button class="text-red-500">
+                                    <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover:bg-gray-50"></tr>
+                </table>
+            </div>
+
+            <!-- Loader -->
+            <div *ngIf="isLoading" class="flex flex-col items-center justify-center p-12">
+                <mat-progress-spinner color="primary" mode="indeterminate" diameter="48"></mat-progress-spinner>
+                <div class="mt-4 text-secondary">Loading customers...</div>
+            </div>
+
+            <!-- Pagination -->
+            <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons class="border-t"></mat-paginator>
+        </div>
+    </div>
+</div>

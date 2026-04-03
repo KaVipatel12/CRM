@@ -1,0 +1,349 @@
+<div class="flex flex-col flex-auto min-w-0 bg-gray-100 dark:bg-transparent">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-b bg-card dark:bg-transparent">
+        <div class="flex flex-col">
+            <!-- Breadcrumbs -->
+            <div class="flex items-center text-sm font-medium text-secondary whitespace-nowrap">
+                <a class="text-blue-500 cursor-pointer" [routerLink]="['/dashboard']">Home</a>
+                <mat-icon class="icon-size-4 mx-1" [svgIcon]="'heroicons_mini:chevron-right'"></mat-icon>
+                <a class="text-blue-500 cursor-pointer" [routerLink]="['../']">Contacts</a>
+                <mat-icon class="icon-size-4 mx-1" [svgIcon]="'heroicons_mini:chevron-right'"></mat-icon>
+                <span>{{editMode ? 'Edit' : 'Add'}} Contact</span>
+            </div>
+            <!-- Title -->
+            <div class="mt-2 text-3xl font-bold leading-none tracking-tight">{{editMode ? 'Edit' : 'Add'}} Contact</div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-auto p-6 sm:p-10">
+        
+        <!-- Form card -->
+        <div class="bg-card shadow rounded-xl overflow-hidden p-8">
+            
+            <form [formGroup]="customerForm">
+                
+                @if (showAlert) {
+                    <fuse-alert class="mb-8" [type]="alert.type" [showIcon]="true" [dismissible]="true">
+                        {{alert.message}}
+                    </fuse-alert>
+                }
+
+                <!-- TOP LEVEL CONTROLS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 px-2 mb-2">
+                    <mat-form-field class="w-full max-w-sm">
+                        <mat-label>Contact Type</mat-label>
+                        <mat-select formControlName="contactType">
+                            <mat-option *ngFor="let type of contactTypes" [value]="type.id">{{type.name}}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field class="w-full max-w-sm">
+                        <mat-label>Customer Type</mat-label>
+                        <mat-select formControlName="clientType">
+                            <mat-option [value]="null">Please Select Customer Type</mat-option>
+                            <mat-option *ngFor="let type of customerTypes" [value]="type.id">{{type.customerTypeNM}}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+
+                @if (isTypeSelected()) {
+                    <div class="bg-teal-600 rounded-t-lg pt-1">
+                        <mat-tab-group class="bg-white dark:bg-card border-x border-b rounded-b-lg shadow-sm" animationDuration="0ms">
+                            
+                            <!-- COMMON DETAIL TAB -->
+                            <mat-tab label="Common Detail">
+                                <div class="p-6 grid grid-cols-1 xl:grid-cols-3 gap-6 bg-gray-50 dark:bg-transparent">
+                                    
+                                    <!-- LEFT COLUMN -->
+                                    <div class="xl:col-span-2 space-y-6">
+                                        
+                                        <!-- Client Detail Box -->
+                                        <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20">
+                                            <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
+                                                Client Detail
+                                            </div>
+                                            <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+                                                <mat-form-field class="w-full">
+                                                    <mat-label>Staff In Charge</mat-label>
+                                                    <mat-select formControlName="staffInCharge">
+                                                        <mat-option [value]="null">Please Select Staff</mat-option>
+                                                        <mat-option *ngFor="let s of staff" [value]="s.id">{{s.firstName}} {{s.lastName}}</mat-option>
+                                                    </mat-select>
+                                                </mat-form-field>
+                                                
+                                                <mat-form-field class="w-full">
+                                                    <mat-label>TFN Number</mat-label>
+                                                    <input matInput formControlName="tfnNumber">
+                                                </mat-form-field>
+
+                                                <mat-form-field class="w-full">
+                                                    <mat-label>{{isIndividual() || isSoleProprietor() ? 'Name' : 'Company Name'}}</mat-label>
+                                                    <input matInput formControlName="name" required>
+                                                </mat-form-field>
+
+                                                <mat-form-field class="w-full">
+                                                    <mat-label>Director ID</mat-label>
+                                                    <input matInput formControlName="directorID">
+                                                </mat-form-field>
+
+                                                <div class="flex items-start space-x-2 w-full mt-2 lg:mt-0">
+                                                    <mat-form-field class="flex-1">
+                                                        <mat-label>Code</mat-label>
+                                                        <input matInput formControlName="code" required>
+                                                        <button mat-icon-button matSuffix (click)="checkDuplicateCode()" title="Verify Code" type="button">
+                                                            <mat-icon class="text-teal-500" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+                                                        </button>
+                                                        <mat-error *ngIf="customerForm.get('code').hasError('duplicate')">
+                                                            This code is already used.
+                                                        </mat-error>
+                                                    </mat-form-field>
+                                                    
+                                                    <button type="button" class="bg-teal-500 text-white w-10 h-10 rounded flex-shrink-0 mt-[26px] flex items-center justify-center hover:bg-teal-600 transition-colors" (click)="clearCode()" title="Clear Code">
+                                                        <mat-icon class="icon-size-5 text-white" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+                                                    </button>
+                                                </div>
+
+                                                <mat-form-field class="w-full">
+                                                    <mat-label>Trading Name</mat-label>
+                                                    <input matInput formControlName="tradingName">
+                                                </mat-form-field>
+
+                                                <div class="flex items-center pt-2 mb-4">
+                                                    <mat-checkbox color="primary" formControlName="postNewsLetter">Post Newsletter</mat-checkbox>
+                                                </div>
+                                                
+                                                <div class="hidden md:block"></div> <!-- Empty space -->
+
+                                                <mat-form-field class="w-full">
+                                                    <mat-label>ABN Number</mat-label>
+                                                    <input matInput formControlName="abnNumber">
+                                                </mat-form-field>
+                                                
+                                                <div class="hidden md:block"></div>
+
+                                                <mat-form-field class="w-full">
+                                                    <mat-label>Business Type</mat-label>
+                                                    <mat-select formControlName="businessType">
+                                                        <mat-option [value]="null">None</mat-option>
+                                                        <mat-option *ngFor="let b of businessTypes" [value]="b.id">{{b.businessTypeNM}}</mat-option>
+                                                    </mat-select>
+                                                </mat-form-field>
+
+                                                <div class="hidden md:block"></div>
+
+                                                <mat-form-field class="w-full">
+                                                    <mat-label>Trading Status</mat-label>
+                                                    <mat-select formControlName="tradingStatus">
+                                                        <mat-option [value]="null">None</mat-option>
+                                                        <mat-option *ngFor="let s of tradingStatuses" [value]="s.id">{{s.name}}</mat-option>
+                                                    </mat-select>
+                                                </mat-form-field>
+                                            </div>
+                                        </div>
+
+                                        <!-- Specific Info based on Type -->
+                                        @if (isIndividual() || isSoleProprietor()) {
+                                            <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" formGroupName="individualInfo">
+                                                <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
+                                                    {{isSoleProprietor() ? 'Sole Proprietor' : 'Individual'}} Detail
+                                                </div>
+                                                <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                    <mat-form-field>
+                                                        <mat-label>First Name</mat-label>
+                                                        <input matInput formControlName="firstName">
+                                                    </mat-form-field>
+                                                    <mat-form-field>
+                                                        <mat-label>Last Name</mat-label>
+                                                        <input matInput formControlName="lastName">
+                                                    </mat-form-field>
+                                                    <mat-form-field>
+                                                        <mat-label>Date of Birth</mat-label>
+                                                        <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
+                                                        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                                                        <mat-datepicker #picker></mat-datepicker>
+                                                    </mat-form-field>
+                                                </div>
+                                            </div>
+                                        }
+
+                                        @if (!isIndividual() && !isSoleProprietor()) {
+                                            <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" formGroupName="companyInfo">
+                                                <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
+                                                    Organization Detail
+                                                </div>
+                                                <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                    <mat-form-field>
+                                                        <mat-label>ACN Number</mat-label>
+                                                        <input matInput formControlName="acnNumber">
+                                                    </mat-form-field>
+                                                    <mat-form-field>
+                                                        <mat-label>Website</mat-label>
+                                                        <input matInput formControlName="webSite">
+                                                    </mat-form-field>
+                                                    <mat-form-field>
+                                                         <mat-label>Group Name</mat-label>
+                                                         <input matInput formControlName="groupName">
+                                                    </mat-form-field>
+                                                </div>
+                                            </div>
+                                        }
+
+                                        <!-- Addresses Box -->
+                                        <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20">
+                                            <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
+                                                Address Detail
+                                            </div>
+                                            <div formArrayName="addresses" class="p-4 space-y-6">
+                                                <!-- Home Address -->
+                                                <div formGroupName="0" class="relative">
+                                                    <div class="bg-gray-800 text-white text-xs font-bold px-2 py-0.5 rounded w-max mb-3">Home Address</div>
+                                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                                        <mat-form-field>
+                                                            <mat-label>Street</mat-label>
+                                                            <input matInput formControlName="addressLine1">
+                                                        </mat-form-field>
+                                                        <mat-form-field>
+                                                            <mat-label>Suburb</mat-label>
+                                                            <input matInput formControlName="city">
+                                                        </mat-form-field>
+                                                        <mat-form-field>
+                                                            <mat-label>State</mat-label>
+                                                            <input matInput formControlName="state">
+                                                        </mat-form-field>
+                                                        <mat-form-field>
+                                                            <mat-label>Postal Code</mat-label>
+                                                            <input matInput formControlName="postalCode">
+                                                        </mat-form-field>
+                                                        <input type="hidden" formControlName="type">
+                                                    </div>
+                                                </div>
+
+                                                <!-- Business Address -->
+                                                <div formGroupName="1" class="relative">
+                                                    <div class="bg-gray-800 text-white text-xs font-bold px-2 py-0.5 rounded w-max mb-3">Business Address</div>
+                                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                                        <mat-form-field>
+                                                            <mat-label>Street</mat-label>
+                                                            <input matInput formControlName="addressLine1">
+                                                        </mat-form-field>
+                                                        <mat-form-field>
+                                                            <mat-label>Suburb</mat-label>
+                                                            <input matInput formControlName="city">
+                                                        </mat-form-field>
+                                                        <mat-form-field>
+                                                            <mat-label>State</mat-label>
+                                                            <input matInput formControlName="state">
+                                                        </mat-form-field>
+                                                        <mat-form-field>
+                                                            <mat-label>Postal Code</mat-label>
+                                                            <input matInput formControlName="postalCode">
+                                                        </mat-form-field>
+                                                        <input type="hidden" formControlName="type">
+                                                    </div>
+                                                </div>
+
+                                                <!-- Postal Address -->
+                                                <div formGroupName="2" class="relative">
+                                                    <div class="bg-gray-800 text-white text-xs font-bold px-2 py-0.5 rounded w-max mb-3">Postal Address</div>
+                                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                                        <mat-form-field>
+                                                            <mat-label>Street</mat-label>
+                                                            <input matInput formControlName="addressLine1">
+                                                        </mat-form-field>
+                                                        <mat-form-field>
+                                                            <mat-label>Suburb</mat-label>
+                                                            <input matInput formControlName="city">
+                                                        </mat-form-field>
+                                                        <mat-form-field>
+                                                            <mat-label>State</mat-label>
+                                                            <input matInput formControlName="state">
+                                                        </mat-form-field>
+                                                        <mat-form-field>
+                                                            <mat-label>Postal Code</mat-label>
+                                                            <input matInput formControlName="postalCode">
+                                                        </mat-form-field>
+                                                        <input type="hidden" formControlName="type">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- RIGHT COLUMN -->
+                                    <div class="space-y-6">
+                                        <!-- Communication Detail Box -->
+                                        <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" formGroupName="contactInfo">
+                                            <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
+                                                Communication Detail
+                                            </div>
+                                            <div class="p-4 flex flex-col gap-2">
+                                                <div class="flex gap-4">
+                                                    <mat-form-field class="flex-1">
+                                                        <mat-label>Mobile</mat-label>
+                                                        <input matInput formControlName="cellPhone">
+                                                    </mat-form-field>
+                                                    <mat-form-field class="flex-1">
+                                                        <mat-label>Work Phone</mat-label>
+                                                        <input matInput formControlName="workPhone">
+                                                    </mat-form-field>
+                                                </div>
+                                                <mat-form-field class="w-full">
+                                                    <mat-label>Email</mat-label>
+                                                    <input matInput formControlName="email">
+                                                </mat-form-field>
+                                            </div>
+                                        </div>
+
+                                        <!-- Additional Info Box -->
+                                        <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20">
+                                            <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
+                                                Additional Info
+                                            </div>
+                                            <div class="p-4">
+                                                <mat-form-field class="w-full">
+                                                    <mat-label>Tax Agent</mat-label>
+                                                    <mat-select formControlName="taxAgent">
+                                                        <mat-option [value]="null">None</mat-option>
+                                                        <mat-option *ngFor="let a of taxAgents" [value]="a.id">{{a.name}}</mat-option>
+                                                    </mat-select>
+                                                </mat-form-field>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </mat-tab>
+                            
+                            <!-- PLACEHOLDER TABS -->
+                            <mat-tab label="Jobs" [disabled]="true"></mat-tab>
+                            <mat-tab label="Dynamic Detail" [disabled]="true"></mat-tab>
+                            <mat-tab label="Relationships" [disabled]="true"></mat-tab>
+                            <mat-tab label="Forms" [disabled]="true"></mat-tab>
+                            <mat-tab label="Group" [disabled]="true"></mat-tab>
+                            <mat-tab label="Service" [disabled]="true"></mat-tab>
+                            <mat-tab label="Summary" [disabled]="true"></mat-tab>
+                            <mat-tab label="Admin" [disabled]="true"></mat-tab>
+
+                        </mat-tab-group>
+                    </div>
+
+                    <div class="mt-6 flex items-center justify-end pt-4 gap-4">
+                        <button mat-button class="px-8" [routerLink]="['../']" [disabled]="isSaving">Cancel</button>
+                        <button mat-flat-button class="px-12 bg-teal-600 text-white min-w-40" color="primary" (click)="save()" [disabled]="customerForm.invalid || isSaving">
+                            @if (!isSaving) {
+                                {{editMode ? 'Update Contact' : 'Save Contact'}}
+                            }
+                            @if (isSaving) {
+                                <mat-progress-spinner class="mr-2" [diameter]="20" [mode]="'indeterminate'"></mat-progress-spinner>
+                                Saving...
+                            }
+                        </button>
+                    </div>
+                }
+
+            </form>
+        </div>
+    </div>
+</div>
