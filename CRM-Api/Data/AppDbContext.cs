@@ -1,6 +1,7 @@
 using CRM_Api.Models;
 using CRM_Api.Models.Entities.Customer;
 using CRM_Api.Models.Entities.Operations;
+using CRM_Api.Models.Entities.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Api.Data
@@ -30,6 +31,7 @@ namespace CRM_Api.Data
         public DbSet<ContactInfo> ContactInfos { get; set; }
         public DbSet<Address> Addresses { get; set; }
         public DbSet<Detail> Details { get; set; }
+        public DbSet<FileUploadInfo> FileUploadInfos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -10,11 +10,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
 import { CustomerService } from '../customer.service';
 import { LookupService } from '../lookup.service';
+import { UserService } from 'app/core/user/user.service';
+import { User } from 'app/core/user/user.types';
+import { FuseConfirmationService } from '@fuse/services/confirmation';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -36,11 +40,12 @@ import { Subject, takeUntil } from 'rxjs';
         MatSelectModule,
         MatTabsModule,
         MatSnackBarModule,
+        MatTooltipModule,
         RouterLink,
         FuseAlertComponent
     ]
 })
-export class DetailsComponent implements OnInit {
+export class DetailsComponent implements OnInit, OnDestroy {
     customerForm: FormGroup;
     editMode: boolean = false;
     customerId: number;
@@ -59,6 +64,13 @@ export class DetailsComponent implements OnInit {
     taxAgents: any[] = [];
     tradingStatuses: any[] = [];
     staff: any[] = [];
+    
+    // User info for verification
+    currentUser: User | null = null;
+    isChecker: boolean = false;
+    isAdmin: boolean = false;
+    lastVarifiedDate: string | null = null;
+    lastVarifiedUserName: string | null = null;
 
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
@@ -66,7 +78,9 @@ export class DetailsComponent implements OnInit {
         private _activatedRoute: ActivatedRoute,
         private _customerService: CustomerService,
         private _lookupService: LookupService,
+        private _userService: UserService,
         private _formBuilder: FormBuilder,
+        private _fuseConfirmationService: FuseConfirmationService,
         private _router: Router,
         private _snackBar: MatSnackBar
     ) {}
@@ -89,15 +103,19 @@ export class DetailsComponent implements OnInit {
             staffInCharge: [null],
             postNewsLetter: [false],
             isActive: [true],
+            isArchived: [false],
+            isExcluded: [false],
             groupName: [''],
             mailingName: [''],
             partner: [''],
             manager: [''],
             contactInfo: this._formBuilder.group({
+                salutation: [''],
                 contactName: [''],
-                email: ['', [Validators.email]],
                 cellPhone: ['', [Validators.required]],
-                workPhone: ['']
+                workPhone: [''],
+                email: ['', [Validators.email]],
+                email2: ['', [Validators.email]]
             }),
             individualInfo: this._formBuilder.group({
                 firstName: [''],
@@ -109,7 +127,8 @@ export class DetailsComponent implements OnInit {
                 webSite: [''],
                 acnNumber: ['', [Validators.pattern('^[0-9]{9}$')]]
             }),
-            addresses: this._formBuilder.array([])
+            addresses: this._formBuilder.array([]),
+            bankAccounts: this._formBuilder.array([])
         });
 
         // Dynamic validation based on clientType
@@ -131,8 +150,21 @@ export class DetailsComponent implements OnInit {
                     this.customerId = +params['id'];
                     this.loadCustomer(this.customerId);
                 } else {
+                    this.editMode = false;
                     this.initDefaultAddresses();
                 }
+            });
+            
+        // Get current user info
+        this._userService.user$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((user: User) => {
+                this.currentUser = user;
+                // Since our JWT now includes "Checker" role, we can check for it.
+                // Or if user object has specific flags, we can use those.
+                // Given the User model has IsAdmin and IsChecker:
+                this.isAdmin = (user as any).isAdmin || (user as any).isSuperAdmin;
+                this.isChecker = (user as any).isChecker;
             });
 
         // Auto-generate code when Customer Type (clientType) changes
@@ -205,6 +237,25 @@ export class DetailsComponent implements OnInit {
         this.addAddressForType(null, 3); // Postal
     }
 
+    get bankAccounts(): FormArray {
+        return this.customerForm.get('bankAccounts') as FormArray;
+    }
+
+    addBankAccount(account: any = null): void {
+        const bankForm = this._formBuilder.group({
+            id: [account?.id || 0],
+            accountName: [account?.accountName || ''],
+            bankName: [account?.bankName || ''],
+            bsb: [account?.bsb || ''],
+            accountNumber: [account?.accountNumber || '']
+        });
+        this.bankAccounts.push(bankForm);
+    }
+
+    removeBankAccount(index: number): void {
+        this.bankAccounts.removeAt(index);
+    }
+
     addAddressForType(address: any, defaultType: number): void {
         const addressForm = this._formBuilder.group({
             id: [address?.id || 0],
@@ -235,6 +286,16 @@ export class DetailsComponent implements OnInit {
             this.addAddressForType(home, 1);
             this.addAddressForType(biz, 2);
             this.addAddressForType(postal, 3);
+            
+            // Rebuild bank accounts
+            this.bankAccounts.clear();
+            if (customer.bankAccounts && customer.bankAccounts.length > 0) {
+                customer.bankAccounts.forEach((b: any) => this.addBankAccount(b));
+            }
+            
+            // Set verification data
+            this.lastVarifiedDate = customer.lastVarifiedDate;
+            this.lastVarifiedUserName = customer.lastVarifiedUserName;
             
             this._updateNameValidators();
         });
@@ -438,9 +499,77 @@ export class DetailsComponent implements OnInit {
         return errors;
     }
 
+    verify(): void {
+        if (!this.customerId) return;
+        
+        const dialogRef = this._fuseConfirmationService.open({
+            title: 'Verify Contact',
+            message: 'Are you sure you want to verify this contact?',
+            icon: {
+                show: true,
+                name: 'heroicons_outline:check-badge',
+                color: 'success',
+            },
+            actions: {
+                confirm: {
+                    show: true,
+                    label: 'Verify',
+                    color: 'primary',
+                },
+                cancel: {
+                    show: true,
+                    label: 'Cancel',
+                },
+            },
+            dismissible: true,
+        });
+
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result === 'confirmed') {
+                this._customerService.verifyCustomer(this.customerId).subscribe({
+                    next: (success) => {
+                        if (success) {
+                            this._snackBar.open('Contact verified successfully', 'OK', { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top' });
+                            // Refresh data
+                            this.loadCustomer(this.customerId);
+                        }
+                    },
+                    error: (err) => {
+                        this._snackBar.open('Failed to verify contact', 'ERROR', { duration: 5000, horizontalPosition: 'right', verticalPosition: 'top' });
+                        console.error('Verification Error:', err);
+                    }
+                });
+            }
+        });
+    }
+
+    changeCustomerType(): void {
+        this._snackBar.open('Change Customer Type feature is pending migration.', 'INFO', { duration: 3000 });
+        // In the old system this navigated to: /customer/manage/{id}/changetype
+        // Once that page/route is ready, we can uncomment the navigation:
+        // this._router.navigate(['../', this.customerId, 'changetype'], { relativeTo: this._activatedRoute });
+    }
+
+    toggleActive(): void {
+        const ctrl = this.customerForm.get('isActive');
+        ctrl.setValue(!ctrl.value);
+        ctrl.markAsDirty();
+    }
+
+    toggleArchived(): void {
+        const ctrl = this.customerForm.get('isArchived');
+        ctrl.setValue(!ctrl.value);
+        ctrl.markAsDirty();
+    }
+
+    toggleExcluded(): void {
+        const ctrl = this.customerForm.get('isExcluded');
+        ctrl.setValue(!ctrl.value);
+        ctrl.markAsDirty();
+    }
+
     ngOnDestroy(): void {
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
     }
 }
-

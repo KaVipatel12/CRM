@@ -91,28 +91,49 @@ namespace CRM_Api.Services
                 Name = $"{user.FirstName} {user.LastName}".Trim(),
                 Email = user.Email,
                 Avatar = null, 
-                Status = "online"
+                Status = "online",
+                IsAdmin = user.IsAdmin,
+                IsChecker = user.IsChecker,
+                IsSuperAdmin = user.IsSuperAdmin
             };
         }
 
         private string GenerateJwtToken(User user)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? "ThisIsADefaultSecretKeyThatShouldBeChangedInProduction"));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.ID.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
-                new Claim(ClaimTypes.Role, user.IsAdmin == true ? "Admin" : "User")
+                new Claim(ClaimTypes.Name, user.Email ?? ""),
+                new Claim(ClaimTypes.NameIdentifier, user.ID.ToString())
             };
+
+            if (user.IsAdmin == true || user.IsSuperAdmin == true)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+            }
+
+            if (user.IsChecker == true)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, "Checker"));
+            }
+
+            // Fallback role if none assigned
+            if (!claims.Any(c => c.Type == ClaimTypes.Role))
+            {
+                claims.Add(new Claim(ClaimTypes.Role, "User"));
+            }
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? "ThisIsADefaultSecretKeyThatShouldBeChangedInProduction"));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
                 expires: DateTime.Now.AddDays(1),
-                signingCredentials: credentials);
+                signingCredentials: creds
+            );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }

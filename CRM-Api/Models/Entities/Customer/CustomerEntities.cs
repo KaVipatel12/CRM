@@ -78,6 +78,7 @@ namespace CRM_Api.Models.Entities.Customer
         public bool? IsExcluded { get; set; }
         public int? StaffInCharge { get; set; }
         public string? ACN { get; set; }
+        public virtual ICollection<BankAccount> BankAccounts { get; set; }
 
         public virtual ICollection<Address> Addresses { get; set; }
         public virtual ICollection<Branch> Branches { get; set; }
@@ -250,6 +251,24 @@ namespace CRM_Api.Models.Entities.Customer
         public bool? DASP { get; set; }
         public bool? IndividualTaxReturn { get; set; }
         public DateTime? DateOfBirth { get; set; }
+
+        [ForeignKey("CustomerID")]
+        public virtual Customer Customer { get; set; }
+    }
+
+    [Table("BankAccount", Schema = "cust")]
+    public class BankAccount : EntityBase, IApiResultModel
+    {
+        [Required]
+        public int CustomerID { get; set; }
+        [StringLength(150)]
+        public string? AccountName { get; set; }
+        [StringLength(150)]
+        public string? BankName { get; set; }
+        [StringLength(20)]
+        public string? BSB { get; set; }
+        [StringLength(50)]
+        public string? AccountNumber { get; set; }
 
         [ForeignKey("CustomerID")]
         public virtual Customer Customer { get; set; }

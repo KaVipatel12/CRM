@@ -48,19 +48,18 @@
                 <!-- Checkboxes -->
                 <div class="flex items-center space-x-4">
                     <mat-checkbox class="text-teal-800 font-medium" color="primary"
-                        [(ngModel)]="filters.includeExcluded" (change)="onFilterChange()">Include
-                        Excluded</mat-checkbox>
+                        [(ngModel)]="filters.includeExcluded" (change)="onFilterChange()">Visibility Status (Show Excluded)</mat-checkbox>
                     <mat-checkbox class="text-teal-800 font-medium" color="primary"
-                        [(ngModel)]="filters.includeInactive" (change)="onFilterChange()">Include
-                        Inactive</mat-checkbox>
+                        [(ngModel)]="filters.includeInactive" (change)="onFilterChange()">Inactive Status</mat-checkbox>
                     <mat-checkbox class="text-teal-800 font-medium" color="primary"
-                        [(ngModel)]="filters.includeArchived" (change)="onFilterChange()">Archived</mat-checkbox>
+                        [(ngModel)]="filters.includeArchived" (change)="onFilterChange()">Archive Status</mat-checkbox>
                 </div>
             </div>
 
             <!-- Action Buttons -->
             <div class="flex items-center gap-3 mt-4 sm:mt-0">
-                <button mat-flat-button class="bg-teal-600 text-white rounded-md" color="primary">
+                <button mat-flat-button class="bg-teal-600 text-white rounded-md" color="primary"
+                    [routerLink]="['./upload']">
                     <mat-icon [svgIcon]="'heroicons_outline:arrow-up-tray'"></mat-icon>
                     <span class="ml-2">Upload File</span>
                 </button>
@@ -119,16 +118,31 @@
                     <!-- Status Column -->
                     <ng-container matColumnDef="status">
                         <th mat-header-cell *matHeaderCellDef
-                            class="bg-gray-50 text-teal-800 font-bold uppercase tracking-wider text-xs"> Status </th>
+                            class="padding-status bg-gray-50 text-teal-800 font-bold uppercase tracking-wider text-xs px-2"> Status </th>
                         <td mat-cell *matCellDef="let customer">
-                            <span *ngIf="!customer.isDeleted && customer.isActive"
-                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Active
-                            </span>
-                            <span *ngIf="customer.isDeleted || !customer.isActive"
-                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                Inactive
-                            </span>
+                            <div class="flex flex-wrap gap-1 items-center">
+                                <!-- Active/Inactive -->
+                                <span *ngIf="!customer.isDeleted && customer.isActive"
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
+                                    ACTIVE
+                                </span>
+                                <span *ngIf="customer.isDeleted || !customer.isActive"
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+                                    INACTIVE
+                                </span>
+
+                                <!-- Archive Status -->
+                                <span *ngIf="customer.isArchived"
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30">
+                                    ARCHIVED
+                                </span>
+
+                                <!-- Excluded status -->
+                                <span *ngIf="customer.isExcluded"
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30">
+                                    EXCLUDED
+                                </span>
+                            </div>
                         </td>
                     </ng-container>
 
@@ -137,15 +151,33 @@
                         <th mat-header-cell *matHeaderCellDef
                             class="bg-gray-50 text-teal-800 font-bold uppercase tracking-wider text-xs"> Action </th>
                         <td mat-cell *matCellDef="let customer">
-                            <div class="flex items-center gap-1">
-                                <button mat-icon-button class="text-teal-600" [routerLink]="['./', customer.id]">
-                                    <mat-icon [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
-                                </button>
-                                <button mat-icon-button color="warn" (click)="deleteCustomer(customer.id)">
-                                    <mat-icon [svgIcon]="'heroicons_outline:trash'" class="text-red-500"></mat-icon>
-                                </button>
-                            </div>
-                        </td>
+                            <div class="flex items-center">
+                            <button
+                                *ngIf="isChecker"
+                                mat-icon-button
+                                [disabled]="customer.lastVarifiedDate"
+                                matTooltip="Verify User"
+                                (click)="verifyCustomer(customer)">
+                                <mat-icon
+                                    class="icon-size-5"
+                                    [ngClass]="{'text-green-600': customer.lastVarifiedDate, 'text-secondary': !customer.lastVarifiedDate}"
+                                    [svgIcon]="'heroicons_solid:check-badge'"></mat-icon>
+                            </button>
+                            <a
+                                mat-icon-button
+                                [routerLink]="['./', customer.id]">
+                                <mat-icon
+                                    class="icon-size-5"
+                                    [svgIcon]="'heroicons_outline:pencil-square'"></mat-icon>
+                            </a>
+                            <button
+                                mat-icon-button
+                                (click)="deleteCustomer(customer.id)">
+                                <mat-icon
+                                    class="icon-size-5"
+                                    [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                            </button>
+                        </div>
                     </ng-container>
 
                     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

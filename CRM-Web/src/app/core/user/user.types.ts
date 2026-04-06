@@ -4,4 +4,7 @@ export interface User {
     email: string;
     avatar?: string;
     status?: string;
+    isAdmin?: boolean;
+    isChecker?: boolean;
+    isSuperAdmin?: boolean;
 }

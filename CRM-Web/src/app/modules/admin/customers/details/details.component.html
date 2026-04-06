@@ -61,8 +61,15 @@
                                         
                                         <!-- Client Detail Box -->
                                         <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20">
-                                            <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
-                                                Client Detail
+                                            <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800 flex items-center justify-between">
+                                                <span>Client Detail</span>
+                                                <!-- Change Customer Type Button kept here for easy access -->
+                                                <button type="button" mat-flat-button class="bg-teal-500 text-white text-xs px-3 h-7 min-w-0 rounded-md shadow-sm hover:bg-teal-600 transition-colors" 
+                                                        *ngIf="customerForm.get('clientType').value === 1 || customerForm.get('clientType').value === 3"
+                                                        (click)="changeCustomerType()">
+                                                    <mat-icon class="icon-size-4 mr-2" [svgIcon]="'heroicons_solid:user-group'"></mat-icon>
+                                                    Change Customer Type
+                                                </button>
                                             </div>
                                             <div class="p-4 space-y-1">
 
@@ -328,32 +335,190 @@
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <!-- Bank Account Detail Box -->
+                                        <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20">
+                                            <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800 flex items-center justify-between">
+                                                <span>Bank Account Detail</span>
+                                                <button type="button" mat-flat-button class="bg-teal-500 text-white text-xs px-3 h-7 min-w-0 rounded-md shadow-sm hover:bg-teal-600 transition-colors" 
+                                                        (click)="addBankAccount()">
+                                                    <mat-icon class="icon-size-4 mr-2" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
+                                                    Add Bank Detail
+                                                </button>
+                                            </div>
+                                            <div class="p-4 overflow-x-auto">
+                                                <table class="w-full text-left border-collapse" *ngIf="bankAccounts.length > 0">
+                                                    <thead>
+                                                        <tr class="text-xs font-semibold text-secondary uppercase tracking-wider border-b border-gray-200 dark:border-gray-800">
+                                                            <th class="pb-2 pr-4">Account Name</th>
+                                                            <th class="pb-2 pr-4">Bank Name</th>
+                                                            <th class="pb-2 pr-4">BSB</th>
+                                                            <th class="pb-2 pr-4">Account No#</th>
+                                                            <th class="pb-2 w-10"></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody formArrayName="bankAccounts">
+                                                        <tr *ngFor="let bank of bankAccounts.controls; let i = index" [formGroupName]="i" class="group">
+                                                            <td class="py-2 pr-4">
+                                                                <input class="w-full bg-transparent border-none focus:ring-0 p-0 text-sm font-medium" 
+                                                                       formControlName="accountName" placeholder="Account Name">
+                                                            </td>
+                                                            <td class="py-2 pr-4">
+                                                                <input class="w-full bg-transparent border-none focus:ring-0 p-0 text-sm" 
+                                                                       formControlName="bankName" placeholder="Bank Name">
+                                                            </td>
+                                                            <td class="py-2 pr-4">
+                                                                <input class="w-full bg-transparent border-none focus:ring-0 p-0 text-sm" 
+                                                                       formControlName="bsb" placeholder="BSB">
+                                                            </td>
+                                                            <td class="py-2 pr-4">
+                                                                <input class="w-full bg-transparent border-none focus:ring-0 p-0 text-sm" 
+                                                                       formControlName="accountNumber" placeholder="Account Number">
+                                                            </td>
+                                                            <td class="py-2 text-center">
+                                                                <button type="button" mat-icon-button class="text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity" 
+                                                                        (click)="removeBankAccount(i)">
+                                                                    <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:trash'"></mat-icon>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                                <div *ngIf="bankAccounts.length === 0" class="flex flex-col items-center justify-center py-8 text-secondary">
+                                                    <mat-icon class="icon-size-10 mb-2 opacity-20" [svgIcon]="'heroicons_outline:credit-card'"></mat-icon>
+                                                    <span class="text-xs">No bank accounts added yet.</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <!-- RIGHT COLUMN -->
                                     <div class="space-y-6">
+                                        <!-- Record Status Panel (Authorized Roles Only) -->
+                                        <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" *ngIf="editMode">
+                                            <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800 flex items-center justify-between">
+                                                <span>Administrative Status</span>
+                                                <mat-icon class="icon-size-4 text-teal-500" [svgIcon]="'heroicons_solid:shield-check'"></mat-icon>
+                                            </div>
+                                            <div class="p-4 grid grid-cols-1 gap-3">
+                                                
+                                                <!-- Active/Inactive Button -->
+                                                <button type="button" 
+                                                        class="flex items-center justify-between w-full px-4 py-3 rounded-lg border transition-all duration-200 group"
+                                                        [ngClass]="customerForm.get('isActive').value ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400' : 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700 text-gray-500'"
+                                                        (click)="toggleActive()">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="p-2 rounded-full" [ngClass]="customerForm.get('isActive').value ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/50' : 'bg-gray-300 dark:bg-gray-700 text-white'">
+                                                            <mat-icon class="icon-size-4" [svgIcon]="customerForm.get('isActive').value ? 'heroicons_solid:check' : 'heroicons_solid:x-mark'"></mat-icon>
+                                                        </div>
+                                                        <div class="flex flex-col items-start leading-none">
+                                                            <span class="text-xs font-semibold uppercase tracking-wider">Active Status</span>
+                                                            <span class="text-sm font-bold">{{ customerForm.get('isActive').value ? 'Active' : 'Inactive' }}</span>
+                                                        </div>
+                                                    </div>
+                                                    <mat-icon class="icon-size-5 opacity-0 group-hover:opacity-100 transition-opacity" [svgIcon]="'heroicons_mini:chevron-right'"></mat-icon>
+                                                </button>
+
+                                                <!-- Archived/UnArchived Button -->
+                                                <button type="button" 
+                                                        class="flex items-center justify-between w-full px-4 py-3 rounded-lg border transition-all duration-200 group"
+                                                        [ngClass]="customerForm.get('isArchived').value ? 'bg-amber-50 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/30 text-amber-700 dark:text-amber-400' : 'bg-blue-50 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/30 text-blue-700 dark:text-blue-400'"
+                                                        (click)="toggleArchived()">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="p-2 rounded-full" [ngClass]="customerForm.get('isArchived').value ? 'bg-amber-500 text-white' : 'bg-blue-500 text-white'">
+                                                            <mat-icon class="icon-size-4" [svgIcon]="customerForm.get('isArchived').value ? 'heroicons_solid:archive-box' : 'heroicons_solid:document-duplicate'"></mat-icon>
+                                                        </div>
+                                                        <div class="flex flex-col items-start leading-none">
+                                                            <span class="text-xs font-semibold uppercase tracking-wider">Filing Status</span>
+                                                            <span class="text-sm font-bold">{{ customerForm.get('isArchived').value ? 'Archived' : 'UnArchived' }}</span>
+                                                        </div>
+                                                    </div>
+                                                    <mat-icon class="icon-size-5 opacity-0 group-hover:opacity-100 transition-opacity" [svgIcon]="'heroicons_mini:chevron-right'"></mat-icon>
+                                                </button>
+
+                                                <!-- Exclude Button (Admin Only) -->
+                                                <button type="button" *ngIf="isAdmin"
+                                                        class="flex items-center justify-between w-full px-4 py-3 rounded-lg border transition-all duration-200 group"
+                                                        [ngClass]="customerForm.get('isExcluded').value ? 'bg-rose-50 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/30 text-rose-700 dark:text-rose-400' : 'border-gray-200 dark:border-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'"
+                                                        (click)="toggleExcluded()">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="p-2 rounded-full" [ngClass]="customerForm.get('isExcluded').value ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/50' : 'bg-gray-200 dark:bg-gray-700 text-gray-500'">
+                                                            <mat-icon class="icon-size-4" [svgIcon]="customerForm.get('isExcluded').value ? 'heroicons_solid:eye-slash' : 'heroicons_solid:eye'"></mat-icon>
+                                                        </div>
+                                                        <div class="flex flex-col items-start leading-none">
+                                                            <span class="text-xs font-semibold uppercase tracking-wider">Visibility</span>
+                                                            <span class="text-sm font-bold">{{ customerForm.get('isExcluded').value ? 'Excluded' : 'Included' }}</span>
+                                                        </div>
+                                                    </div>
+                                                    <mat-icon class="icon-size-5 opacity-0 group-hover:opacity-100 transition-opacity" [svgIcon]="'heroicons_mini:chevron-right'"></mat-icon>
+                                                </button>
+
+                                            </div>
+                                        </div>
+
+                                        <!-- Verification Status Box -->
+                                        <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" *ngIf="editMode">
+                                            <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
+                                                Verification Status
+                                            </div>
+                                            <div class="p-4 flex items-center justify-between gap-4">
+                                                <div class="text-sm text-secondary flex-1">
+                                                    <ng-container *ngIf="lastVarifiedDate; else notVerified">
+                                                        Last verified on <span class="font-semibold text-teal-600">{{lastVarifiedDate | date:'MMM dd, yyyy'}}</span>
+                                                        by <span class="font-semibold text-teal-600">{{lastVarifiedUserName}}</span>
+                                                    </ng-container>
+                                                    <ng-template #notVerified>
+                                                        <div class="flex items-center text-amber-600 font-semibold text-base whitespace-nowrap">
+                                                            <mat-icon class="icon-size-5 mr-3 text-current" [svgIcon]="'heroicons_solid:exclamation-triangle'"></mat-icon>
+                                                            Not verified yet
+                                                        </div>
+                                                    </ng-template>
+                                                </div>
+                                                <div *ngIf="isChecker && !lastVarifiedDate">
+                                                    <button mat-flat-button class="bg-teal-500 text-white hover:bg-teal-600 transition-colors px-8 min-w-36 h-10 flex items-center justify-center rounded-lg shadow-sm" (click)="verify()" type="button">
+                                                        <mat-icon class="icon-size-5 mr-6" [svgIcon]="'heroicons_solid:check-badge'"></mat-icon>
+                                                        <span class="font-bold tracking-wide">Verify</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
                                         <!-- Communication Detail Box -->
                                         <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" formGroupName="contactInfo">
                                             <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
                                                 Communication Detail
                                             </div>
-                                            <div class="p-4 flex flex-col gap-2">
-                                                <div class="flex gap-4">
-                                                    <mat-form-field class="flex-1">
-                                                        <mat-label>Mobile</mat-label>
-                                                        <input matInput formControlName="cellPhone" required>
-                                                        <mat-error *ngIf="customerForm.get('contactInfo.cellPhone').hasError('required')">
-                                                            Mobile is or compulsory
-                                                        </mat-error>
-                                                    </mat-form-field>
-                                                    <mat-form-field class="flex-1">
-                                                        <mat-label>Work Phone</mat-label>
-                                                        <input matInput formControlName="workPhone">
-                                                    </mat-form-field>
-                                                </div>
+                                            <div class="p-4 space-y-4">
+                                                <!-- Row 1: Salutation -->
                                                 <mat-form-field class="w-full">
-                                                    <mat-label>Email</mat-label>
+                                                    <mat-label>Salutation</mat-label>
+                                                    <input matInput formControlName="salutation">
+                                                </mat-form-field>
+
+                                                <!-- Row 2: Mobile -->
+                                                <mat-form-field class="w-full">
+                                                    <mat-label>Mobile Number</mat-label>
+                                                    <input matInput formControlName="cellPhone" required>
+                                                    <mat-error *ngIf="customerForm.get('contactInfo.cellPhone').hasError('required')">
+                                                        Mobile is compulsory
+                                                    </mat-error>
+                                                </mat-form-field>
+
+                                                <!-- Row 3: Work Phone -->
+                                                <mat-form-field class="w-full">
+                                                    <mat-label>Work Phone Number</mat-label>
+                                                    <input matInput formControlName="workPhone">
+                                                </mat-form-field>
+
+                                                <!-- Row 4-5: Emails -->
+                                                <mat-form-field class="w-full">
+                                                    <mat-label>Email 1</mat-label>
                                                     <input matInput formControlName="email">
+                                                </mat-form-field>
+                                                <mat-form-field class="w-full">
+                                                    <mat-label>Email 2</mat-label>
+                                                    <input matInput formControlName="email2">
                                                 </mat-form-field>
                                             </div>
                                         </div>

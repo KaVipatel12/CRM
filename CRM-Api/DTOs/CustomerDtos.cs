@@ -30,11 +30,14 @@ namespace CRM_Api.DTOs
         public string? GroupName { get; set; }
         public int? LastVarifiedBy { get; set; }
         public DateTime? LastVarifiedDate { get; set; }
+        public bool? IsArchived { get; set; }
+        public bool? IsExcluded { get; set; }
         public bool IsDeleted { get; set; }
     }
 
     public class CustomerDetailsDto : CustomerListDto
     {
+        public string? LastVarifiedUserName { get; set; }
         public string? ABNNumber { get; set; }
         public string? TFNNumber { get; set; }
         public string? Phone { get; set; }
@@ -53,6 +56,7 @@ namespace CRM_Api.DTOs
         public ContactInfoDto? ContactInfo { get; set; }
         public IndividualInfoDto? IndividualInfo { get; set; }
         public CompanyInfoDto? CompanyInfo { get; set; }
+        public List<BankAccountDto>? BankAccounts { get; set; }
     }
 
     public class CustomerSaveDto
@@ -76,20 +80,25 @@ namespace CRM_Api.DTOs
         public string? MailingName { get; set; }
         public string? Partner { get; set; }
         public string? Manager { get; set; }
+        public bool? IsArchived { get; set; }
+        public bool? IsExcluded { get; set; }
 
         public ContactInfoDto? ContactInfo { get; set; }
         public IndividualInfoDto? IndividualInfo { get; set; }
         public CompanyInfoDto? CompanyInfo { get; set; }
         public List<AddressDto>? Addresses { get; set; }
+        public List<BankAccountDto>? BankAccounts { get; set; }
     }
 
     public class ContactInfoDto
     {
         public int Id { get; set; }
+        public string? Salutation { get; set; }
         public string? ContactName { get; set; }
-        public string? Email { get; set; }
         public string? CellPhone { get; set; }
         public string? WorkPhone { get; set; }
+        public string? Email { get; set; }
+        public string? Email2 { get; set; }
     }
 
     public class IndividualInfoDto
@@ -118,5 +127,14 @@ namespace CRM_Api.DTOs
         public string? State { get; set; }
         public string? PostalCode { get; set; }
         public string? Country { get; set; }
+    }
+
+    public class BankAccountDto
+    {
+        public int Id { get; set; }
+        public string? AccountName { get; set; }
+        public string? BankName { get; set; }
+        public string? BSB { get; set; }
+        public string? AccountNumber { get; set; }
     }
 }

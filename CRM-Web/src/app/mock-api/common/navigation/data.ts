@@ -17,6 +17,13 @@ export const defaultNavigation: FuseNavigationItem[] = [
         link : '/customer'
     },
     {
+        id   : 'bulk-upload',
+        title: 'Bulk Upload',
+        type : 'basic',
+        icon : 'heroicons_outline:cloud-arrow-up',
+        link : '/customer/upload'
+    },
+    {
         id   : 'jobs',
         title: 'Jobs',
         type : 'basic',
@@ -68,6 +75,13 @@ export const compactNavigation: FuseNavigationItem[] = [
         link : '/customer'
     },
     {
+        id   : 'bulk-upload',
+        title: 'Bulk Upload',
+        type : 'basic',
+        icon : 'heroicons_outline:cloud-arrow-up',
+        link : '/customer/upload'
+    },
+    {
         id   : 'jobs',
         title: 'Jobs',
         type : 'basic',
@@ -117,6 +131,13 @@ export const futuristicNavigation: FuseNavigationItem[] = [
         type : 'basic',
         icon : 'heroicons_outline:user-group',
         link : '/customer'
+    },
+    {
+        id   : 'bulk-upload',
+        title: 'Bulk Upload',
+        type : 'basic',
+        icon : 'heroicons_outline:cloud-arrow-up',
+        link : '/customer/upload'
     },
     {
         id   : 'jobs',

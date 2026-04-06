@@ -70,4 +70,34 @@ export class CustomerService {
     deleteCustomer(id: number): Observable<void> {
         return this._httpClient.delete<void>(`${this._baseUrl}/${id}`);
     }
+
+    /**
+     * File Upload History
+     */
+    getUploadHistory(): Observable<any[]> {
+        return this._httpClient.get<any[]>('api/FileUpload/history');
+    }
+
+    /**
+     * Upload Bulk File
+     */
+    uploadFile(file: File): Observable<any> {
+        const formData = new FormData();
+        formData.append('file', file);
+        return this._httpClient.post<any>('api/FileUpload/upload', formData);
+    }
+
+    /**
+     * Trigger bulk processing
+     */
+    processFile(id: number): Observable<any> {
+        return this._httpClient.post<any>(`api/FileUpload/process/${id}`, {});
+    }
+
+    /**
+     * Verify Customer
+     */
+    verifyCustomer(id: number): Observable<boolean> {
+        return this._httpClient.post<boolean>(`${this._baseUrl}/${id}/verify`, {});
+    }
 }

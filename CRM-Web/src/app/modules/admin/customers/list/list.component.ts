@@ -17,6 +17,8 @@ import { CustomerService } from '../customer.service';
 import { LookupService } from '../lookup.service';
 import { debounceTime, Subject, takeUntil } from 'rxjs';
 import { FuseConfirmationService } from '@fuse/services/confirmation';
+import { UserService } from 'app/core/user/user.service';
+import { User } from 'app/core/user/user.types';
 
 @Component({
     selector     : 'customers-list',
@@ -60,14 +62,15 @@ export class ListComponent implements OnInit {
     
     contactTypes: any[] = [];
     customerTypes: any[] = [];
-
     isLoading: boolean = false;
+    isChecker: boolean = false;
     private _searchSubject: Subject<string> = new Subject<string>();
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     constructor(
         private _customerService: CustomerService,
         private _lookupService: LookupService,
+        private _userService: UserService,
         private _fuseConfirmationService: FuseConfirmationService,
         private _snackBar: MatSnackBar
     ) {}
@@ -76,6 +79,13 @@ export class ListComponent implements OnInit {
         this.loadLookups();
         this.loadCustomers();
         
+        // Check if user is a checker
+        this._userService.user$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((user: User) => {
+                this.isChecker = user.isChecker || user.isSuperAdmin;
+            });
+
         // Setup search throttling
         this._searchSubject.pipe(
             debounceTime(400),
@@ -173,6 +183,54 @@ export class ListComponent implements OnInit {
                         }
                         
                         this._snackBar.open(errorMessage, 'Close', {
+                            duration: 4000,
+                            horizontalPosition: 'right',
+                            verticalPosition: 'top',
+                            panelClass: ['bg-red-600', 'text-white']
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    verifyCustomer(customer: Customer): void {
+        const dialogRef = this._fuseConfirmationService.open({
+            title: 'Verify Customer',
+            message: `Are you sure you want to verify <b>${customer.name}</b>?`,
+            icon: {
+                show: true,
+                name: 'heroicons_outline:check-badge',
+                color: 'success',
+            },
+            actions: {
+                confirm: {
+                    show: true,
+                    label: 'Verify',
+                    color: 'primary',
+                },
+                cancel: {
+                    show: true,
+                    label: 'Cancel',
+                },
+            },
+            dismissible: true,
+        });
+
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result === 'confirmed') {
+                this._customerService.verifyCustomer(customer.id).subscribe({
+                    next: () => {
+                        this._snackBar.open('Customer verified successfully.', 'Close', {
+                            duration: 3000,
+                            horizontalPosition: 'right',
+                            verticalPosition: 'top',
+                            panelClass: ['bg-green-600', 'text-white']
+                        });
+                        this.loadCustomers();
+                    },
+                    error: () => {
+                        this._snackBar.open('Failed to verify customer.', 'Close', {
                             duration: 4000,
                             horizontalPosition: 'right',
                             verticalPosition: 'top',

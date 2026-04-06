@@ -3,7 +3,10 @@ using CRM_Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace CRM_Api.Controllers
 {
@@ -85,6 +88,26 @@ namespace CRM_Api.Controllers
 
             bool isDuplicate = await _customerService.CheckDuplicateCodeAsync(code);
             return Ok(isDuplicate);
+        }
+
+        [HttpPost("{id:int}/verify")]
+        [Authorize(Roles = "Checker")]
+        public async Task<IActionResult> VerifyCustomer(int id)
+        {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                               ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
+            {
+                return Unauthorized();
+            }
+
+            var result = await _customerService.VerifyCustomerAsync(id, userId);
+            if (!result)
+            {
+                return NotFound();
+            }
+            return Ok(true);
         }
     }
 }

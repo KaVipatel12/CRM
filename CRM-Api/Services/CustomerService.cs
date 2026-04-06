@@ -1,9 +1,12 @@
 using CRM_Api.Data;
 using CRM_Api.DTOs;
 using CRM_Api.Models.Entities.Customer;
+using CRM_Api.Models.Entities.Utilities;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -26,17 +29,23 @@ namespace CRM_Api.Services
                 .Include(c => c.CompanyInfo)
                 .AsQueryable();
 
-            if (filter.IncludeArchived)
+            // Filtering logic
+            if (!filter.IncludeArchived)
             {
-                query = query.Where(c => c.IsDeleted);
+                query = query.Where(c => c.IsArchived == false || c.IsArchived == null);
             }
-            else if (!filter.IncludeInactive)
+            
+            if (!filter.IncludeExcluded)
             {
-                // Standard view: Show only non-deleted and non-inactive contacts
-                query = query.Where(c => !c.IsDeleted);
+                query = query.Where(c => c.IsExcluded == false || c.IsExcluded == null);
+            }
+
+            if (!filter.IncludeInactive)
+            {
                 query = query.Where(c => c.IsActive == true || c.IsActive == null);
             }
-            // If IncludeInactive is true, we show the full list (Active, Inactive, and Archived) as per request.
+            
+            query = query.Where(c => !c.IsDeleted);
 
             if (filter.ContactType.HasValue && filter.ContactType.Value > 0)
             {
@@ -84,6 +93,8 @@ namespace CRM_Api.Services
                     GroupName = c.GroupName,
                     LastVarifiedBy = c.LastVarifiedBy,
                     LastVarifiedDate = c.LastVarifiedDate,
+                    IsArchived = c.IsArchived,
+                    IsExcluded = c.IsExcluded,
                     IsDeleted = c.IsDeleted
                 })
                 .ToListAsync();
@@ -128,13 +139,25 @@ namespace CRM_Api.Services
                 Phone = customer.ContactInfo?.WorkPhone,
                 Mobile = customer.ContactInfo?.CellPhone,
                 Website = customer.CompanyInfo?.WebSite,
+                IsArchived = customer.IsArchived,
+                IsExcluded = customer.IsExcluded,
+                BankAccounts = customer.BankAccounts?.Select(b => new BankAccountDto
+                {
+                    Id = b.Id,
+                    AccountName = b.AccountName,
+                    BankName = b.BankName,
+                    BSB = b.BSB,
+                    AccountNumber = b.AccountNumber
+                }).ToList(),
                 ContactInfo = customer.ContactInfo != null ? new ContactInfoDto
                 {
                     Id = customer.ContactInfo.Id,
+                    Salutation = customer.ContactInfo.Salutation,
                     ContactName = customer.ContactInfo.ContactName,
-                    Email = customer.ContactInfo.Email,
                     CellPhone = customer.ContactInfo.CellPhone,
-                    WorkPhone = customer.ContactInfo.WorkPhone
+                    WorkPhone = customer.ContactInfo.WorkPhone,
+                    Email = customer.ContactInfo.Email,
+                    Email2 = customer.ContactInfo.Email2
                 } : null,
                 IndividualInfo = customer.IndividualInfo != null ? new IndividualInfoDto
                 {
@@ -166,7 +189,12 @@ namespace CRM_Api.Services
                     State = a.State,
                     PostalCode = a.PostalCode,
                     Country = a.Country
-                }).ToList()
+                }).ToList(),
+                LastVarifiedBy = customer.LastVarifiedBy,
+                LastVarifiedDate = customer.LastVarifiedDate,
+                LastVarifiedUserName = customer.LastVarifiedBy.HasValue 
+                    ? _context.Users.Where(u => u.ID == customer.LastVarifiedBy.Value).Select(u => u.FirstName + " " + u.LastName).FirstOrDefault() 
+                    : null
             };
         }
 
@@ -195,6 +223,8 @@ namespace CRM_Api.Services
                     MailingName = dto.MailingName,
                     Partner = dto.Partner,
                     Manager = dto.Manager,
+                    IsArchived = dto.IsArchived,
+                    IsExcluded = dto.IsExcluded,
                     CreatedDate = DateTime.Now,
                     IsDeleted = false
                 };
@@ -208,10 +238,12 @@ namespace CRM_Api.Services
                     var contact = new ContactInfo
                     {
                         CustomerID = customer.Id,
+                        Salutation = dto.ContactInfo.Salutation,
                         ContactName = dto.ContactInfo.ContactName,
-                        Email = dto.ContactInfo.Email,
                         CellPhone = dto.ContactInfo.CellPhone,
-                        WorkPhone = dto.ContactInfo.WorkPhone
+                        WorkPhone = dto.ContactInfo.WorkPhone,
+                        Email = dto.ContactInfo.Email,
+                        Email2 = dto.ContactInfo.Email2
                     };
                     _context.ContactInfos.Add(contact);
                 }
@@ -316,6 +348,8 @@ namespace CRM_Api.Services
                 customer.MailingName = dto.MailingName;
                 customer.Partner = dto.Partner;
                 customer.Manager = dto.Manager;
+                customer.IsArchived = dto.IsArchived;
+                customer.IsExcluded = dto.IsExcluded;
                 customer.UpdateDateTime = DateTime.Now;
 
                 // Update Contact Info
@@ -326,10 +360,12 @@ namespace CRM_Api.Services
                         customer.ContactInfo = new ContactInfo { CustomerID = id };
                         _context.ContactInfos.Add(customer.ContactInfo);
                     }
+                    customer.ContactInfo.Salutation = dto.ContactInfo.Salutation;
                     customer.ContactInfo.ContactName = dto.ContactInfo.ContactName;
-                    customer.ContactInfo.Email = dto.ContactInfo.Email;
                     customer.ContactInfo.CellPhone = dto.ContactInfo.CellPhone;
                     customer.ContactInfo.WorkPhone = dto.ContactInfo.WorkPhone;
+                    customer.ContactInfo.Email = dto.ContactInfo.Email;
+                    customer.ContactInfo.Email2 = dto.ContactInfo.Email2;
                     customer.ContactInfo.UpdateDateTime = DateTime.Now;
                 }
 
@@ -412,6 +448,39 @@ namespace CRM_Api.Services
                     }
                 }
 
+                // Update Bank Accounts
+                if (dto.BankAccounts != null)
+                {
+                    var existingBankIds = dto.BankAccounts.Select(b => b.Id).ToList();
+                    var banksToRemove = customer.BankAccounts.Where(b => !existingBankIds.Contains(b.Id)).ToList();
+                    _context.BankAccounts.RemoveRange(banksToRemove);
+
+                    foreach (var bankDto in dto.BankAccounts)
+                    {
+                        var existingBank = customer.BankAccounts.FirstOrDefault(b => b.Id == bankDto.Id);
+                        if (existingBank != null)
+                        {
+                            existingBank.AccountName = bankDto.AccountName;
+                            existingBank.BankName = bankDto.BankName;
+                            existingBank.BSB = bankDto.BSB;
+                            existingBank.AccountNumber = bankDto.AccountNumber;
+                            existingBank.UpdateDateTime = DateTime.Now;
+                        }
+                        else
+                        {
+                            customer.BankAccounts.Add(new BankAccount
+                            {
+                                CustomerID = id,
+                                AccountName = bankDto.AccountName,
+                                BankName = bankDto.BankName,
+                                BSB = bankDto.BSB,
+                                AccountNumber = bankDto.AccountNumber,
+                                UpdateDateTime = DateTime.Now
+                            });
+                        }
+                    }
+                }
+
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
                 return true;
@@ -443,6 +512,133 @@ namespace CRM_Api.Services
 
             customer.IsDeleted = true;
             customer.UpdateDateTime = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        
+        public async Task<IEnumerable<FileUploadInfoDto>> GetUploadHistoryAsync()
+        {
+            return await _context.FileUploadInfos
+                .OrderByDescending(f => f.UploadDate)
+                .Select(f => new FileUploadInfoDto
+                {
+                    Id = f.Id,
+                    FileType = f.FileType,
+                    FileOriginalName = f.FileOriginalName,
+                    FileServerPath = f.FileServerPath,
+                    FileSize = f.FileSize,
+                    RecordCount = f.RecordCount,
+                    RecordProcessed = f.RecordProcessed,
+                    RecordFailed = f.RecordFailed,
+                    UploadedBy = f.UploadedBy,
+                    UploadDate = f.UploadDate,
+                    ProcessedDate = f.ProcessedDate,
+                    ProcessResult = f.ProcessResult,
+                    ProcessResultLogFile = f.ProcessResultLogFile
+                })
+                .ToListAsync();
+        }
+
+        public async Task<FileUploadInfoDto> ProcessFileAsync(int fileId)
+        {
+            var fileInfo = await _context.FileUploadInfos.FindAsync(fileId);
+            if (fileInfo == null) throw new Exception("File info not found");
+
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), fileInfo.FileServerPath);
+            if (!File.Exists(filePath)) throw new FileNotFoundException("File not found on server", filePath);
+
+            int processed = 0;
+            int failed = 0;
+            var errorLogs = new List<string>();
+
+            using (var package = new ExcelPackage(new FileInfo(filePath)))
+            {
+                var worksheet = package.Workbook.Worksheets[0];
+                int rowCount = worksheet.Dimension.Rows;
+                fileInfo.RecordCount = rowCount - 1; // Subtract header
+
+                for (int row = 2; row <= rowCount; row++)
+                {
+                    try
+                    {
+                        var dto = new CustomerSaveDto
+                        {
+                            Name = worksheet.Cells[row, 1].Text,
+                            Code = worksheet.Cells[row, 8].Text,
+                            TradingName = worksheet.Cells[row, 117].Text,
+                            ABNNumber = worksheet.Cells[row, 10].Text,
+                            TFNNumber = worksheet.Cells[row, 97].Text,
+                            IsActive = true,
+                            ContactInfo = new ContactInfoDto
+                            {
+                                Email = worksheet.Cells[row, 3].Text,
+                                CellPhone = worksheet.Cells[row, 2].Text,
+                                WorkPhone = worksheet.Cells[row, 5].Text
+                            }
+                        };
+
+                        // Determine ClientType
+                        var typeStr = worksheet.Cells[row, 93].Text.ToLower();
+                        if (typeStr == "individual") dto.ClientType = 1;
+                        else if (typeStr == "company") dto.ClientType = 2;
+                        else if (typeStr == "sole proprietor" || typeStr == "soleproprietor") dto.ClientType = 3;
+                        else dto.ClientType = 1; // Default to Individual
+
+                        if (dto.ClientType == 1 || dto.ClientType == 3)
+                        {
+                            dto.IndividualInfo = new IndividualInfoDto
+                            {
+                                FirstName = worksheet.Cells[row, 40].Text,
+                                LastName = worksheet.Cells[row, 55].Text,
+                                Gender = worksheet.Cells[row, 94].Text.ToLower() == "male" ? 1 : (worksheet.Cells[row, 94].Text.ToLower() == "female" ? 2 : 0)
+                            };
+                            if (DateTime.TryParse(worksheet.Cells[row, 6].Text, out DateTime dob))
+                            {
+                                dto.IndividualInfo.DateOfBirth = dob;
+                            }
+                        }
+
+                        await CreateCustomerAsync(dto);
+                        processed++;
+                    }
+                    catch (Exception ex)
+                    {
+                        failed++;
+                        errorLogs.Add($"Row {row}: {ex.Message}");
+                    }
+                }
+            }
+
+            fileInfo.RecordProcessed = processed;
+            fileInfo.RecordFailed = failed;
+            fileInfo.ProcessedDate = DateTime.Now;
+            fileInfo.ProcessResult = failed == 0 ? 1 : 2; // 1=Success, 2=Partial/Error
+            
+            if (errorLogs.Any())
+            {
+                fileInfo.ProcessResultLogFile = string.Join("\n", errorLogs);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return new FileUploadInfoDto
+            {
+                Id = fileInfo.Id,
+                RecordCount = fileInfo.RecordCount,
+                RecordProcessed = processed,
+                RecordFailed = failed,
+                ProcessResult = fileInfo.ProcessResult,
+                ProcessedDate = fileInfo.ProcessedDate
+            };
+        }
+        public async Task<bool> VerifyCustomerAsync(int id, int userId)
+        {
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer == null) return false;
+
+            customer.LastVarifiedBy = userId;
+            customer.LastVarifiedDate = DateTime.Now;
 
             await _context.SaveChangesAsync();
             return true;

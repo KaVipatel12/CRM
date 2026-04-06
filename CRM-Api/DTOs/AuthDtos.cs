@@ -34,5 +34,8 @@ namespace CRM_Api.DTOs
         public string? Email { get; set; }
         public string? Avatar { get; set; }
         public string? Status { get; set; }
+        public bool? IsAdmin { get; set; }
+        public bool? IsChecker { get; set; }
+        public bool? IsSuperAdmin { get; set; }
     }
 }

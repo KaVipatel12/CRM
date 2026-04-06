@@ -165,3 +165,14 @@ D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\runtimes\unix\lib\ne
 D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\runtimes\win\lib\net9.0\Microsoft.Data.SqlClient.dll
 D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\runtimes\win\lib\net9.0\System.Diagnostics.EventLog.dll
 D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\runtimes\win\lib\net9.0\System.Security.Cryptography.Pkcs.dll
+D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\EPPlus.dll
+D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\EPPlus.Interfaces.dll
+D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\Microsoft.Extensions.Configuration.dll
+D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\Microsoft.Extensions.Configuration.Abstractions.dll
+D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\Microsoft.Extensions.Configuration.FileExtensions.dll
+D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\Microsoft.Extensions.Configuration.Json.dll
+D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\Microsoft.Extensions.FileProviders.Abstractions.dll
+D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\Microsoft.Extensions.FileProviders.Physical.dll
+D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\Microsoft.Extensions.FileSystemGlobbing.dll
+D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\Microsoft.IO.RecyclableMemoryStream.dll
+D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\System.Security.Cryptography.Xml.dll

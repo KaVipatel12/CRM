@@ -14,6 +14,19 @@ export interface Customer {
     mobile?: string;
     website?: string;
     isDeleted?: boolean;
+    isArchived?: boolean;
+    isExcluded?: boolean;
+    lastVarifiedDate?: string | Date;
+    lastVarifiedUserName?: string;
+    bankAccounts?: BankAccount[];
+}
+
+export interface BankAccount {
+    id: number;
+    accountName: string;
+    bankName: string;
+    bsb: string;
+    accountNumber: string;
 }
 
 export interface CustomerListFilter {
@@ -41,8 +54,10 @@ export interface Address {
 
 export interface ContactInfo {
     id: number;
+    salutation?: string;
     contactName?: string;
-    email?: string;
     cellPhone?: string;
     workPhone?: string;
+    email?: string;
+    email2?: string;
 }
