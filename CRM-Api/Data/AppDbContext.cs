@@ -98,24 +98,60 @@ namespace CRM_Api.Data
                 new TypeMaster { ID = 3, Type = "BAS", ShortCode = "BAS" },
                 new TypeMaster { ID = 4, Type = "Bookkeeping ", ShortCode = "BK" },
                 new TypeMaster { ID = 5, Type = "Business Registration", ShortCode = "BREG" },
-                new TypeMaster { ID = 6, Type = "Company Tax Return", ShortCode = "CTR" },
-                new TypeMaster { ID = 7, Type = "CRE", ShortCode = "CRE" },
-                new TypeMaster { ID = 8, Type = "DASP", ShortCode = "DASP" },
-                new TypeMaster { ID = 9, Type = "FBT", ShortCode = "FBT" },
-                new TypeMaster { ID = 10, Type = "Financial Statement", ShortCode = "FS" },
-                new TypeMaster { ID = 11, Type = "General", ShortCode = "GEN" },
-                new TypeMaster { ID = 12, Type = "Group Certificate", ShortCode = "GRPCER" },
-                new TypeMaster { ID = 13, Type = "GST", ShortCode = "GST" },
-                new TypeMaster { ID = 14, Type = "I Tax Return", ShortCode = "ITR" },
-                new TypeMaster { ID = 15, Type = "Imported WIP", ShortCode = "IMPWIP" },
-                new TypeMaster { ID = 16, Type = "Partnership Tax Return", ShortCode = "PTR" },
-                new TypeMaster { ID = 17, Type = "PAYG MONTHLY", ShortCode = "PAYGM" },
-                new TypeMaster { ID = 18, Type = "SMSF", ShortCode = "SMSF" },
-                new TypeMaster { ID = 19, Type = "Super Contribution", ShortCode = "SPRCON" },
-                new TypeMaster { ID = 20, Type = "SuperSetup", ShortCode = "SPRSET" },
-                new TypeMaster { ID = 21, Type = "Tax Return Amendment", ShortCode = "TRA" },
-                new TypeMaster { ID = 22, Type = "WAGES", ShortCode = "WAGES" },
-                new TypeMaster { ID = 23, Type = "Comunication Email", ShortCode = "EMAIL" }
+                new TypeMaster { ID = 6, Type = "Compliance", ShortCode = "COMP" },
+                new TypeMaster { ID = 7, Type = "FBT", ShortCode = "FBT" },
+                new TypeMaster { ID = 8, Type = "General Queries", ShortCode = "GQ" },
+                new TypeMaster { ID = 9, Type = "Financial Statements", ShortCode = "FINS" },
+                new TypeMaster { ID = 10, Type = "Income Tax Return", ShortCode = "ITR" },
+                new TypeMaster { ID = 11, Type = "IAS", ShortCode = "IAS" },
+                new TypeMaster { ID = 12, Type = "PAYG Summary", ShortCode = "PAYG" },
+                new TypeMaster { ID = 13, Type = "Payroll", ShortCode = "PR" },
+                new TypeMaster { ID = 14, Type = "Work Cover", ShortCode = "WC" },
+                new TypeMaster { ID = 15, Type = "TFN Declaration", ShortCode = "TFN" },
+                new TypeMaster { ID = 16, Type = "STP Finalisation", ShortCode = "STPF" },
+                new TypeMaster { ID = 17, Type = "Others", ShortCode = "OTH" },
+                new TypeMaster { ID = 18, Type = "Payroll Tax", ShortCode = "PR T" },
+                new TypeMaster { ID = 19, Type = "Superannuation Guarantee", ShortCode = "SGC" },
+                new TypeMaster { ID = 20, Type = "Taxable Payments Annual Repor", ShortCode = "TPAR" },
+                new TypeMaster { ID = 21, Type = "TFN/ABN/PAYG Registration ", ShortCode = "REG" }
+            );
+
+            // Seed BusinessType (from old SSPCRM database)
+            modelBuilder.Entity<BusinessType>().HasData(
+                new BusinessType { Id = 1, BusinessTypeNM = "Restaurant" },
+                new BusinessType { Id = 2, BusinessTypeNM = "Massage" },
+                new BusinessType { Id = 3, BusinessTypeNM = "Education agent" },
+                new BusinessType { Id = 4, BusinessTypeNM = "Car wash" },
+                new BusinessType { Id = 5, BusinessTypeNM = "Real estate agent" },
+                new BusinessType { Id = 6, BusinessTypeNM = "Mortgage broker" },
+                new BusinessType { Id = 7, BusinessTypeNM = "Cafe" },
+                new BusinessType { Id = 8, BusinessTypeNM = "Roof restoration" },
+                new BusinessType { Id = 9, BusinessTypeNM = "Tiler" },
+                new BusinessType { Id = 10, BusinessTypeNM = "Plumber" },
+                new BusinessType { Id = 11, BusinessTypeNM = "Electrician" },
+                new BusinessType { Id = 12, BusinessTypeNM = "Air conditioner mechanic" },
+                new BusinessType { Id = 13, BusinessTypeNM = "House builder" },
+                new BusinessType { Id = 14, BusinessTypeNM = "Transport" },
+                new BusinessType { Id = 15, BusinessTypeNM = "GYM" },
+                new BusinessType { Id = 16, BusinessTypeNM = "Education institute" },
+                new BusinessType { Id = 17, BusinessTypeNM = "Tattoo Artist" },
+                new BusinessType { Id = 18, BusinessTypeNM = "Accounting Firm" },
+                new BusinessType { Id = 19, BusinessTypeNM = "Panel Beater" },
+                new BusinessType { Id = 20, BusinessTypeNM = "Painter" }
+            );
+
+            // Seed TradingStatus (from old SSPCRM database)
+            modelBuilder.Entity<TradingStatus>().HasData(
+                new TradingStatus { Id = 1, Name = "Active But Not Trading" },
+                new TradingStatus { Id = 2, Name = "Trading Quarterly" },
+                new TradingStatus { Id = 3, Name = "Trading Annually" },
+                new TradingStatus { Id = 4, Name = "Not active & not trading" }
+            );
+
+            // Seed TaxAgent
+            modelBuilder.Entity<TaxAgent>().HasData(
+                new TaxAgent { Id = 1, Name = "Internal Agent" },
+                new TaxAgent { Id = 2, Name = "External Agent" }
             );
         }
     }

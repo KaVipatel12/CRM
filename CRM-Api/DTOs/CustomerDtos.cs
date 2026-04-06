@@ -45,6 +45,9 @@ namespace CRM_Api.DTOs
         public int? TaxAgent { get; set; }
         public int? StaffInCharge { get; set; }
         public bool? PostNewsLetter { get; set; }
+        public string? MailingName { get; set; }
+        public string? Partner { get; set; }
+        public string? Manager { get; set; }
         public List<AddressDto>? Addresses { get; set; }
         public ContactInfoDto? ContactInfo { get; set; }
         public IndividualInfoDto? IndividualInfo { get; set; }
@@ -69,6 +72,9 @@ namespace CRM_Api.DTOs
         public int? TaxAgent { get; set; }
         public int? StaffInCharge { get; set; }
         public bool? PostNewsLetter { get; set; }
+        public string? MailingName { get; set; }
+        public string? Partner { get; set; }
+        public string? Manager { get; set; }
 
         public ContactInfoDto? ContactInfo { get; set; }
         public IndividualInfoDto? IndividualInfo { get; set; }

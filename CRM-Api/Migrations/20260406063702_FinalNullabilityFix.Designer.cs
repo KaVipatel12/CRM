@@ -4,6 +4,7 @@ using CRM_Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CRM_Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260406063702_FinalNullabilityFix")]
+    partial class FinalNullabilityFix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,33 +35,41 @@ namespace CRM_Api.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AddressLine1")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("AddressLine2")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("AddressLine3")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Addressee")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("BranchID")
                         .HasColumnType("int");
 
                     b.Property<string>("City")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Country")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CustomerID")
                         .HasColumnType("int");
 
                     b.Property<string>("PostalCode")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("State")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Type")
@@ -89,6 +100,7 @@ namespace CRM_Api.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("BranchName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CustomerID")
@@ -669,61 +681,61 @@ namespace CRM_Api.Migrations
                         {
                             Id = 1,
                             CustomerTypeNM = "Individual",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 979, DateTimeKind.Local).AddTicks(1434)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 7, 1, 318, DateTimeKind.Local).AddTicks(9458)
                         },
                         new
                         {
                             Id = 2,
                             CustomerTypeNM = "Company",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8936)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 7, 1, 320, DateTimeKind.Local).AddTicks(3569)
                         },
                         new
                         {
                             Id = 3,
                             CustomerTypeNM = "Sole Proprietor",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8957)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 7, 1, 320, DateTimeKind.Local).AddTicks(3581)
                         },
                         new
                         {
                             Id = 4,
                             CustomerTypeNM = "Trust",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8958)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 7, 1, 320, DateTimeKind.Local).AddTicks(3582)
                         },
                         new
                         {
                             Id = 5,
                             CustomerTypeNM = "AKA",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8959)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 7, 1, 320, DateTimeKind.Local).AddTicks(3583)
                         },
                         new
                         {
                             Id = 6,
                             CustomerTypeNM = "Partnership",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8960)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 7, 1, 320, DateTimeKind.Local).AddTicks(3584)
                         },
                         new
                         {
                             Id = 7,
                             CustomerTypeNM = "SMSF",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8961)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 7, 1, 320, DateTimeKind.Local).AddTicks(3585)
                         },
                         new
                         {
                             Id = 8,
                             CustomerTypeNM = "Staff",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8962)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 7, 1, 320, DateTimeKind.Local).AddTicks(3586)
                         },
                         new
                         {
                             Id = 9,
                             CustomerTypeNM = "Supplier",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8963)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 7, 1, 320, DateTimeKind.Local).AddTicks(3586)
                         },
                         new
                         {
                             Id = 10,
                             CustomerTypeNM = "Other",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8964)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 7, 1, 320, DateTimeKind.Local).AddTicks(3587)
                         });
                 });
 

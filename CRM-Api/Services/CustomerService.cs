@@ -105,6 +105,9 @@ namespace CRM_Api.Services
                 TaxAgent = int.TryParse(customer.TaxAgent, out int taId) ? taId : null,
                 StaffInCharge = customer.StaffInCharge,
                 PostNewsLetter = customer.PostNewsLetter,
+                MailingName = customer.MailingName,
+                Partner = customer.Partner,
+                Manager = customer.Manager,
                 Phone = customer.ContactInfo?.WorkPhone,
                 Mobile = customer.ContactInfo?.CellPhone,
                 Website = customer.CompanyInfo?.WebSite,
@@ -123,7 +126,13 @@ namespace CRM_Api.Services
                     LastName = customer.IndividualInfo.LastName,
                     DateOfBirth = customer.IndividualInfo.DateOfBirth,
                     Gender = customer.IndividualInfo.Gender
-                } : null,
+                } : (customer.SolePropriterInfo != null ? new IndividualInfoDto
+                {
+                    Id = customer.SolePropriterInfo.Id,
+                    FirstName = customer.SolePropriterInfo.FirstName,
+                    LastName = customer.SolePropriterInfo.LastName,
+                    DateOfBirth = customer.SolePropriterInfo.DateOfBirth
+                } : null),
                 CompanyInfo = customer.CompanyInfo != null ? new CompanyInfoDto
                 {
                     Id = customer.CompanyInfo.Id,
@@ -166,6 +175,9 @@ namespace CRM_Api.Services
                     TaxAgent = dto.TaxAgent?.ToString(),
                     StaffInCharge = dto.StaffInCharge,
                     PostNewsLetter = dto.PostNewsLetter,
+                    MailingName = dto.MailingName,
+                    Partner = dto.Partner,
+                    Manager = dto.Manager,
                     CreatedDate = DateTime.Now,
                     IsDeleted = false
                 };
@@ -210,7 +222,7 @@ namespace CRM_Api.Services
                     };
                     _context.CompanyInfos.Add(company);
                 }
-                else if (dto.ClientType == 3 && dto.IndividualInfo != null) // Sole Proprietor (reuse individual fields in DTO)
+                else if (dto.ClientType == 3 && dto.IndividualInfo != null) // Sole Proprietor 
                 {
                     var sole = new SolePropriterInfo
                     {
@@ -284,6 +296,9 @@ namespace CRM_Api.Services
                 customer.TradingStatus = dto.TradingStatus;
                 customer.StaffInCharge = dto.StaffInCharge;
                 customer.PostNewsLetter = dto.PostNewsLetter;
+                customer.MailingName = dto.MailingName;
+                customer.Partner = dto.Partner;
+                customer.Manager = dto.Manager;
                 customer.UpdateDateTime = DateTime.Now;
 
                 // Update Contact Info
@@ -301,7 +316,7 @@ namespace CRM_Api.Services
                     customer.ContactInfo.UpdateDateTime = DateTime.Now;
                 }
 
-                // Update type-specific info logic (Simplified for brevity but mirroring legacy)
+                // Update type-specific info logic (Individual)
                 if (dto.ClientType == 1 && dto.IndividualInfo != null)
                 {
                     if (customer.IndividualInfo == null)
@@ -312,11 +327,35 @@ namespace CRM_Api.Services
                     customer.IndividualInfo.FirstName = dto.IndividualInfo.FirstName;
                     customer.IndividualInfo.LastName = dto.IndividualInfo.LastName;
                     customer.IndividualInfo.DateOfBirth = dto.IndividualInfo.DateOfBirth;
+                    customer.IndividualInfo.Gender = dto.IndividualInfo.Gender;
                     customer.IndividualInfo.UpdateDateTime = DateTime.Now;
                 }
-                // ... same for Company and SoleProprietor ...
+                // Update type-specific info logic (Sole Proprietor)
+                else if (dto.ClientType == 3 && dto.IndividualInfo != null)
+                {
+                    if (customer.SolePropriterInfo == null)
+                    {
+                        customer.SolePropriterInfo = new SolePropriterInfo { CustomerID = id };
+                        _context.SolePropriterInfos.Add(customer.SolePropriterInfo);
+                    }
+                    customer.SolePropriterInfo.FirstName = dto.IndividualInfo.FirstName;
+                    customer.SolePropriterInfo.LastName = dto.IndividualInfo.LastName;
+                    customer.SolePropriterInfo.DateOfBirth = dto.IndividualInfo.DateOfBirth;
+                    customer.SolePropriterInfo.UpdateDateTime = DateTime.Now;
+                }
+                // Update type-specific info logic (Company)
+                else if (dto.ClientType == 2 && dto.CompanyInfo != null)
+                {
+                    if (customer.CompanyInfo == null)
+                    {
+                        customer.CompanyInfo = new CompanyInfo { CustomerID = id };
+                        _context.CompanyInfos.Add(customer.CompanyInfo);
+                    }
+                    customer.CompanyInfo.WebSite = dto.CompanyInfo.WebSite;
+                    customer.CompanyInfo.ACNNumber = dto.CompanyInfo.ACNNumber;
+                    customer.CompanyInfo.UpdateDateTime = DateTime.Now;
+                }
 
-                // Update Addresses (Mirroring legacy sync logic)
                 if (dto.Addresses != null)
                 {
                     // Remove missing
@@ -369,8 +408,6 @@ namespace CRM_Api.Services
 
         public async Task<int> GetIncrementCodeByTypeAsync(int contactType)
         {
-            // Note: In legacy, contactType was passed but ClientType was queried.
-            // ClientType represents the true Customer Type ID (e.g., Trust, Individual)
             return await _context.Customers.CountAsync(c => c.ClientType == contactType);
         }
 

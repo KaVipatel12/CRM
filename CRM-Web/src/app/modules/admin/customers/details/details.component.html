@@ -64,82 +64,132 @@
                                             <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
                                                 Client Detail
                                             </div>
-                                            <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-                                                <mat-form-field class="w-full">
-                                                    <mat-label>Staff In Charge</mat-label>
-                                                    <mat-select formControlName="staffInCharge">
-                                                        <mat-option [value]="null">Please Select Staff</mat-option>
-                                                        <mat-option *ngFor="let s of staff" [value]="s.id">{{s.firstName}} {{s.lastName}}</mat-option>
-                                                    </mat-select>
-                                                </mat-form-field>
-                                                
-                                                <mat-form-field class="w-full">
-                                                    <mat-label>TFN Number</mat-label>
-                                                    <input matInput formControlName="tfnNumber">
-                                                </mat-form-field>
+                                            <div class="p-4 space-y-1">
 
-                                                <mat-form-field class="w-full">
-                                                    <mat-label>{{isIndividual() || isSoleProprietor() ? 'Name' : 'Company Name'}}</mat-label>
-                                                    <input matInput formControlName="name" required>
-                                                </mat-form-field>
-
-                                                <mat-form-field class="w-full">
-                                                    <mat-label>Director ID</mat-label>
-                                                    <input matInput formControlName="directorID">
-                                                </mat-form-field>
-
-                                                <div class="flex items-start space-x-2 w-full mt-2 lg:mt-0">
-                                                    <mat-form-field class="flex-1">
-                                                        <mat-label>Code</mat-label>
-                                                        <input matInput formControlName="code" required>
-                                                        <button mat-icon-button matSuffix (click)="checkDuplicateCode()" title="Verify Code" type="button">
-                                                            <mat-icon class="text-teal-500" [svgIcon]="'heroicons_outline:check'"></mat-icon>
-                                                        </button>
-                                                        <mat-error *ngIf="customerForm.get('code').hasError('duplicate')">
-                                                            This code is already used.
-                                                        </mat-error>
+                                                <!-- Row 1: Staff In Charge | (empty or TFN) -->
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                                                    <mat-form-field class="w-full">
+                                                        <mat-label>Staff In Charge</mat-label>
+                                                        <mat-select formControlName="staffInCharge">
+                                                            <mat-option [value]="null">Please Select Staff</mat-option>
+                                                            <mat-option *ngFor="let s of staff" [value]="s.id">{{s.firstName}} {{s.lastName}}</mat-option>
+                                                        </mat-select>
                                                     </mat-form-field>
-                                                    
-                                                    <button type="button" class="bg-teal-500 text-white w-10 h-10 rounded flex-shrink-0 mt-[26px] flex items-center justify-center hover:bg-teal-600 transition-colors" (click)="clearCode()" title="Clear Code">
-                                                        <mat-icon class="icon-size-5 text-white" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
-                                                    </button>
+                                                    <mat-form-field class="w-full">
+                                                        <mat-label>TFN Number</mat-label>
+                                                        <input matInput formControlName="tfnNumber">
+                                                    </mat-form-field>
                                                 </div>
 
-                                                <mat-form-field class="w-full">
-                                                    <mat-label>Trading Name</mat-label>
-                                                    <input matInput formControlName="tradingName">
-                                                </mat-form-field>
-
-                                                <div class="flex items-center pt-2 mb-4">
-                                                    <mat-checkbox color="primary" formControlName="postNewsLetter">Post Newsletter</mat-checkbox>
+                                                <!-- Row 2: Name | Mailing Name -->
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                                                    @if (isIndividual() || isSoleProprietor()) {
+                                                        <!-- Individual/Sole: FirstName + LastName side by side -->
+                                                        <div class="flex gap-2" formGroupName="individualInfo">
+                                                            <mat-form-field class="flex-1">
+                                                                <mat-label>First Name</mat-label>
+                                                                <input matInput formControlName="firstName">
+                                                            </mat-form-field>
+                                                            <mat-form-field class="flex-1">
+                                                                <mat-label>Last Name</mat-label>
+                                                                <input matInput formControlName="lastName">
+                                                            </mat-form-field>
+                                                        </div>
+                                                    } @else {
+                                                        <mat-form-field class="w-full">
+                                                            <mat-label>Company Name</mat-label>
+                                                            <input matInput formControlName="name" required>
+                                                        </mat-form-field>
+                                                    }
+                                                    <mat-form-field class="w-full">
+                                                        <mat-label>Mailing Name</mat-label>
+                                                        <input matInput formControlName="mailingName">
+                                                    </mat-form-field>
                                                 </div>
-                                                
-                                                <div class="hidden md:block"></div> <!-- Empty space -->
 
-                                                <mat-form-field class="w-full">
-                                                    <mat-label>ABN Number</mat-label>
-                                                    <input matInput formControlName="abnNumber">
-                                                </mat-form-field>
-                                                
-                                                <div class="hidden md:block"></div>
+                                                <!-- Row 3: Code + buttons | Partner -->
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                                                    <div class="flex items-start space-x-2 w-full">
+                                                        <mat-form-field class="flex-1">
+                                                            <mat-label>Code</mat-label>
+                                                            <input matInput formControlName="code" required>
+                                                            <button mat-icon-button matSuffix (click)="checkDuplicateCode()" title="Verify Code" type="button">
+                                                                <mat-icon class="text-teal-500" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+                                                            </button>
+                                                            <mat-error *ngIf="customerForm.get('code').hasError('duplicate')">
+                                                                This code is already used.
+                                                            </mat-error>
+                                                        </mat-form-field>
+                                                        <button type="button" class="bg-teal-500 text-white w-10 h-10 rounded flex-shrink-0 mt-[26px] flex items-center justify-center hover:bg-teal-600 transition-colors" (click)="clearCode()" title="Clear Code">
+                                                            <mat-icon class="icon-size-5 text-white" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+                                                        </button>
+                                                    </div>
+                                                    @if (showPartner()) {
+                                                        <mat-form-field class="w-full">
+                                                            <mat-label>Partner</mat-label>
+                                                            <input matInput formControlName="partner">
+                                                        </mat-form-field>
+                                                    }
+                                                </div>
 
-                                                <mat-form-field class="w-full">
-                                                    <mat-label>Business Type</mat-label>
-                                                    <mat-select formControlName="businessType">
-                                                        <mat-option [value]="null">None</mat-option>
-                                                        <mat-option *ngFor="let b of businessTypes" [value]="b.id">{{b.businessTypeNM}}</mat-option>
-                                                    </mat-select>
-                                                </mat-form-field>
+                                                <!-- Row 4: Trading Name | Manager -->
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                                                    <mat-form-field class="w-full">
+                                                        <mat-label>Trading Name</mat-label>
+                                                        <input matInput formControlName="tradingName">
+                                                    </mat-form-field>
+                                                    @if (showManager()) {
+                                                        <mat-form-field class="w-full">
+                                                            <mat-label>Manager</mat-label>
+                                                            <input matInput formControlName="manager">
+                                                        </mat-form-field>
+                                                    }
+                                                </div>
 
-                                                <div class="hidden md:block"></div>
+                                                <!-- Row 5: Post Newsletter | Director ID -->
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 items-center">
+                                                    <div class="flex items-center pt-2 mb-4">
+                                                        <mat-checkbox color="primary" formControlName="postNewsLetter">Post Newsletter</mat-checkbox>
+                                                    </div>
+                                                    @if (showDirectorID()) {
+                                                        <mat-form-field class="w-full">
+                                                            <mat-label>Director ID</mat-label>
+                                                            <input matInput formControlName="directorID">
+                                                        </mat-form-field>
+                                                    }
+                                                </div>
 
-                                                <mat-form-field class="w-full">
-                                                    <mat-label>Trading Status</mat-label>
-                                                    <mat-select formControlName="tradingStatus">
-                                                        <mat-option [value]="null">None</mat-option>
-                                                        <mat-option *ngFor="let s of tradingStatuses" [value]="s.id">{{s.name}}</mat-option>
-                                                    </mat-select>
-                                                </mat-form-field>
+                                                <!-- Row 6: ABN Number | (empty) -->
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                                                    <mat-form-field class="w-full">
+                                                        <mat-label>ABN Number</mat-label>
+                                                        <input matInput formControlName="abnNumber">
+                                                    </mat-form-field>
+                                                </div>
+
+                                                <!-- Row 7: Business Type | Trading Status (conditional) -->
+                                                @if (showBusinessType() || showTradingStatus()) {
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                                                        @if (showBusinessType()) {
+                                                            <mat-form-field class="w-full">
+                                                                <mat-label>Business Type</mat-label>
+                                                                <mat-select formControlName="businessType">
+                                                                    <mat-option [value]="null">Please Select Business Type</mat-option>
+                                                                    <mat-option *ngFor="let b of businessTypes" [value]="b.id">{{b.businessTypeNM}}</mat-option>
+                                                                </mat-select>
+                                                            </mat-form-field>
+                                                        }
+                                                        @if (showTradingStatus()) {
+                                                            <mat-form-field class="w-full">
+                                                                <mat-label>Trading Status</mat-label>
+                                                                <mat-select formControlName="tradingStatus" [disabled]="true">
+                                                                    <mat-option *ngFor="let s of tradingStatuses" [value]="s.id">{{s.name}}</mat-option>
+                                                                </mat-select>
+                                                            </mat-form-field>
+                                                        }
+                                                    </div>
+                                                }
+
                                             </div>
                                         </div>
 
@@ -149,21 +199,30 @@
                                                 <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
                                                     {{isSoleProprietor() ? 'Sole Proprietor' : 'Individual'}} Detail
                                                 </div>
-                                                <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                    <mat-form-field>
-                                                        <mat-label>First Name</mat-label>
-                                                        <input matInput formControlName="firstName">
-                                                    </mat-form-field>
-                                                    <mat-form-field>
-                                                        <mat-label>Last Name</mat-label>
-                                                        <input matInput formControlName="lastName">
-                                                    </mat-form-field>
-                                                    <mat-form-field>
-                                                        <mat-label>Date of Birth</mat-label>
-                                                        <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
-                                                        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                                                        <mat-datepicker #picker></mat-datepicker>
-                                                    </mat-form-field>
+                                                <div class="p-4">
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                                                        @if (showDateOfBirth()) {
+                                                            <mat-form-field class="w-full">
+                                                                <mat-label>Date of Birth</mat-label>
+                                                                <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
+                                                                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                                                                <mat-datepicker #picker></mat-datepicker>
+                                                            </mat-form-field>
+                                                        }
+                                                        @if (showGender()) {
+                                                            <div class="flex items-center gap-6 pt-2">
+                                                                <span class="text-sm font-medium text-secondary">Gender</span>
+                                                                <label class="flex items-center gap-1 cursor-pointer">
+                                                                    <input type="radio" formControlName="gender" [value]="1" class="accent-teal-500">
+                                                                    <span class="text-sm">Male</span>
+                                                                </label>
+                                                                <label class="flex items-center gap-1 cursor-pointer">
+                                                                    <input type="radio" formControlName="gender" [value]="2" class="accent-teal-500">
+                                                                    <span class="text-sm">Female</span>
+                                                                </label>
+                                                            </div>
+                                                        }
+                                                    </div>
                                                 </div>
                                             </div>
                                         }
@@ -174,10 +233,12 @@
                                                     Organization Detail
                                                 </div>
                                                 <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                    <mat-form-field>
-                                                        <mat-label>ACN Number</mat-label>
-                                                        <input matInput formControlName="acnNumber">
-                                                    </mat-form-field>
+                                                    @if (isCompany()) {
+                                                        <mat-form-field>
+                                                            <mat-label>ACN Number</mat-label>
+                                                            <input matInput formControlName="acnNumber">
+                                                        </mat-form-field>
+                                                    }
                                                     <mat-form-field>
                                                         <mat-label>Website</mat-label>
                                                         <input matInput formControlName="webSite">
@@ -298,23 +359,27 @@
 
                                         <!-- Additional Info Box -->
                                         <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20">
-                                            <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
-                                                Additional Info
+                                        @if (showAdditionalInfo()) {
+                                            <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20">
+                                                <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
+                                                    Additional Info
+                                                </div>
+                                                <div class="p-4">
+                                                    <mat-form-field class="w-full">
+                                                        <mat-label>Tax Agent</mat-label>
+                                                        <mat-select formControlName="taxAgent">
+                                                            <mat-option [value]="null">None</mat-option>
+                                                            <mat-option *ngFor="let a of taxAgents" [value]="a.id">{{a.name}}</mat-option>
+                                                        </mat-select>
+                                                    </mat-form-field>
+                                                </div>
                                             </div>
-                                            <div class="p-4">
-                                                <mat-form-field class="w-full">
-                                                    <mat-label>Tax Agent</mat-label>
-                                                    <mat-select formControlName="taxAgent">
-                                                        <mat-option [value]="null">None</mat-option>
-                                                        <mat-option *ngFor="let a of taxAgents" [value]="a.id">{{a.name}}</mat-option>
-                                                    </mat-select>
-                                                </mat-form-field>
-                                            </div>
-                                        </div>
+                                        }
                                     </div>
                                     
                                 </div>
-                            </mat-tab>
+                            </div>
+                        </mat-tab>
                             
                             <!-- PLACEHOLDER TABS -->
                             <mat-tab label="Jobs" [disabled]="true"></mat-tab>
@@ -331,7 +396,7 @@
 
                     <div class="mt-6 flex items-center justify-end pt-4 gap-4">
                         <button mat-button class="px-8" [routerLink]="['../']" [disabled]="isSaving">Cancel</button>
-                        <button mat-flat-button class="px-12 bg-teal-600 text-white min-w-40" color="primary" (click)="save()" [disabled]="customerForm.invalid || isSaving">
+                        <button mat-flat-button class="px-12 bg-teal-600 text-white min-w-40" color="primary" (click)="save()" [disabled]="isSaving">
                             @if (!isSaving) {
                                 {{editMode ? 'Update Contact' : 'Save Contact'}}
                             }

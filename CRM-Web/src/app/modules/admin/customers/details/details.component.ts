@@ -72,8 +72,8 @@ export class DetailsComponent implements OnInit {
         // Initialize form
         this.customerForm = this._formBuilder.group({
             id: [0],
-            name: ['', Validators.required],
-            code: [''],
+            name: [''],
+            code: ['', Validators.required],
             clientType: [null, Validators.required],
             contactType: [null, Validators.required],
             tradingName: [''],
@@ -81,12 +81,15 @@ export class DetailsComponent implements OnInit {
             tfnNumber: [''],
             directorID: [''],
             businessType: [null],
-            tradingStatus: [null],
+            tradingStatus: [{ value: null, disabled: true }],
             taxAgent: [null],
             staffInCharge: [null],
             postNewsLetter: [false],
             isActive: [true],
             groupName: [''],
+            mailingName: [''],
+            partner: [''],
+            manager: [''],
             contactInfo: this._formBuilder.group({
                 contactName: [''],
                 email: ['', [Validators.email]],
@@ -105,6 +108,13 @@ export class DetailsComponent implements OnInit {
             }),
             addresses: this._formBuilder.array([])
         });
+
+        // Dynamic validation based on clientType
+        this.customerForm.get('clientType').valueChanges
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(() => {
+                this._updateNameValidators();
+            });
 
         // Load lookups
         this.loadLookups();
@@ -222,32 +232,127 @@ export class DetailsComponent implements OnInit {
             this.addAddressForType(home, 1);
             this.addAddressForType(biz, 2);
             this.addAddressForType(postal, 3);
+            
+            this._updateNameValidators();
         });
     }
 
     isIndividual(): boolean {
-        const typeId = this.customerForm.get('clientType').value;
+        const typeId = this.customerForm?.get('clientType')?.value;
         if (!typeId) return false;
         const type = this.customerTypes.find(t => t.id === typeId);
         return type?.customerTypeNM?.toLowerCase() === 'individual';
     }
 
     isSoleProprietor(): boolean {
-        const typeId = this.customerForm.get('clientType').value;
+        const typeId = this.customerForm?.get('clientType')?.value;
         if (!typeId) return false;
         const type = this.customerTypes.find(t => t.id === typeId);
         return type?.customerTypeNM?.toLowerCase() === 'sole proprietor';
+    }
+
+    isCompany(): boolean {
+        const typeId = this.customerForm?.get('clientType')?.value;
+        if (!typeId) return false;
+        const type = this.customerTypes.find(t => t.id === typeId);
+        return type?.customerTypeNM?.toLowerCase() === 'company';
+    }
+
+    private _updateNameValidators(): void {
+        const clientType = this.customerForm.get('clientType').value;
+        const nameControl = this.customerForm.get('name');
+        const firstNameControl = this.customerForm.get('individualInfo.firstName');
+        const lastNameControl = this.customerForm.get('individualInfo.lastName');
+
+        // Clear all first
+        nameControl.clearValidators();
+        firstNameControl.clearValidators();
+        lastNameControl.clearValidators();
+
+        if (this.isIndividual() || this.isSoleProprietor()) {
+            firstNameControl.setValidators([Validators.required]);
+            lastNameControl.setValidators([Validators.required]);
+        } else {
+            nameControl.setValidators([Validators.required]);
+        }
+
+        nameControl.updateValueAndValidity();
+        firstNameControl.updateValueAndValidity();
+        lastNameControl.updateValueAndValidity();
     }
 
     isTypeSelected(): boolean {
         return !!this.customerForm.get('clientType').value && !!this.customerForm.get('contactType').value;
     }
 
+    // Legacy parity: Gender only for Individual (customerType == 1)
+    showGender(): boolean {
+        return this.customerForm.get('clientType').value === 1;
+    }
+
+    // Legacy parity: DOB for Individual (1) and Sole Proprietor (3)
+    showDateOfBirth(): boolean {
+        const ct = this.customerForm.get('clientType').value;
+        return ct === 1 || ct === 3;
+    }
+
+    // Legacy parity: Director ID for Individual (1) and Sole Proprietor (3)
+    showDirectorID(): boolean {
+        const ct = this.customerForm.get('clientType').value;
+        return ct === 1 || ct === 3;
+    }
+
+    // Legacy parity: Manager for Individual(1), SMSF(4), Trust(6), Partnership(7)
+    showManager(): boolean {
+        const ct = this.customerForm.get('clientType').value;
+        return ct === 1 || ct === 4 || ct === 6 || ct === 7;
+    }
+
+    // Legacy parity: Partner hidden only for Supplier(contactType=4) + Other(clientType=9)
+    showPartner(): boolean {
+        const contactType = this.customerForm.get('contactType').value;
+        const clientType = this.customerForm.get('clientType').value;
+        return !(contactType === 4 && clientType === 9);
+    }
+
+    // Legacy parity: Additional Info (Tax Agent) hidden for Supplier(4) + Other(9)
+    showAdditionalInfo(): boolean {
+        const contactType = this.customerForm.get('contactType').value;
+        const clientType = this.customerForm.get('clientType').value;
+        return !(contactType === 4 && clientType === 9);
+    }
+
+    // Legacy parity: Business Type for Company(2), SoleProp(3), SMSF(4), Trust(6)
+    showBusinessType(): boolean {
+        const ct = this.customerForm.get('clientType').value;
+        return ct === 2 || ct === 3 || ct === 4 || ct === 6;
+    }
+
+    // Legacy parity: Trading Status for Company(2), SoleProp(3), SMSF(4), NonTrading(5), Trust(6)
+    showTradingStatus(): boolean {
+        const ct = this.customerForm.get('clientType').value;
+        return ct === 2 || ct === 3 || ct === 4 || ct === 5 || ct === 6;
+    }
+
     save(): void {
-        if (this.customerForm.invalid) return;
+        if (this.customerForm.invalid) {
+            console.error('Form is invalid. Errors:', this.getFormValidationErrors());
+            return;
+        }
 
         this.showAlert = false;
         this.isSaving = true;
+        
+        // Sync name field for Individuals/SoleProprietors if they used FirstName/LastName
+        if (this.isIndividual() || this.isSoleProprietor()) {
+            const info = this.customerForm.get('individualInfo').value;
+            if (info.firstName || info.lastName) {
+                this.customerForm.patchValue({
+                    name: `${info.firstName || ''} ${info.lastName || ''}`.trim()
+                }, { emitEvent: false });
+            }
+        }
+
         const data = Object.assign({}, this.customerForm.value);
         
         // Filter out completely empty address blocks
@@ -267,6 +372,7 @@ export class DetailsComponent implements OnInit {
                     this.alert = { type: 'error', message: 'Failed to update customer' };
                     this.showAlert = true;
                     this.isSaving = false;
+                    console.error('API Error:', err);
                 }
             });
         } else {
@@ -281,9 +387,35 @@ export class DetailsComponent implements OnInit {
                     this.alert = { type: 'error', message: 'Failed to create customer' };
                     this.showAlert = true;
                     this.isSaving = false;
+                    console.error('API Error:', err);
                 }
             });
         }
+    }
+
+    getFormValidationErrors(): any {
+        const errors = {};
+        Object.keys(this.customerForm.controls).forEach(key => {
+            const controlErrors = this.customerForm.get(key).errors;
+            if (controlErrors != null) {
+                errors[key] = controlErrors;
+            }
+        });
+        
+        // Check nested groups
+        ['contactInfo', 'individualInfo', 'companyInfo'].forEach(group => {
+            const groupCtrl = this.customerForm.get(group);
+            if (groupCtrl instanceof FormGroup) {
+                Object.keys(groupCtrl.controls).forEach(key => {
+                    const controlErrors = groupCtrl.get(key).errors;
+                    if (controlErrors != null) {
+                        errors[`${group}.${key}`] = controlErrors;
+                    }
+                });
+            }
+        });
+
+        return errors;
     }
 
     ngOnDestroy(): void {
@@ -291,3 +423,4 @@ export class DetailsComponent implements OnInit {
         this._unsubscribeAll.complete();
     }
 }
+

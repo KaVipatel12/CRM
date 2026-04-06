@@ -4,6 +4,7 @@ using CRM_Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CRM_Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260406054824_SeedBusinessAndTradingLogic")]
+    partial class SeedBusinessAndTradingLogic
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,33 +35,41 @@ namespace CRM_Api.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AddressLine1")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("AddressLine2")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("AddressLine3")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Addressee")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("BranchID")
                         .HasColumnType("int");
 
                     b.Property<string>("City")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Country")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CustomerID")
                         .HasColumnType("int");
 
                     b.Property<string>("PostalCode")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("State")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Type")
@@ -89,6 +100,7 @@ namespace CRM_Api.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("BranchName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CustomerID")
@@ -128,102 +140,32 @@ namespace CRM_Api.Migrations
                         new
                         {
                             Id = 1,
-                            BusinessTypeNM = "Restaurant"
+                            BusinessTypeNM = "Manufacturing"
                         },
                         new
                         {
                             Id = 2,
-                            BusinessTypeNM = "Massage"
+                            BusinessTypeNM = "Retail"
                         },
                         new
                         {
                             Id = 3,
-                            BusinessTypeNM = "Education agent"
+                            BusinessTypeNM = "Technology"
                         },
                         new
                         {
                             Id = 4,
-                            BusinessTypeNM = "Car wash"
+                            BusinessTypeNM = "Hospitality"
                         },
                         new
                         {
                             Id = 5,
-                            BusinessTypeNM = "Real estate agent"
+                            BusinessTypeNM = "Construction"
                         },
                         new
                         {
                             Id = 6,
-                            BusinessTypeNM = "Mortgage broker"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            BusinessTypeNM = "Cafe"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            BusinessTypeNM = "Roof restoration"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            BusinessTypeNM = "Tiler"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            BusinessTypeNM = "Plumber"
-                        },
-                        new
-                        {
-                            Id = 11,
-                            BusinessTypeNM = "Electrician"
-                        },
-                        new
-                        {
-                            Id = 12,
-                            BusinessTypeNM = "Air conditioner mechanic"
-                        },
-                        new
-                        {
-                            Id = 13,
-                            BusinessTypeNM = "House builder"
-                        },
-                        new
-                        {
-                            Id = 14,
-                            BusinessTypeNM = "Transport"
-                        },
-                        new
-                        {
-                            Id = 15,
-                            BusinessTypeNM = "GYM"
-                        },
-                        new
-                        {
-                            Id = 16,
-                            BusinessTypeNM = "Education institute"
-                        },
-                        new
-                        {
-                            Id = 17,
-                            BusinessTypeNM = "Tattoo Artist"
-                        },
-                        new
-                        {
-                            Id = 18,
-                            BusinessTypeNM = "Accounting Firm"
-                        },
-                        new
-                        {
-                            Id = 19,
-                            BusinessTypeNM = "Panel Beater"
-                        },
-                        new
-                        {
-                            Id = 20,
-                            BusinessTypeNM = "Painter"
+                            BusinessTypeNM = "Other"
                         });
                 });
 
@@ -237,30 +179,38 @@ namespace CRM_Api.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ABVDevisionNo")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ACNNumber")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ASICCompanyReviewDate")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("AccountingSoftware")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("AccountingSoftware2")
                         .HasColumnType("bit");
 
                     b.Property<string>("AnnualAccountsMonth")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Background")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ClassOfClients")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ContactGroup")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CustomerID")
@@ -279,6 +229,7 @@ namespace CRM_Api.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("ToEmailForBASReports")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdateDateTime")
@@ -290,6 +241,7 @@ namespace CRM_Api.Migrations
                         .HasColumnName("UpdUserID");
 
                     b.Property<string>("WebSite")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -310,14 +262,17 @@ namespace CRM_Api.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("CellPhone")
+                        .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("nvarchar(16)");
 
                     b.Property<string>("CellPhonePersonName")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("ContactName")
+                        .IsRequired()
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
@@ -325,22 +280,27 @@ namespace CRM_Api.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("Email2")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("HomePhone")
+                        .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("nvarchar(16)");
 
                     b.Property<string>("HomePhonePersonName")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Salutation")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdateDateTime")
@@ -352,10 +312,12 @@ namespace CRM_Api.Migrations
                         .HasColumnName("UpdUserID");
 
                     b.Property<string>("WorkPhone")
+                        .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("nvarchar(16)");
 
                     b.Property<string>("WorkPhonePersonName")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -435,12 +397,15 @@ namespace CRM_Api.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ABNNumber")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ACN")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("AccountName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<long?>("AccountNumber")
@@ -450,6 +415,7 @@ namespace CRM_Api.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("AnnualAccountsMonth")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("AnnualFinancialStatements")
@@ -471,21 +437,26 @@ namespace CRM_Api.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("BalanceDate")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("BillingEntity")
                         .HasColumnType("bit");
 
                     b.Property<string>("BusinessBankAccount")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("BusinessCreditCardAccount")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("BusinessLoanAccount")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("BusinessName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("BusinessType")
@@ -498,21 +469,25 @@ namespace CRM_Api.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Class")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("Client")
                         .HasColumnType("bit");
 
                     b.Property<string>("ClientFrom")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ClientType")
                         .HasColumnType("int");
 
                     b.Property<string>("ClientTypeSubcategory")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Code")
+                        .IsRequired()
                         .HasMaxLength(15)
                         .HasColumnType("nvarchar(15)");
 
@@ -526,34 +501,42 @@ namespace CRM_Api.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("DirectorID")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Facsimile")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("FinancialStatement")
                         .HasColumnType("bit");
 
                     b.Property<string>("FirmType")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("GSTBasis")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("GSTPeriod")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("GSTRegistered")
                         .HasColumnType("bit");
 
                     b.Property<string>("GroupName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("InBusinessSince")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("InvoiceDeliveryBy")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("IsActive")
@@ -578,9 +561,11 @@ namespace CRM_Api.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("MailingName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Manager")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
@@ -592,6 +577,7 @@ namespace CRM_Api.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Partner")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("PostNewsLetter")
@@ -604,21 +590,26 @@ namespace CRM_Api.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Salutation")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("StaffInCharge")
                         .HasColumnType("int");
 
                     b.Property<string>("TFNNumber")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TaxAgent")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TaxReturnType")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TradingName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("TradingStatus")
@@ -669,61 +660,61 @@ namespace CRM_Api.Migrations
                         {
                             Id = 1,
                             CustomerTypeNM = "Individual",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 979, DateTimeKind.Local).AddTicks(1434)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 11, 18, 22, 128, DateTimeKind.Local).AddTicks(8098)
                         },
                         new
                         {
                             Id = 2,
                             CustomerTypeNM = "Company",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8936)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 11, 18, 22, 130, DateTimeKind.Local).AddTicks(1377)
                         },
                         new
                         {
                             Id = 3,
                             CustomerTypeNM = "Sole Proprietor",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8957)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 11, 18, 22, 130, DateTimeKind.Local).AddTicks(1390)
                         },
                         new
                         {
                             Id = 4,
                             CustomerTypeNM = "Trust",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8958)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 11, 18, 22, 130, DateTimeKind.Local).AddTicks(1392)
                         },
                         new
                         {
                             Id = 5,
                             CustomerTypeNM = "AKA",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8959)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 11, 18, 22, 130, DateTimeKind.Local).AddTicks(1393)
                         },
                         new
                         {
                             Id = 6,
                             CustomerTypeNM = "Partnership",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8960)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 11, 18, 22, 130, DateTimeKind.Local).AddTicks(1393)
                         },
                         new
                         {
                             Id = 7,
                             CustomerTypeNM = "SMSF",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8961)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 11, 18, 22, 130, DateTimeKind.Local).AddTicks(1395)
                         },
                         new
                         {
                             Id = 8,
                             CustomerTypeNM = "Staff",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8962)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 11, 18, 22, 130, DateTimeKind.Local).AddTicks(1396)
                         },
                         new
                         {
                             Id = 9,
                             CustomerTypeNM = "Supplier",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8963)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 11, 18, 22, 130, DateTimeKind.Local).AddTicks(1398)
                         },
                         new
                         {
                             Id = 10,
                             CustomerTypeNM = "Other",
-                            UpdateDateTime = new DateTime(2026, 4, 6, 12, 20, 18, 980, DateTimeKind.Local).AddTicks(8964)
+                            UpdateDateTime = new DateTime(2026, 4, 6, 11, 18, 22, 130, DateTimeKind.Local).AddTicks(1398)
                         });
                 });
 
@@ -768,6 +759,7 @@ namespace CRM_Api.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("BirthCountry")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("ChargeInterest")
@@ -790,6 +782,7 @@ namespace CRM_Api.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("FirstName")
+                        .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
@@ -800,6 +793,7 @@ namespace CRM_Api.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("LastName")
+                        .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
@@ -807,16 +801,20 @@ namespace CRM_Api.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("TFNDivisionNumber")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("TitleAbbreviated")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TitleFull")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdateDateTime")
@@ -1000,9 +998,11 @@ namespace CRM_Api.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("ABNDivisionNumber")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ClassOfClients")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CustomerID")
@@ -1018,6 +1018,7 @@ namespace CRM_Api.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("FirstName")
+                        .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
@@ -1025,17 +1026,21 @@ namespace CRM_Api.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("LastName")
+                        .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("Title")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("TitleAbbreviated")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TitleFull")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdateDateTime")
@@ -1101,22 +1106,22 @@ namespace CRM_Api.Migrations
                         new
                         {
                             Id = 1,
-                            Name = "Active But Not Trading"
+                            Name = "Trading"
                         },
                         new
                         {
                             Id = 2,
-                            Name = "Trading Quarterly"
+                            Name = "Dormant"
                         },
                         new
                         {
                             Id = 3,
-                            Name = "Trading Annually"
+                            Name = "Liquidated"
                         },
                         new
                         {
                             Id = 4,
-                            Name = "Not active & not trading"
+                            Name = "Deregistered"
                         });
                 });
 
@@ -1130,6 +1135,7 @@ namespace CRM_Api.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AnnualAccountsMonth")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("BASM")

@@ -13,63 +13,63 @@ namespace CRM_Api.Models.Entities.Customer
         [StringLength(150)]
         public string Name { get; set; }
         [StringLength(15)]
-        public string Code { get; set; }
+        public string? Code { get; set; }
 
         [Required]
         public int ClientType { get; set; }
 
         [StringLength(50)]
-        public string FirmType { get; set; }
-        public string ABNNumber { get; set; }
+        public string? FirmType { get; set; }
+        public string? ABNNumber { get; set; }
         public long? AccountNumber { get; set; }
-        public string AccountName { get; set; }
+        public string? AccountName { get; set; }
         public long? BSB { get; set; }
-        public string BalanceDate { get; set; }
+        public string? BalanceDate { get; set; }
         public bool? BillingEntity { get; set; }
         public bool? ChargeInterest { get; set; }
         public bool? ChargeMonthlyDisbursement { get; set; }
-        public string Class { get; set; }
+        public string? Class { get; set; }
         public bool? Client { get; set; }
-        public string ClientFrom { get; set; }
-        public string ClientTypeSubcategory { get; set; }
-        public string Facsimile { get; set; }
-        public string GSTBasis { get; set; }
-        public string GSTPeriod { get; set; }
+        public string? ClientFrom { get; set; }
+        public string? ClientTypeSubcategory { get; set; }
+        public string? Facsimile { get; set; }
+        public string? GSTBasis { get; set; }
+        public string? GSTPeriod { get; set; }
         public bool? GSTRegistered { get; set; }
-        public string InBusinessSince { get; set; }
-        public string InvoiceDeliveryBy { get; set; }
-        public string MailingName { get; set; }
-        public string Manager { get; set; }
-        public string Partner { get; set; }
+        public string? InBusinessSince { get; set; }
+        public string? InvoiceDeliveryBy { get; set; }
+        public string? MailingName { get; set; }
+        public string? Manager { get; set; }
+        public string? Partner { get; set; }
         public bool? PostNewsLetter { get; set; }
         public bool? PrepareGST { get; set; }
-        public string Salutation { get; set; }
-        public string TFNNumber { get; set; }
-        public string TaxAgent { get; set; }
-        public string TaxReturnType { get; set; }
-        public string AnnualAccountsMonth { get; set; }
+        public string? Salutation { get; set; }
+        public string? TFNNumber { get; set; }
+        public string? TaxAgent { get; set; }
+        public string? TaxReturnType { get; set; }
+        public string? AnnualAccountsMonth { get; set; }
         public bool? AnnualFinancialStatements { get; set; }
         public bool? AnnualABNTaxReturn { get; set; }
         public bool? AnnualGSTClient { get; set; }
         public bool? AnnualNonGST { get; set; }
         public bool? BASA { get; set; }
         public bool? BASQ { get; set; }
-        public string BusinessName { get; set; }
-        public string BusinessBankAccount { get; set; }
-        public string BusinessCreditCardAccount { get; set; }
-        public string BusinessLoanAccount { get; set; }
-        public string GroupName { get; set; }
+        public string? BusinessName { get; set; }
+        public string? BusinessBankAccount { get; set; }
+        public string? BusinessCreditCardAccount { get; set; }
+        public string? BusinessLoanAccount { get; set; }
+        public string? GroupName { get; set; }
         public bool? PrepareGroupCertificates { get; set; }
         public bool? Lodgement { get; set; }
         public bool? FinancialStatement { get; set; }
         public bool? PAYGWeekly { get; set; }
         public bool IsDeleted { get; set; }
         public int? ContactType { get; set; }
-        public string TradingName { get; set; }
+        public string? TradingName { get; set; }
         public bool? IsActive { get; set; }
         public int? LastVarifiedBy { get; set; }
         public DateTime? LastVarifiedDate { get; set; }
-        public string DirectorID { get; set; }
+        public string? DirectorID { get; set; }
         public int? BusinessType { get; set; }
         public bool? IsArchived { get; set; }
         public int? TradingStatus { get; set; }
@@ -77,7 +77,7 @@ namespace CRM_Api.Models.Entities.Customer
         public DateTime? CreatedDate { get; set; }
         public bool? IsExcluded { get; set; }
         public int? StaffInCharge { get; set; }
-        public string ACN { get; set; }
+        public string? ACN { get; set; }
 
         public virtual ICollection<Address> Addresses { get; set; }
         public virtual ICollection<Branch> Branches { get; set; }
@@ -94,14 +94,14 @@ namespace CRM_Api.Models.Entities.Customer
         [Required]
         public int? CustomerID { get; set; }
         public int? Type { get; set; }
-        public string Addressee { get; set; }
-        public string AddressLine1 { get; set; }
-        public string AddressLine2 { get; set; }
-        public string AddressLine3 { get; set; }
-        public string PostalCode { get; set; }
-        public string City { get; set; }
-        public string State { get; set; }
-        public string Country { get; set; }
+        public string? Addressee { get; set; }
+        public string? AddressLine1 { get; set; }
+        public string? AddressLine2 { get; set; }
+        public string? AddressLine3 { get; set; }
+        public string? PostalCode { get; set; }
+        public string? City { get; set; }
+        public string? State { get; set; }
+        public string? Country { get; set; }
         public int? BranchID { get; set; }
 
         [ForeignKey("CustomerID")]
@@ -113,31 +113,31 @@ namespace CRM_Api.Models.Entities.Customer
     {
         [Required]
         public int CustomerID { get; set; }
-        public string Salutation { get; set; }
+        public string? Salutation { get; set; }
 
         [StringLength(250)]
-        public string ContactName { get; set; }
+        public string? ContactName { get; set; }
 
         [StringLength(50)]
-        public string CellPhonePersonName { get; set; }
+        public string? CellPhonePersonName { get; set; }
 
         [StringLength(16)]
-        public string CellPhone { get; set; }
+        public string? CellPhone { get; set; }
         [StringLength(50)]
-        public string HomePhonePersonName { get; set; }
+        public string? HomePhonePersonName { get; set; }
 
         [StringLength(16)]
-        public string HomePhone { get; set; }
+        public string? HomePhone { get; set; }
         [StringLength(50)]
-        public string WorkPhonePersonName { get; set; }
+        public string? WorkPhonePersonName { get; set; }
 
         [StringLength(16)]
-        public string WorkPhone { get; set; }
+        public string? WorkPhone { get; set; }
 
         [StringLength(255)]
-        public string Email { get; set; }
+        public string? Email { get; set; }
         [StringLength(255)]
-        public string Email2 { get; set; }
+        public string? Email2 { get; set; }
 
         [ForeignKey("CustomerID")]
         public virtual Customer Customer { get; set; }
@@ -146,7 +146,7 @@ namespace CRM_Api.Models.Entities.Customer
     [Table("Branch", Schema = "cust")]
     public class Branch : EntityBase, IApiResultModel
     {
-        public string BranchName { get; set; }
+        public string? BranchName { get; set; }
         public int CustomerID { get; set; }
 
         [ForeignKey("CustomerID")]
@@ -159,23 +159,23 @@ namespace CRM_Api.Models.Entities.Customer
         [Required]
         public int CustomerID { get; set; }
         [StringLength(150)]
-        public string FirstName { get; set; }
+        public string? FirstName { get; set; }
         [StringLength(150)]
-        public string LastName { get; set; }
+        public string? LastName { get; set; }
         [StringLength(50)]
-        public string Title { get; set; }
-
+        public string? Title { get; set; }
+ 
         public int? Gender { get; set; }
         [Column("DateOfBirth", TypeName = "datetime")]
         public DateTime? DateOfBirth { get; set; }
         public bool? ChargeInterest { get; set; }
         public bool? ChargeMonthlyDisbursement { get; set; }
-        public string BirthCountry { get; set; }
+        public string? BirthCountry { get; set; }
         public DateTime? DateOfDeath { get; set; }
         public bool? NonResidentClient { get; set; }
-        public string TFNDivisionNumber { get; set; }
-        public string TitleAbbreviated { get; set; }
-        public string TitleFull { get; set; }
+        public string? TFNDivisionNumber { get; set; }
+        public string? TitleAbbreviated { get; set; }
+        public string? TitleFull { get; set; }
         public bool? ABNContractor { get; set; }
         public bool? BASM { get; set; }
         public bool? DASP { get; set; }
@@ -191,19 +191,19 @@ namespace CRM_Api.Models.Entities.Customer
         [Required]
         public int? CustomerID { get; set; }
         public int? NoOfEmployee { get; set; }
-        public string WebSite { get; set; }
-        public string ABVDevisionNo { get; set; }
-        public string ACNNumber { get; set; }
-        public string ASICCompanyReviewDate { get; set; }
-        public string AccountingSoftware { get; set; }
-        public string AnnualAccountsMonth { get; set; }
-        public string Background { get; set; }
-        public string ContactGroup { get; set; }
+        public string? WebSite { get; set; }
+        public string? ABVDevisionNo { get; set; }
+        public string? ACNNumber { get; set; }
+        public string? ASICCompanyReviewDate { get; set; }
+        public string? AccountingSoftware { get; set; }
+        public string? AnnualAccountsMonth { get; set; }
+        public string? Background { get; set; }
+        public string? ContactGroup { get; set; }
         public bool? FiledbyFirm { get; set; }
         public bool? NonResidentClient { get; set; }
         public bool? AccountingSoftware2 { get; set; }
-        public string ClassOfClients { get; set; }
-        public string ToEmailForBASReports { get; set; }
+        public string? ClassOfClients { get; set; }
+        public string? ToEmailForBASReports { get; set; }
         public bool? SuperContribution { get; set; }
 
         [ForeignKey("CustomerID")]
@@ -215,7 +215,7 @@ namespace CRM_Api.Models.Entities.Customer
     {
         [Required]
         public int? CustomerID { get; set; }
-        public string AnnualAccountsMonth { get; set; }
+        public string? AnnualAccountsMonth { get; set; }
         public bool? ChargeInterest { get; set; }
         public bool? ChargeMonthlyDisbursement { get; set; }
         public bool? FiledbyFirm { get; set; }
@@ -236,17 +236,17 @@ namespace CRM_Api.Models.Entities.Customer
         [Required]
         public int CustomerID { get; set; }
         [StringLength(150)]
-        public string FirstName { get; set; }
+        public string? FirstName { get; set; }
         [StringLength(150)]
-        public string LastName { get; set; }
+        public string? LastName { get; set; }
         [StringLength(50)]
-        public string Title { get; set; }
-        public string ABNDivisionNumber { get; set; }
-        public string ClassOfClients { get; set; }
+        public string? Title { get; set; }
+        public string? ABNDivisionNumber { get; set; }
+        public string? ClassOfClients { get; set; }
         public bool? FiledbyFirm { get; set; }
         public bool? ABNContractor { get; set; }
-        public string TitleAbbreviated { get; set; }
-        public string TitleFull { get; set; }
+        public string? TitleAbbreviated { get; set; }
+        public string? TitleFull { get; set; }
         public bool? DASP { get; set; }
         public bool? IndividualTaxReturn { get; set; }
         public DateTime? DateOfBirth { get; set; }
