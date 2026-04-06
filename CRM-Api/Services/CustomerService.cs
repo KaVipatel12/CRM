@@ -24,18 +24,35 @@ namespace CRM_Api.Services
                 .Include(c => c.ContactInfo)
                 .Include(c => c.IndividualInfo)
                 .Include(c => c.CompanyInfo)
-                .Where(c => !c.IsDeleted)
                 .AsQueryable();
 
-            // Apply Filters (Matching Legacy Logic)
-            if (!filter.IncludeInactive)
+            if (filter.IncludeArchived)
             {
+                query = query.Where(c => c.IsDeleted);
+            }
+            else if (!filter.IncludeInactive)
+            {
+                // Standard view: Show only non-deleted and non-inactive contacts
+                query = query.Where(c => !c.IsDeleted);
                 query = query.Where(c => c.IsActive == true || c.IsActive == null);
             }
+            // If IncludeInactive is true, we show the full list (Active, Inactive, and Archived) as per request.
 
-            if (filter.ContactType.HasValue)
+            if (filter.ContactType.HasValue && filter.ContactType.Value > 0)
             {
                 query = query.Where(c => c.ContactType == filter.ContactType.Value);
+            }
+
+            if (!string.IsNullOrEmpty(filter.VarifiedType) && filter.VarifiedType.ToLower() != "all")
+            {
+                if (filter.VarifiedType.ToLower() == "verified")
+                {
+                    query = query.Where(c => c.LastVarifiedDate != null);
+                }
+                else if (filter.VarifiedType.ToLower() == "not verified")
+                {
+                    query = query.Where(c => c.LastVarifiedDate == null);
+                }
             }
 
             if (!string.IsNullOrEmpty(filter.SearchString))
@@ -60,14 +77,14 @@ namespace CRM_Api.Services
                     Code = c.Code,
                     Name = c.Name,
                     ClientType = c.ClientType,
-                    // CustomerTypeNM mapping would ideally happen via a join to CustomerTypeMaster if needed
                     Email = c.ContactInfo != null ? c.ContactInfo.Email : null,
                     ContactType = c.ContactType,
                     TradingName = c.TradingName,
                     IsActive = c.IsActive,
                     GroupName = c.GroupName,
                     LastVarifiedBy = c.LastVarifiedBy,
-                    LastVarifiedDate = c.LastVarifiedDate
+                    LastVarifiedDate = c.LastVarifiedDate,
+                    IsDeleted = c.IsDeleted
                 })
                 .ToListAsync();
 
@@ -316,7 +333,7 @@ namespace CRM_Api.Services
                     customer.ContactInfo.UpdateDateTime = DateTime.Now;
                 }
 
-                // Update type-specific info logic (Individual)
+                // (Individual)
                 if (dto.ClientType == 1 && dto.IndividualInfo != null)
                 {
                     if (customer.IndividualInfo == null)
@@ -330,7 +347,7 @@ namespace CRM_Api.Services
                     customer.IndividualInfo.Gender = dto.IndividualInfo.Gender;
                     customer.IndividualInfo.UpdateDateTime = DateTime.Now;
                 }
-                // Update type-specific info logic (Sole Proprietor)
+                // (Sole Proprietor)
                 else if (dto.ClientType == 3 && dto.IndividualInfo != null)
                 {
                     if (customer.SolePropriterInfo == null)
@@ -343,7 +360,7 @@ namespace CRM_Api.Services
                     customer.SolePropriterInfo.DateOfBirth = dto.IndividualInfo.DateOfBirth;
                     customer.SolePropriterInfo.UpdateDateTime = DateTime.Now;
                 }
-                // Update type-specific info logic (Company)
+                // (Company)
                 else if (dto.ClientType == 2 && dto.CompanyInfo != null)
                 {
                     if (customer.CompanyInfo == null)
@@ -416,6 +433,19 @@ namespace CRM_Api.Services
             if (string.IsNullOrWhiteSpace(code)) return false;
             var lowerCode = code.Trim().ToLower();
             return await _context.Customers.AnyAsync(c => c.Code != null && c.Code.ToLower() == lowerCode);
+        }
+
+        public async Task<bool> DeleteCustomerAsync(int id)
+        {
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer == null)
+                return false;
+
+            customer.IsDeleted = true;
+            customer.UpdateDateTime = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

@@ -55,6 +55,18 @@ namespace CRM_Api.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteCustomer(int id)
+        {
+            var result = await _customerService.DeleteCustomerAsync(id);
+            if (!result)
+            {
+                return NotFound();
+            }
+            return NoContent();
+        }
+
         [HttpGet("GetIncrementCodeByType")]
         public async Task<IActionResult> GetIncrementCodeByType([FromQuery] int contactType)
         {

@@ -97,8 +97,8 @@
                                                         </div>
                                                     } @else {
                                                         <mat-form-field class="w-full">
-                                                            <mat-label>Company Name</mat-label>
-                                                            <input matInput formControlName="name" required>
+                                                            <mat-label>{{getNameLabel()}}</mat-label>
+                                                            <input matInput formControlName="name">
                                                         </mat-form-field>
                                                     }
                                                     <mat-form-field class="w-full">
@@ -227,25 +227,23 @@
                                             </div>
                                         }
 
-                                        @if (!isIndividual() && !isSoleProprietor()) {
+                                        @if (isCompany()) {
                                             <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" formGroupName="companyInfo">
                                                 <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
                                                     Organization Detail
                                                 </div>
                                                 <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                    @if (isCompany()) {
-                                                        <mat-form-field>
-                                                            <mat-label>ACN Number</mat-label>
-                                                            <input matInput formControlName="acnNumber">
-                                                        </mat-form-field>
-                                                    }
+                                                    <mat-form-field>
+                                                        <mat-label>ACN Number</mat-label>
+                                                        <input matInput formControlName="acnNumber">
+                                                    </mat-form-field>
                                                     <mat-form-field>
                                                         <mat-label>Website</mat-label>
                                                         <input matInput formControlName="webSite">
                                                     </mat-form-field>
                                                     <mat-form-field>
-                                                         <mat-label>Group Name</mat-label>
-                                                         <input matInput formControlName="groupName">
+                                                            <mat-label>Group Name</mat-label>
+                                                            <input matInput formControlName="groupName">
                                                     </mat-form-field>
                                                 </div>
                                             </div>
@@ -343,7 +341,10 @@
                                                 <div class="flex gap-4">
                                                     <mat-form-field class="flex-1">
                                                         <mat-label>Mobile</mat-label>
-                                                        <input matInput formControlName="cellPhone">
+                                                        <input matInput formControlName="cellPhone" required>
+                                                        <mat-error *ngIf="customerForm.get('contactInfo.cellPhone').hasError('required')">
+                                                            Mobile is or compulsory
+                                                        </mat-error>
                                                     </mat-form-field>
                                                     <mat-form-field class="flex-1">
                                                         <mat-label>Work Phone</mat-label>

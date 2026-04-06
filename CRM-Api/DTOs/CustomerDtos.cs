@@ -30,6 +30,7 @@ namespace CRM_Api.DTOs
         public string? GroupName { get; set; }
         public int? LastVarifiedBy { get; set; }
         public DateTime? LastVarifiedDate { get; set; }
+        public bool IsDeleted { get; set; }
     }
 
     public class CustomerDetailsDto : CustomerListDto

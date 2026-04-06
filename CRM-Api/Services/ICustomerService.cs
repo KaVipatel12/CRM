@@ -10,6 +10,7 @@ namespace CRM_Api.Services
         Task<CustomerDetailsDto?> GetCustomerByIdAsync(int id);
         Task<int> CreateCustomerAsync(CustomerSaveDto dto);
         Task<bool> UpdateCustomerAsync(int id, CustomerSaveDto dto);
+        Task<bool> DeleteCustomerAsync(int id);
         Task<int> GetIncrementCodeByTypeAsync(int contactType);
         Task<bool> CheckDuplicateCodeAsync(string code);
     }

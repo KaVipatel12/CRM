@@ -90,7 +90,7 @@ namespace CRM_Api.Services
                 Id = user.ID.ToString(),
                 Name = $"{user.FirstName} {user.LastName}".Trim(),
                 Email = user.Email,
-                Avatar = null, // Default avatar for now
+                Avatar = null, 
                 Status = "online"
             };
         }

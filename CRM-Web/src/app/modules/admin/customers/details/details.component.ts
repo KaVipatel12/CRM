@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
@@ -34,6 +35,7 @@ import { Subject, takeUntil } from 'rxjs';
         MatInputModule,
         MatSelectModule,
         MatTabsModule,
+        MatSnackBarModule,
         RouterLink,
         FuseAlertComponent
     ]
@@ -65,7 +67,8 @@ export class DetailsComponent implements OnInit {
         private _customerService: CustomerService,
         private _lookupService: LookupService,
         private _formBuilder: FormBuilder,
-        private _router: Router
+        private _router: Router,
+        private _snackBar: MatSnackBar
     ) {}
 
     ngOnInit(): void {
@@ -93,7 +96,7 @@ export class DetailsComponent implements OnInit {
             contactInfo: this._formBuilder.group({
                 contactName: [''],
                 email: ['', [Validators.email]],
-                cellPhone: [''],
+                cellPhone: ['', [Validators.required]],
                 workPhone: ['']
             }),
             individualInfo: this._formBuilder.group({
@@ -258,6 +261,10 @@ export class DetailsComponent implements OnInit {
         return type?.customerTypeNM?.toLowerCase() === 'company';
     }
 
+    getNameLabel(): string {
+        return this.isCompany() ? 'Company Name' : 'Name';
+    }
+
     private _updateNameValidators(): void {
         const clientType = this.customerForm.get('clientType').value;
         const nameControl = this.customerForm.get('name');
@@ -285,50 +292,50 @@ export class DetailsComponent implements OnInit {
         return !!this.customerForm.get('clientType').value && !!this.customerForm.get('contactType').value;
     }
 
-    // Legacy parity: Gender only for Individual (customerType == 1)
+    //   Gender only for Individual (customerType == 1)
     showGender(): boolean {
         return this.customerForm.get('clientType').value === 1;
     }
 
-    // Legacy parity: DOB for Individual (1) and Sole Proprietor (3)
+    //   DOB for Individual (1) and Sole Proprietor (3)
     showDateOfBirth(): boolean {
         const ct = this.customerForm.get('clientType').value;
         return ct === 1 || ct === 3;
     }
 
-    // Legacy parity: Director ID for Individual (1) and Sole Proprietor (3)
+    //   Director ID for Individual (1) and Sole Proprietor (3)
     showDirectorID(): boolean {
         const ct = this.customerForm.get('clientType').value;
         return ct === 1 || ct === 3;
     }
 
-    // Legacy parity: Manager for Individual(1), SMSF(4), Trust(6), Partnership(7)
+    //   Manager for Individual(1), SMSF(4), Trust(6), Partnership(7)
     showManager(): boolean {
         const ct = this.customerForm.get('clientType').value;
         return ct === 1 || ct === 4 || ct === 6 || ct === 7;
     }
 
-    // Legacy parity: Partner hidden only for Supplier(contactType=4) + Other(clientType=9)
+    //   Partner hidden only for Supplier(contactType=4) + Other(clientType=9)
     showPartner(): boolean {
         const contactType = this.customerForm.get('contactType').value;
         const clientType = this.customerForm.get('clientType').value;
         return !(contactType === 4 && clientType === 9);
     }
 
-    // Legacy parity: Additional Info (Tax Agent) hidden for Supplier(4) + Other(9)
+    //   Additional Info (Tax Agent) hidden for Supplier(4) + Other(9)
     showAdditionalInfo(): boolean {
         const contactType = this.customerForm.get('contactType').value;
         const clientType = this.customerForm.get('clientType').value;
         return !(contactType === 4 && clientType === 9);
     }
 
-    // Legacy parity: Business Type for Company(2), SoleProp(3), SMSF(4), Trust(6)
+    //   Business Type for Company(2), SoleProp(3), SMSF(4), Trust(6)
     showBusinessType(): boolean {
         const ct = this.customerForm.get('clientType').value;
         return ct === 2 || ct === 3 || ct === 4 || ct === 6;
     }
 
-    // Legacy parity: Trading Status for Company(2), SoleProp(3), SMSF(4), NonTrading(5), Trust(6)
+    //   Trading Status for Company(2), SoleProp(3), SMSF(4), NonTrading(5), Trust(6)
     showTradingStatus(): boolean {
         const ct = this.customerForm.get('clientType').value;
         return ct === 2 || ct === 3 || ct === 4 || ct === 5 || ct === 6;
@@ -360,17 +367,32 @@ export class DetailsComponent implements OnInit {
             a.addressLine1 || a.city || a.state || a.postalCode || (a.id && a.id > 0)
         );
 
+        // Check for duplicate code
+        const codeControl = this.customerForm.get('code');
+        if (!this.editMode || (this.editMode && codeControl.dirty)) {
+            this._customerService.checkDuplicateCode(data.code).subscribe(isDuplicate => {
+                if (isDuplicate) {
+                    this._snackBar.open('Customer Code already exists. Please use a unique code.', 'ERROR', { duration: 5000, horizontalPosition: 'right', verticalPosition: 'top' });
+                    this.isSaving = false;
+                    return;
+                }
+                this._proceedToSave(data);
+            });
+        } else {
+            this._proceedToSave(data);
+        }
+    }
+
+    private _proceedToSave(data: any): void {
         if (this.editMode) {
             this._customerService.updateCustomer(this.customerId, data).subscribe({
                 next: () => {
-                    this.alert = { type: 'success', message: 'Customer updated successfully' };
-                    this.showAlert = true;
+                    this._snackBar.open('Contact updated successfully', 'OK', { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top' });
                     this.isSaving = false;
-                    setTimeout(() => this._router.navigate(['../'], { relativeTo: this._activatedRoute }), 2000);
+                    setTimeout(() => this._router.navigate(['../'], { relativeTo: this._activatedRoute }), 500);
                 },
                 error: (err) => {
-                    this.alert = { type: 'error', message: 'Failed to update customer' };
-                    this.showAlert = true;
+                    this._snackBar.open('Failed to update contact', 'ERROR', { duration: 5000, horizontalPosition: 'right', verticalPosition: 'top' });
                     this.isSaving = false;
                     console.error('API Error:', err);
                 }
@@ -378,14 +400,12 @@ export class DetailsComponent implements OnInit {
         } else {
             this._customerService.createCustomer(data).subscribe({
                 next: () => {
-                    this.alert = { type: 'success', message: 'Customer created successfully' };
-                    this.showAlert = true;
+                    this._snackBar.open('Contact created successfully', 'OK', { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top' });
                     this.isSaving = false;
-                    setTimeout(() => this._router.navigate(['../'], { relativeTo: this._activatedRoute }), 2000);
+                    setTimeout(() => this._router.navigate(['../'], { relativeTo: this._activatedRoute }), 500);
                 },
                 error: (err) => {
-                    this.alert = { type: 'error', message: 'Failed to create customer' };
-                    this.showAlert = true;
+                    this._snackBar.open('Failed to create contact', 'ERROR', { duration: 5000, horizontalPosition: 'right', verticalPosition: 'top' });
                     this.isSaving = false;
                     console.error('API Error:', err);
                 }

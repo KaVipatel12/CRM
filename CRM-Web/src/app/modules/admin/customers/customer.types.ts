@@ -13,15 +13,19 @@ export interface Customer {
     phone?: string;
     mobile?: string;
     website?: string;
+    isDeleted?: boolean;
 }
 
 export interface CustomerListFilter {
     includeInactive?: boolean;
     contactType?: number;
+    varifiedType?: string;
     searchString?: string;
     currentPage: number;
     pageSize: number;
     orderBy?: string;
+    includeArchived?: boolean;
+    includeExcluded?: boolean;
 }
 
 export interface Address {

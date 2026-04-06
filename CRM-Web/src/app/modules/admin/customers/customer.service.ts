@@ -16,7 +16,10 @@ export class CustomerService {
         
         if (filter.searchString) params = params.set('SearchString', filter.searchString);
         if (filter.contactType) params = params.set('ContactType', filter.contactType.toString());
+        if (filter.varifiedType) params = params.set('VarifiedType', filter.varifiedType);
         if (filter.includeInactive !== undefined) params = params.set('IncludeInactive', filter.includeInactive.toString());
+        if (filter.includeArchived !== undefined) params = params.set('IncludeArchived', filter.includeArchived.toString());
+        if (filter.includeExcluded !== undefined) params = params.set('IncludeExcluded', filter.includeExcluded.toString());
         
         params = params.set('CurrentPage', filter.currentPage.toString());
         params = params.set('PageSize', filter.pageSize.toString());
@@ -59,5 +62,12 @@ export class CustomerService {
      */
     checkDuplicateCode(code: string): Observable<boolean> {
         return this._httpClient.get<boolean>(`${this._baseUrl}/CheckDuplicateCode/${code}`);
+    }
+
+    /**
+     * Delete customer
+     */
+    deleteCustomer(id: number): Observable<void> {
+        return this._httpClient.delete<void>(`${this._baseUrl}/${id}`);
     }
 }
