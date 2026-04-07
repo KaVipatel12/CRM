@@ -24,14 +24,16 @@ namespace CRM_Api.Data
         public DbSet<TaxAgent> TaxAgents { get; set; } = null!;
         public DbSet<TradingStatus> TradingStatuses { get; set; } = null!;
         public DbSet<EntityType> EntityTypes { get; set; } = null!;
-        public DbSet<TaskAction> Actions { get; set; } = null!;
+        public DbSet<Job> Jobs { get; set; } = null!;
+        public DbSet<JobTask> JobTasks { get; set; } = null!;
+        public DbSet<JobComment> JobComments { get; set; } = null!;
+        public DbSet<JobHistory> JobHistories { get; set; } = null!;
         public DbSet<TrustInfo> TrustInfos { get; set; } = null!;
         public DbSet<IndividualInfo> IndividualInfos { get; set; } = null!;
         public DbSet<CompanyInfo> CompanyInfos { get; set; } = null!;
         public DbSet<SolePropriterInfo> SolePropriterInfos { get; set; } = null!;
         public DbSet<ContactInfo> ContactInfos { get; set; } = null!;
         public DbSet<Address> Addresses { get; set; } = null!;
-        public DbSet<Detail> Details { get; set; } = null!;
         public DbSet<FileUploadInfo> FileUploadInfos { get; set; } = null!;
         public DbSet<BankAccount> BankAccounts { get; set; } = null!;
 

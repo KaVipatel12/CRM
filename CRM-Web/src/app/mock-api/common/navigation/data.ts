@@ -3,184 +3,37 @@ import { FuseNavigationItem } from '@fuse/components/navigation';
 
 export const defaultNavigation: FuseNavigationItem[] = [
     {
-        id   : 'dashboard',
-        title: 'Dashboard',
-        type : 'basic',
-        icon : 'heroicons_outline:home',
-        link : '/dashboard'
-    },
-    {
-        id   : 'contacts',
-        title: 'Contacts',
+        id   : 'customers',
+        title: 'Customers',
         type : 'basic',
         icon : 'heroicons_outline:user-group',
-        link : '/customer'
-    },
-    {
-        id   : 'bulk-upload',
-        title: 'Bulk Upload',
-        type : 'basic',
-        icon : 'heroicons_outline:cloud-arrow-up',
-        link : '/customer/upload'
-    },
-    {
-        id   : 'jobs',
-        title: 'Jobs',
-        type : 'basic',
-        icon : 'heroicons_outline:clipboard-document-list',
-        link : '/admin/jobs'
-    },
-    {
-        id   : 'forms',
-        title: 'Forms',
-        type : 'basic',
-        icon : 'heroicons_outline:document-text',
-        link : '/admin/forms'
-    },
-    {
-        id   : 'calls',
-        title: 'Calls',
-        type : 'basic',
-        icon : 'heroicons_outline:phone',
-        link : '/admin/calls'
-    },
-    {
-        id   : 'reports',
-        title: 'Reports',
-        type : 'basic',
-        icon : 'heroicons_outline:chart-bar',
-        link : '/admin/reports'
-    },
-    {
-        id   : 'settings',
-        title: 'Setting',
-        type : 'basic',
-        icon : 'heroicons_outline:cog-8-tooth',
-        link : '/admin/settings'
+        link : '/customers'
     }
 ];
 export const compactNavigation: FuseNavigationItem[] = [
     {
-        id   : 'dashboard',
-        title: 'Dashboard',
-        type : 'basic',
-        icon : 'heroicons_outline:home',
-        link : '/dashboard'
-    },
-    {
-        id   : 'contacts',
-        title: 'Contacts',
+        id   : 'customers',
+        title: 'Customers',
         type : 'basic',
         icon : 'heroicons_outline:user-group',
-        link : '/customer'
-    },
-    {
-        id   : 'bulk-upload',
-        title: 'Bulk Upload',
-        type : 'basic',
-        icon : 'heroicons_outline:cloud-arrow-up',
-        link : '/customer/upload'
-    },
-    {
-        id   : 'jobs',
-        title: 'Jobs',
-        type : 'basic',
-        icon : 'heroicons_outline:clipboard-document-list',
-        link : '/admin/jobs'
-    },
-    {
-        id   : 'forms',
-        title: 'Forms',
-        type : 'basic',
-        icon : 'heroicons_outline:document-text',
-        link : '/admin/forms'
-    },
-    {
-        id   : 'calls',
-        title: 'Calls',
-        type : 'basic',
-        icon : 'heroicons_outline:phone',
-        link : '/admin/calls'
-    },
-    {
-        id   : 'reports',
-        title: 'Reports',
-        type : 'basic',
-        icon : 'heroicons_outline:chart-bar',
-        link : '/admin/reports'
-    },
-    {
-        id   : 'settings',
-        title: 'Setting',
-        type : 'basic',
-        icon : 'heroicons_outline:cog-8-tooth',
-        link : '/admin/settings'
+        link : '/customers'
     }
 ];
 export const futuristicNavigation: FuseNavigationItem[] = [
     {
-        id   : 'dashboard',
-        title: 'Dashboard',
-        type : 'basic',
-        icon : 'heroicons_outline:home',
-        link : '/dashboard'
-    },
-    {
-        id   : 'contacts',
-        title: 'Contacts',
+        id   : 'customers',
+        title: 'Customers',
         type : 'basic',
         icon : 'heroicons_outline:user-group',
-        link : '/customer'
-    },
-    {
-        id   : 'bulk-upload',
-        title: 'Bulk Upload',
-        type : 'basic',
-        icon : 'heroicons_outline:cloud-arrow-up',
-        link : '/customer/upload'
-    },
-    {
-        id   : 'jobs',
-        title: 'Jobs',
-        type : 'basic',
-        icon : 'heroicons_outline:clipboard-document-list',
-        link : '/admin/jobs'
-    },
-    {
-        id   : 'forms',
-        title: 'Forms',
-        type : 'basic',
-        icon : 'heroicons_outline:document-text',
-        link : '/admin/forms'
-    },
-    {
-        id   : 'calls',
-        title: 'Calls',
-        type : 'basic',
-        icon : 'heroicons_outline:phone',
-        link : '/admin/calls'
-    },
-    {
-        id   : 'reports',
-        title: 'Reports',
-        type : 'basic',
-        icon : 'heroicons_outline:chart-bar',
-        link : '/admin/reports'
-    },
-    {
-        id   : 'settings',
-        title: 'Setting',
-        type : 'basic',
-        icon : 'heroicons_outline:cog-8-tooth',
-        link : '/admin/settings'
+        link : '/customers'
     }
 ];
 export const horizontalNavigation: FuseNavigationItem[] = [
     {
-        id   : 'example',
-        title: 'Example',
+        id   : 'customers',
+        title: 'Customers',
         type : 'basic',
-        icon : 'heroicons_outline:chart-pie',
-        link : '/example'
+        icon : 'heroicons_outline:user-group',
+        link : '/customers'
     }
 ];

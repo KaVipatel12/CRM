@@ -14,6 +14,17 @@ OfficeOpenXml.ExcelPackage.License.SetNonCommercialOrganization("SSP CRM");
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -119,6 +130,8 @@ else
 {
     app.UseHttpsRedirection();
 }
+
+app.UseCors("AllowAngular");
 
 app.UseAuthentication();
 app.UseAuthorization();

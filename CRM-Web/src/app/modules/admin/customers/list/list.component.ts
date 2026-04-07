@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, inject } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -11,6 +11,8 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
 import { Customer, CustomerListFilter } from '../customer.types';
 import { CustomerService } from '../customer.service';
@@ -39,11 +41,19 @@ import { User } from 'app/core/user/user.types';
         MatSelectModule,
         MatTableModule,
         MatSnackBarModule,
+        MatTooltipModule,
+        MatProgressSpinnerModule,
         RouterLink
     ]
 })
-export class ListComponent implements OnInit {
+export class ListComponent implements OnInit, OnDestroy {
     @ViewChild(MatPaginator) private _paginator: MatPaginator;
+
+    private _customerService = inject(CustomerService);
+    private _lookupService = inject(LookupService);
+    private _userService = inject(UserService);
+    private _fuseConfirmationService = inject(FuseConfirmationService);
+    private _snackBar = inject(MatSnackBar);
 
     customers: Customer[] = [];
     dataSource: MatTableDataSource<Customer> = new MatTableDataSource();
@@ -67,13 +77,14 @@ export class ListComponent implements OnInit {
     private _searchSubject: Subject<string> = new Subject<string>();
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
-    constructor(
-        private _customerService: CustomerService,
-        private _lookupService: LookupService,
-        private _userService: UserService,
-        private _fuseConfirmationService: FuseConfirmationService,
-        private _snackBar: MatSnackBar
-    ) {}
+    /**
+     * Constructor
+     */
+    constructor() {}
+
+    // -----------------------------------------------------------------------------------------------------
+    // @ Lifecycle hooks
+    // -----------------------------------------------------------------------------------------------------
 
     ngOnInit(): void {
         this.loadLookups();
@@ -97,6 +108,15 @@ export class ListComponent implements OnInit {
         });
     }
 
+    ngOnDestroy(): void {
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
+    }
+
+    // -----------------------------------------------------------------------------------------------------
+    // @ Public methods
+    // -----------------------------------------------------------------------------------------------------
+
     loadLookups(): void {
         this._lookupService.getLookups()
             .pipe(takeUntil(this._unsubscribeAll))
@@ -118,7 +138,6 @@ export class ListComponent implements OnInit {
                 },
                 error: () => {
                     this.isLoading = false;
-                    // Handle error
                 }
             });
     }
@@ -140,21 +159,21 @@ export class ListComponent implements OnInit {
 
     deleteCustomer(id: number): void {
         const dialogRef = this._fuseConfirmationService.open({
-            title: 'Delete Contact',
+            title  : 'Delete Contact',
             message: 'Are you sure you want to delete this contact? This action cannot be undone.',
-            icon: {
+            icon   : {
                 show: true,
                 name: 'heroicons_outline:exclamation-triangle',
                 color: 'warn',
             },
             actions: {
                 confirm: {
-                    show: true,
+                    show : true,
                     label: 'Delete',
                     color: 'warn',
                 },
-                cancel: {
-                    show: true,
+                cancel : {
+                    show : true,
                     label: 'Cancel',
                 },
             },
@@ -167,10 +186,10 @@ export class ListComponent implements OnInit {
                 this._customerService.deleteCustomer(id).subscribe({
                     next: () => {
                         this._snackBar.open('Contact deleted successfully.', 'Close', {
-                            duration: 3000,
+                            duration          : 3000,
                             horizontalPosition: 'right',
-                            verticalPosition: 'top',
-                            panelClass: ['bg-green-600', 'text-white']
+                            verticalPosition  : 'top',
+                            panelClass        : ['bg-green-600', 'text-white']
                         });
                         this.loadCustomers();
                     },
@@ -183,10 +202,10 @@ export class ListComponent implements OnInit {
                         }
                         
                         this._snackBar.open(errorMessage, 'Close', {
-                            duration: 4000,
+                            duration          : 4000,
                             horizontalPosition: 'right',
-                            verticalPosition: 'top',
-                            panelClass: ['bg-red-600', 'text-white']
+                            verticalPosition  : 'top',
+                            panelClass        : ['bg-red-600', 'text-white']
                         });
                     }
                 });
@@ -196,21 +215,21 @@ export class ListComponent implements OnInit {
 
     verifyCustomer(customer: Customer): void {
         const dialogRef = this._fuseConfirmationService.open({
-            title: 'Verify Customer',
+            title  : 'Verify Customer',
             message: `Are you sure you want to verify <b>${customer.name}</b>?`,
-            icon: {
+            icon   : {
                 show: true,
                 name: 'heroicons_outline:check-badge',
                 color: 'success',
             },
             actions: {
                 confirm: {
-                    show: true,
+                    show : true,
                     label: 'Verify',
                     color: 'primary',
                 },
-                cancel: {
-                    show: true,
+                cancel : {
+                    show : true,
                     label: 'Cancel',
                 },
             },
@@ -222,28 +241,23 @@ export class ListComponent implements OnInit {
                 this._customerService.verifyCustomer(customer.id).subscribe({
                     next: () => {
                         this._snackBar.open('Customer verified successfully.', 'Close', {
-                            duration: 3000,
+                            duration          : 3000,
                             horizontalPosition: 'right',
-                            verticalPosition: 'top',
-                            panelClass: ['bg-green-600', 'text-white']
+                            verticalPosition  : 'top',
+                            panelClass        : ['bg-green-600', 'text-white']
                         });
                         this.loadCustomers();
                     },
                     error: () => {
                         this._snackBar.open('Failed to verify customer.', 'Close', {
-                            duration: 4000,
+                            duration          : 4000,
                             horizontalPosition: 'right',
-                            verticalPosition: 'top',
-                            panelClass: ['bg-red-600', 'text-white']
+                            verticalPosition  : 'top',
+                            panelClass        : ['bg-red-600', 'text-white']
                         });
                     }
                 });
             }
         });
-    }
-
-    ngOnDestroy(): void {
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
     }
 }

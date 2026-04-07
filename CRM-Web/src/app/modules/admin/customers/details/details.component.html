@@ -1,18 +1,35 @@
-<div class="flex flex-col flex-auto min-w-0 bg-gray-100 dark:bg-transparent">
-
+<div class="flex flex-col flex-auto min-w-0">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-b bg-card dark:bg-transparent">
+    <div class="flex flex-col sm:flex-row items-center justify-between px-6 py-8 border-b bg-card dark:bg-transparent">
         <div class="flex flex-col">
             <!-- Breadcrumbs -->
             <div class="flex items-center text-sm font-medium text-secondary whitespace-nowrap">
-                <a class="text-blue-500 cursor-pointer" [routerLink]="['/dashboard']">Home</a>
+                <a class="text-primary cursor-pointer hover:underline" [routerLink]="['/dashboard']">Home</a>
                 <mat-icon class="icon-size-4 mx-1" [svgIcon]="'heroicons_mini:chevron-right'"></mat-icon>
-                <a class="text-blue-500 cursor-pointer" [routerLink]="['../']">Contacts</a>
+                <a class="text-primary cursor-pointer hover:underline" [routerLink]="['../']">Contacts</a>
                 <mat-icon class="icon-size-4 mx-1" [svgIcon]="'heroicons_mini:chevron-right'"></mat-icon>
                 <span>{{editMode ? 'Edit' : 'Add'}} Contact</span>
             </div>
             <!-- Title -->
-            <div class="mt-2 text-3xl font-bold leading-none tracking-tight">{{editMode ? 'Edit' : 'Add'}} Contact</div>
+            <div class="mt-2 text-3xl md:text-4xl font-extrabold leading-none tracking-tight">{{editMode ? 'Edit' : 'Add'}} Contact</div>
+        </div>
+
+        <!-- Header Actions -->
+        <div class="flex items-center mt-6 sm:mt-0 gap-3">
+            <button
+                mat-stroked-button
+                [routerLink]="['../']">
+                <mat-icon class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:arrow-left'"></mat-icon>
+                Cancel
+            </button>
+            <button
+                mat-flat-button
+                [color]="'primary'"
+                [disabled]="customerForm.invalid || isSaving"
+                (click)="save()">
+                <mat-icon class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+                {{editMode ? 'Save Changes' : 'Create Contact'}}
+            </button>
         </div>
     </div>
 
@@ -20,457 +37,358 @@
     <div class="flex-auto p-6 sm:p-10">
         
         <!-- Form card -->
-        <div class="bg-card shadow rounded-xl overflow-hidden p-8">
+        <div class="bg-card shadow rounded-2xl overflow-hidden p-8 border border-divider">
             
             <form [formGroup]="customerForm">
                 
-                @if (showAlert) {
-                    <fuse-alert class="mb-8" [type]="alert.type" [showIcon]="true" [dismissible]="true">
-                        {{alert.message}}
-                    </fuse-alert>
-                }
-
                 <!-- TOP LEVEL CONTROLS -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 px-2 mb-2">
-                    <mat-form-field class="w-full max-w-sm">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 bg-primary/5 dark:bg-primary-500/10 p-6 rounded-2xl border border-primary/10">
+                    <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-full">
                         <mat-label>Contact Type</mat-label>
                         <mat-select formControlName="contactType">
                             <mat-option *ngFor="let type of contactTypes" [value]="type.id">{{type.name}}</mat-option>
                         </mat-select>
+                        <mat-icon matPrefix class="icon-size-5" [svgIcon]="'heroicons_outline:identification'"></mat-icon>
                     </mat-form-field>
 
-                    <mat-form-field class="w-full max-w-sm">
+                    <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-full">
                         <mat-label>Customer Type</mat-label>
                         <mat-select formControlName="clientType">
                             <mat-option [value]="null">Please Select Customer Type</mat-option>
                             <mat-option *ngFor="let type of customerTypes" [value]="type.id">{{type.customerTypeNM}}</mat-option>
                         </mat-select>
+                        <mat-icon matPrefix class="icon-size-5" [svgIcon]="'heroicons_outline:user-group'"></mat-icon>
                     </mat-form-field>
+                    
+                    <div class="sm:col-span-2 text-xs text-secondary font-medium italic" *ngIf="!isTypeSelected()">
+                        * Please select Contact Type and Customer Type to enable all form sections.
+                    </div>
                 </div>
 
                 @if (isTypeSelected()) {
-                    <div class="bg-teal-600 rounded-t-lg pt-1">
-                        <mat-tab-group class="bg-white dark:bg-card border-x border-b rounded-b-lg shadow-sm" animationDuration="0ms">
+                    <div class="mt-8">
+                        <mat-tab-group class="fuse-mat-no-subscript" animationDuration="200ms">
                             
                             <!-- COMMON DETAIL TAB -->
-                            <mat-tab label="Common Detail">
-                                <div class="p-6 grid grid-cols-1 xl:grid-cols-3 gap-6 bg-gray-50 dark:bg-transparent">
+                            <mat-tab>
+                                <ng-template mat-tab-label>
+                                    <mat-icon class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
+                                    Common Detail
+                                </ng-template>
+
+                                <div class="p-0 grid grid-cols-1 xl:grid-cols-3 gap-10 mt-8">
                                     
                                     <!-- LEFT COLUMN -->
-                                    <div class="xl:col-span-2 space-y-6">
+                                    <div class="xl:col-span-2 space-y-12">
                                         
-                                        <!-- Client Detail Box -->
-                                        <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20">
-                                            <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800 flex items-center justify-between">
-                                                <span>Client Detail</span>
-                                                <button type="button" mat-flat-button class="bg-teal-500 text-white text-xs px-3 h-7 min-w-0 rounded-md shadow-sm hover:bg-teal-600 transition-colors" 
+                                        <!-- Client Detail Section -->
+                                        <div class="bg-card shadow rounded-2xl p-8 border border-divider">
+                                            <div class="flex items-center justify-between border-b border-divider pb-2 mb-8">
+                                                <div class="flex flex-col">
+                                                    <span class="text-xl font-extrabold tracking-tight text-primary">Client Detail</span>
+                                                    <span class="text-[10px] font-bold text-secondary uppercase tracking-wider">Core Information & Identity</span>
+                                                </div>
+                                                <button type="button" mat-stroked-button color="primary" class="rounded-xl h-10 px-4" 
                                                         *ngIf="editMode"
                                                         (click)="changeCustomerType()">
-                                                    <mat-icon class="icon-size-4 mr-2" [svgIcon]="'heroicons_solid:user-group'"></mat-icon>
-                                                    Change Customer Type
+                                                    <mat-icon class="icon-size-4 mr-2" [svgIcon]="'heroicons_solid:arrows-right-left'"></mat-icon>
+                                                    Change Type
                                                 </button>
                                             </div>
-                                            <div class="p-4 space-y-1">
+                                            <div class="space-y-6">
 
-                                                <!-- Row 1: Staff In Charge | (empty or TFN) -->
-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                                                    <mat-form-field class="w-full">
+                                                <!-- Row 1: Staff In Charge | TFN -->
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <mat-form-field class="fuse-mat-no-subscript w-full">
                                                         <mat-label>Staff In Charge</mat-label>
                                                         <mat-select formControlName="staffInCharge">
-                                                            <mat-option [value]="null">Please Select Staff</mat-option>
+                                                            <mat-option [value]="null">No Staff Assigned</mat-option>
                                                             <mat-option *ngFor="let s of staff" [value]="s.id">{{s.firstName}} {{s.lastName}}</mat-option>
                                                         </mat-select>
+                                                        <mat-icon matPrefix class="icon-size-5" [svgIcon]="'heroicons_outline:user-circle'"></mat-icon>
                                                     </mat-form-field>
-                                                    <mat-form-field class="w-full">
+                                                    <mat-form-field class="fuse-mat-no-subscript w-full">
                                                         <mat-label>TFN Number</mat-label>
                                                         <input matInput formControlName="tfnNumber">
+                                                        <mat-icon matPrefix class="icon-size-5" [svgIcon]="'heroicons_outline:finger-print'"></mat-icon>
                                                     </mat-form-field>
                                                 </div>
 
-                                                <!-- Row 2: Name | Mailing Name -->
-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                                                <!-- Row 2: Dynamic Name Fields -->
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                     @if (isIndividual()) {
-                                                        <div class="flex gap-2" formGroupName="individualInfo">
-                                                            <mat-form-field class="flex-1">
+                                                        <div class="flex gap-4" formGroupName="individualInfo">
+                                                            <mat-form-field class="flex-1 fuse-mat-no-subscript">
                                                                 <mat-label>First Name</mat-label>
                                                                 <input matInput formControlName="firstName">
                                                             </mat-form-field>
-                                                            <mat-form-field class="flex-1">
+                                                            <mat-form-field class="flex-1 fuse-mat-no-subscript">
                                                                 <mat-label>Last Name</mat-label>
                                                                 <input matInput formControlName="lastName">
                                                             </mat-form-field>
                                                         </div>
                                                     } @else if (isSoleProprietor()) {
-                                                        <div class="flex gap-2" formGroupName="solePropriterInfo">
-                                                            <mat-form-field class="flex-1">
+                                                        <div class="flex gap-4" formGroupName="solePropriterInfo">
+                                                            <mat-form-field class="flex-1 fuse-mat-no-subscript">
                                                                 <mat-label>First Name</mat-label>
                                                                 <input matInput formControlName="firstName">
                                                             </mat-form-field>
-                                                            <mat-form-field class="flex-1">
+                                                            <mat-form-field class="flex-1 fuse-mat-no-subscript">
                                                                 <mat-label>Last Name</mat-label>
                                                                 <input matInput formControlName="lastName">
                                                             </mat-form-field>
                                                         </div>
                                                     } @else {
-                                                        <mat-form-field class="w-full">
+                                                        <mat-form-field class="fuse-mat-no-subscript w-full">
                                                             <mat-label>{{getNameLabel()}}</mat-label>
                                                             <input matInput formControlName="name">
+                                                            <mat-icon matPrefix class="icon-size-5" [svgIcon]="'heroicons_outline:building-office'"></mat-icon>
                                                         </mat-form-field>
                                                     }
-                                                    <mat-form-field class="w-full">
+                                                    <mat-form-field class="fuse-mat-no-subscript w-full">
                                                         <mat-label>Mailing Name</mat-label>
                                                         <input matInput formControlName="mailingName">
+                                                        <mat-icon matPrefix class="icon-size-5" [svgIcon]="'heroicons_outline:envelope-open'"></mat-icon>
                                                     </mat-form-field>
                                                 </div>
 
-                                                <!-- Row 3: Code + buttons | Partner -->
-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                                                    <div class="flex items-start space-x-2 w-full">
-                                                        <mat-form-field class="flex-1">
-                                                            <mat-label>Code</mat-label>
+                                                <!-- Row 3: Code + Admin Details -->
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <div class="flex items-center space-x-2 w-full">
+                                                        <mat-form-field class="fuse-mat-no-subscript flex-auto">
+                                                            <mat-label>Contact Code</mat-label>
                                                             <input matInput formControlName="code" required>
                                                             <button mat-icon-button matSuffix (click)="checkDuplicateCode()" title="Verify Code" type="button">
-                                                                <mat-icon class="text-teal-500" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+                                                                <mat-icon class="text-primary" [svgIcon]="'heroicons_outline:check-circle'"></mat-icon>
                                                             </button>
-                                                            <mat-error *ngIf="customerForm.get('code').hasError('duplicate')">
-                                                                This code is already used.
-                                                            </mat-error>
+                                                            <mat-error *ngIf="customerForm.get('code').hasError('duplicate')">Code in use.</mat-error>
                                                         </mat-form-field>
-                                                        <button type="button" class="bg-teal-500 text-white w-10 h-10 rounded flex-shrink-0 mt-[26px] flex items-center justify-center hover:bg-teal-600 transition-colors" (click)="clearCode()" title="Clear Code">
-                                                            <mat-icon class="icon-size-5 text-white" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+                                                        <button type="button" class="bg-primary/10 hover:bg-primary/20 dark:bg-primary-500/10 dark:hover:bg-primary-500/20 w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center transition-colors border border-primary/20" (click)="clearCode()" title="Clear">
+                                                            <mat-icon class="icon-size-5 text-primary" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
                                                         </button>
                                                     </div>
                                                     @if (showPartner()) {
-                                                        <mat-form-field class="w-full">
+                                                        <mat-form-field class="fuse-mat-no-subscript w-full">
                                                             <mat-label>Partner</mat-label>
                                                             <input matInput formControlName="partner">
+                                                            <mat-icon matPrefix class="icon-size-5" [svgIcon]="'heroicons_outline:users'"></mat-icon>
                                                         </mat-form-field>
                                                     }
                                                 </div>
 
                                                 <!-- Row 4: Trading Name | Manager -->
-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                                                    <mat-form-field class="w-full">
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <mat-form-field class="fuse-mat-no-subscript w-full">
                                                         <mat-label>Trading Name</mat-label>
                                                         <input matInput formControlName="tradingName">
                                                     </mat-form-field>
                                                     @if (showManager()) {
-                                                        <mat-form-field class="w-full">
+                                                        <mat-form-field class="fuse-mat-no-subscript w-full">
                                                             <mat-label>Manager</mat-label>
                                                             <input matInput formControlName="manager">
                                                         </mat-form-field>
                                                     }
                                                 </div>
 
-                                                <!-- Row 5: Post Newsletter | Director ID -->
-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 items-center">
-                                                    <div class="flex items-center pt-2 mb-4">
-                                                        <mat-checkbox color="primary" formControlName="postNewsLetter">Post Newsletter</mat-checkbox>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Row 6: ABN Number | (empty) -->
-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                                                    <mat-form-field class="w-full">
+                                                <!-- Row 5: ABN | Business Type -->
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <mat-form-field class="fuse-mat-no-subscript w-full">
                                                         <mat-label>ABN Number</mat-label>
                                                         <input matInput formControlName="abnNumber">
                                                     </mat-form-field>
+                                                    @if (showBusinessType()) {
+                                                        <mat-form-field class="fuse-mat-no-subscript w-full">
+                                                            <mat-label>Business Type</mat-label>
+                                                            <mat-select formControlName="businessType">
+                                                                <mat-option [value]="null">Select Type</mat-option>
+                                                                <mat-option *ngFor="let b of businessTypes" [value]="b.id">{{b.businessTypeNM}}</mat-option>
+                                                            </mat-select>
+                                                        </mat-form-field>
+                                                    }
                                                 </div>
-
-                                                <!-- Row 7: Business Type | Trading Status (conditional) -->
-                                                @if (showBusinessType() || showTradingStatus()) {
-                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                                                        @if (showBusinessType()) {
-                                                            <mat-form-field class="w-full">
-                                                                <mat-label>Business Type</mat-label>
-                                                                <mat-select formControlName="businessType">
-                                                                    <mat-option [value]="null">Please Select Business Type</mat-option>
-                                                                    <mat-option *ngFor="let b of businessTypes" [value]="b.id">{{b.businessTypeNM}}</mat-option>
-                                                                </mat-select>
-                                                            </mat-form-field>
-                                                        }
-                                                        @if (showTradingStatus()) {
-                                                            <mat-form-field class="w-full">
-                                                                <mat-label>Trading Status</mat-label>
-                                                                <mat-select formControlName="tradingStatus" [disabled]="true">
-                                                                    <mat-option *ngFor="let s of tradingStatuses" [value]="s.id">{{s.name}}</mat-option>
-                                                                </mat-select>
-                                                            </mat-form-field>
-                                                        }
-                                                    </div>
-                                                }
-
+                                                
+                                                <div class="flex items-center pt-2">
+                                                    <mat-checkbox color="primary" formControlName="postNewsLetter">
+                                                        <span class="text-sm font-medium">Subscribe to Newsletter</span>
+                                                    </mat-checkbox>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <!-- Specific Info based on Type -->
+                                        <!-- Individual / Sole Proprietor extra details -->
                                         @if (isIndividual()) {
-                                            <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" formGroupName="individualInfo">
-                                                <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
-                                                    Individual Detail
+                                            <div formGroupName="individualInfo" class="animate-in fade-in slide-in-from-top-4 duration-300 bg-card shadow rounded-2xl p-8 border border-divider">
+                                                <div class="flex items-center justify-between border-b border-divider pb-2 mb-8">
+                                                    <div class="flex flex-col">
+                                                        <span class="text-xl font-extrabold tracking-tight text-primary">Individual Detail</span>
+                                                        <span class="text-[10px] font-bold text-secondary uppercase tracking-wider">Demographics & Directors</span>
+                                                    </div>
                                                 </div>
-                                                <div class="p-4 space-y-2">
-                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                                                        <mat-form-field class="w-full">
-                                                            <mat-label>Date of Birth</mat-label>
-                                                            <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
-                                                            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                                                            <mat-datepicker #picker></mat-datepicker>
-                                                        </mat-form-field>
-                                                        <div class="flex items-center gap-6 pt-2">
-                                                            <span class="text-sm font-medium text-secondary">Gender</span>
-                                                            <label class="flex items-center gap-1 cursor-pointer">
-                                                                <input type="radio" formControlName="gender" [value]="1" class="accent-teal-500">
-                                                                <span class="text-sm">Male</span>
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                    <mat-form-field class="fuse-mat-no-subscript w-full">
+                                                        <mat-label>Date of Birth</mat-label>
+                                                        <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
+                                                        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                                                        <mat-datepicker #picker></mat-datepicker>
+                                                    </mat-form-field>
+                                                    <div class="flex flex-col">
+                                                        <span class="text-sm font-semibold text-secondary mb-3">Gender</span>
+                                                        <div class="flex items-center gap-6">
+                                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                                <input type="radio" formControlName="gender" [value]="1" class="w-4 h-4 accent-primary">
+                                                                <span class="text-sm font-medium group-hover:text-primary transition-colors">Male</span>
                                                             </label>
-                                                            <label class="flex items-center gap-1 cursor-pointer">
-                                                                <input type="radio" formControlName="gender" [value]="2" class="accent-teal-500">
-                                                                <span class="text-sm">Female</span>
+                                                            <label class="flex items-center gap-2 cursor-pointer group">
+                                                                <input type="radio" formControlName="gender" [value]="2" class="w-4 h-4 accent-primary">
+                                                                <span class="text-sm font-medium group-hover:text-primary transition-colors">Female</span>
                                                             </label>
                                                         </div>
                                                     </div>
-                                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                        <mat-form-field>
-                                                            <mat-label>Director ID</mat-label>
-                                                            <input matInput formControlName="directorID">
-                                                        </mat-form-field>
-                                                        <div class="flex items-center pt-2">
-                                                            <mat-checkbox color="primary" formControlName="chargeInterest">Charge Interest</mat-checkbox>
-                                                        </div>
-                                                        <div class="flex items-center pt-2">
-                                                            <mat-checkbox color="primary" formControlName="chargeMonthlyDisbursement">Monthly Disbursement</mat-checkbox>
-                                                        </div>
-                                                    </div>
+                                                </div>
+                                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                                                    <mat-form-field class="fuse-mat-no-subscript">
+                                                        <mat-label>Director ID</mat-label>
+                                                        <input matInput formControlName="directorID">
+                                                    </mat-form-field>
+                                                    <mat-checkbox color="primary" class="pt-4" formControlName="chargeInterest">Charge Interest</mat-checkbox>
+                                                    <mat-checkbox color="primary" class="pt-4" formControlName="chargeMonthlyDisbursement">Monthly Disbursement</mat-checkbox>
                                                 </div>
                                             </div>
                                         }
 
                                         @if (isSoleProprietor()) {
-                                            <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" formGroupName="solePropriterInfo">
-                                                <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
-                                                    Sole Proprietor Detail
-                                                </div>
-                                                <div class="p-4 space-y-2">
-                                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                        <mat-form-field class="w-full">
-                                                            <mat-label>Date of Birth</mat-label>
-                                                            <input matInput [matDatepicker]="spPicker" formControlName="dateOfBirth">
-                                                            <mat-datepicker-toggle matSuffix [for]="spPicker"></mat-datepicker-toggle>
-                                                            <mat-datepicker #spPicker></mat-datepicker>
-                                                        </mat-form-field>
-                                                        <mat-form-field>
-                                                            <mat-label>Director ID</mat-label>
-                                                            <input matInput formControlName="directorID">
-                                                        </mat-form-field>
-                                                        <mat-form-field>
-                                                            <mat-label>Business Name</mat-label>
-                                                            <input matInput formControlName="businessName">
-                                                        </mat-form-field>
+                                            <div formGroupName="solePropriterInfo" class="animate-in fade-in slide-in-from-top-4 duration-300 bg-card shadow rounded-2xl p-8 border border-divider">
+                                                <div class="flex items-center justify-between border-b border-divider pb-2 mb-8">
+                                                    <div class="flex flex-col">
+                                                        <span class="text-xl font-extrabold tracking-tight text-primary">Sole Proprietor Detail</span>
+                                                        <span class="text-[10px] font-bold text-secondary uppercase tracking-wider">Business Entity Details</span>
                                                     </div>
+                                                </div>
+                                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                    <mat-form-field class="fuse-mat-no-subscript">
+                                                        <mat-label>Date of Birth</mat-label>
+                                                        <input matInput [matDatepicker]="spPicker" formControlName="dateOfBirth">
+                                                        <mat-datepicker-toggle matSuffix [for]="spPicker"></mat-datepicker-toggle>
+                                                        <mat-datepicker #spPicker></mat-datepicker>
+                                                    </mat-form-field>
+                                                    <mat-form-field class="fuse-mat-no-subscript">
+                                                        <mat-label>Director ID</mat-label>
+                                                        <input matInput formControlName="directorID">
+                                                    </mat-form-field>
+                                                    <mat-form-field class="fuse-mat-no-subscript">
+                                                        <mat-label>Business Name</mat-label>
+                                                        <input matInput formControlName="businessName">
+                                                    </mat-form-field>
                                                 </div>
                                             </div>
                                         }
 
                                         @if (isTrust()) {
-                                            <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" formGroupName="trustInfo">
-                                                <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
-                                                    Trust Detail
-                                                </div>
-                                                <div class="p-4 space-y-2">
-                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                                                        <mat-form-field class="w-full">
-                                                            <mat-label>Annual Accounts Month</mat-label>
-                                                            <mat-select formControlName="annualAccountsMonth">
-                                                                <mat-option [value]="null">Please Select Month</mat-option>
-                                                                <mat-option [value]="1">January</mat-option>
-                                                                <mat-option [value]="2">February</mat-option>
-                                                                <mat-option [value]="3">March</mat-option>
-                                                                <mat-option [value]="4">April</mat-option>
-                                                                <mat-option [value]="5">May</mat-option>
-                                                                <mat-option [value]="6">June</mat-option>
-                                                                <mat-option [value]="7">July</mat-option>
-                                                                <mat-option [value]="8">August</mat-option>
-                                                                <mat-option [value]="9">September</mat-option>
-                                                                <mat-option [value]="10">October</mat-option>
-                                                                <mat-option [value]="11">November</mat-option>
-                                                                <mat-option [value]="12">December</mat-option>
-                                                            </mat-select>
-                                                        </mat-form-field>
-                                                        <div class="flex items-center gap-6 pt-2">
-                                                            <mat-checkbox color="primary" formControlName="filedbyFirm">Filed By Firm</mat-checkbox>
-                                                        </div>
-                                                    </div>
-                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                        <div class="flex items-center pt-2">
-                                                            <mat-checkbox color="primary" formControlName="chargeInterest">Charge Interest</mat-checkbox>
-                                                        </div>
-                                                        <div class="flex items-center pt-2">
-                                                            <mat-checkbox color="primary" formControlName="chargeMonthlyDisbursement">Monthly Disbursement</mat-checkbox>
-                                                        </div>
+                                            <div formGroupName="trustInfo" class="animate-in fade-in slide-in-from-top-4 duration-300 bg-card shadow rounded-2xl p-8 border border-divider">
+                                                <div class="flex items-center justify-between border-b border-divider pb-2 mb-8">
+                                                    <div class="flex flex-col">
+                                                        <span class="text-xl font-extrabold tracking-tight text-primary">Trust Detail</span>
+                                                        <span class="text-[10px] font-bold text-secondary uppercase tracking-wider">Accounting & Filing</span>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        }
-
-                                        @if (isCompany()) {
-                                            <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" formGroupName="companyInfo">
-                                                <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
-                                                    Organization Detail
-                                                </div>
-                                                <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    <mat-form-field>
-                                                        <mat-label>ACN Number</mat-label>
-                                                        <input matInput formControlName="acnNumber">
-                                                    </mat-form-field>
-                                                    <mat-form-field>
-                                                        <mat-label>Website</mat-label>
-                                                        <input matInput formControlName="webSite">
-                                                    </mat-form-field>
-                                                    <mat-form-field class="w-full">
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                    <mat-form-field class="fuse-mat-no-subscript">
                                                         <mat-label>Annual Accounts Month</mat-label>
                                                         <mat-select formControlName="annualAccountsMonth">
-                                                            <mat-option [value]="null">Please Select Month</mat-option>
-                                                            <mat-option [value]="1">January</mat-option>
-                                                            <mat-option [value]="2">February</mat-option>
-                                                            <mat-option [value]="3">March</mat-option>
-                                                            <mat-option [value]="4">April</mat-option>
-                                                            <mat-option [value]="5">May</mat-option>
-                                                            <mat-option [value]="6">June</mat-option>
-                                                            <mat-option [value]="7">July</mat-option>
-                                                            <mat-option [value]="8">August</mat-option>
-                                                            <mat-option [value]="9">September</mat-option>
-                                                            <mat-option [value]="10">October</mat-option>
-                                                            <mat-option [value]="11">November</mat-option>
-                                                            <mat-option [value]="12">December</mat-option>
+                                                            <mat-option *ngFor="let m of [1,2,3,4,5,6,7,8,9,10,11,12]; let i = index" [value]="m">
+                                                                {{ ['January','February','March','April','May','June','July','August','September','October','November','December'][i] }}
+                                                            </mat-option>
                                                         </mat-select>
                                                     </mat-form-field>
+                                                    <mat-checkbox color="primary" formControlName="filedbyFirm" class="pt-4">Filed By Firm</mat-checkbox>
+                                                </div>
+                                                <div class="flex gap-8 mt-4">
+                                                    <mat-checkbox color="primary" formControlName="chargeInterest">Charge Interest</mat-checkbox>
+                                                    <mat-checkbox color="primary" formControlName="chargeMonthlyDisbursement">Monthly Disbursement</mat-checkbox>
                                                 </div>
                                             </div>
                                         }
 
-                                        <!-- Addresses Box -->
-                                        <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20">
-                                            <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
-                                                Address Detail
+                                        <!-- Address Section -->
+                                        <div class="bg-card shadow rounded-2xl p-8 border border-divider">
+                                            <div class="flex items-center justify-between border-b border-divider pb-2 mb-8">
+                                                <div class="flex flex-col">
+                                                    <span class="text-xl font-extrabold tracking-tight text-primary">Address Locations</span>
+                                                    <span class="text-[10px] font-bold text-secondary uppercase tracking-wider">Standard Regional Contact Points</span>
+                                                </div>
                                             </div>
-                                            <div formArrayName="addresses" class="p-4 space-y-6">
-                                                <!-- Home Address -->
-                                                <div formGroupName="0" class="relative">
-                                                    <div class="bg-gray-800 text-white text-xs font-bold px-2 py-0.5 rounded w-max mb-3">Home Address</div>
-                                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                                        <mat-form-field>
-                                                            <mat-label>Street</mat-label>
-                                                            <input matInput formControlName="addressLine1">
-                                                        </mat-form-field>
-                                                        <mat-form-field>
-                                                            <mat-label>Suburb</mat-label>
-                                                            <input matInput formControlName="city">
-                                                        </mat-form-field>
-                                                        <mat-form-field>
-                                                            <mat-label>State</mat-label>
-                                                            <input matInput formControlName="state">
-                                                        </mat-form-field>
-                                                        <mat-form-field>
-                                                            <mat-label>Postal Code</mat-label>
-                                                            <input matInput formControlName="postalCode">
-                                                        </mat-form-field>
-                                                        <input type="hidden" formControlName="type">
+                                            
+                                            <div formArrayName="addresses" class="space-y-12">
+                                                <div *ngFor="let addr of addresses.controls; let i = index" [formGroupName]="i" class="p-6 bg-primary/5 dark:bg-primary-500/10 rounded-2xl border border-primary/10">
+                                                    <div class="flex items-center justify-between mb-6">
+                                                        <span class="px-3 py-1 bg-primary-100 dark:bg-primary-500/10 text-primary uppercase text-[10px] font-extrabold tracking-widest rounded">
+                                                            {{ addr.get('type').value === 1 ? 'Home Address' : addr.get('type').value === 2 ? 'Business Address' : 'Postal Address' }}
+                                                        </span>
                                                     </div>
-                                                </div>
-
-                                                <!-- Business Address -->
-                                                <div formGroupName="1" class="relative">
-                                                    <div class="bg-gray-800 text-white text-xs font-bold px-2 py-0.5 rounded w-max mb-3">Business Address</div>
                                                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                                        <mat-form-field>
-                                                            <mat-label>Street</mat-label>
+                                                        <mat-form-field class="fuse-mat-no-subscript md:col-span-2">
+                                                            <mat-label>Street Address</mat-label>
                                                             <input matInput formControlName="addressLine1">
                                                         </mat-form-field>
-                                                        <mat-form-field>
-                                                            <mat-label>Suburb</mat-label>
+                                                        <mat-form-field class="fuse-mat-no-subscript">
+                                                            <mat-label>Suburb / City</mat-label>
                                                             <input matInput formControlName="city">
                                                         </mat-form-field>
-                                                        <mat-form-field>
-                                                            <mat-label>State</mat-label>
-                                                            <input matInput formControlName="state">
-                                                        </mat-form-field>
-                                                        <mat-form-field>
-                                                            <mat-label>Postal Code</mat-label>
-                                                            <input matInput formControlName="postalCode">
-                                                        </mat-form-field>
-                                                        <input type="hidden" formControlName="type">
-                                                    </div>
-                                                </div>
-
-                                                <!-- Postal Address -->
-                                                <div formGroupName="2" class="relative">
-                                                    <div class="bg-gray-800 text-white text-xs font-bold px-2 py-0.5 rounded w-max mb-3">Postal Address</div>
-                                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                                        <mat-form-field>
-                                                            <mat-label>Street</mat-label>
-                                                            <input matInput formControlName="addressLine1">
-                                                        </mat-form-field>
-                                                        <mat-form-field>
-                                                            <mat-label>Suburb</mat-label>
-                                                            <input matInput formControlName="city">
-                                                        </mat-form-field>
-                                                        <mat-form-field>
-                                                            <mat-label>State</mat-label>
-                                                            <input matInput formControlName="state">
-                                                        </mat-form-field>
-                                                        <mat-form-field>
-                                                            <mat-label>Postal Code</mat-label>
-                                                            <input matInput formControlName="postalCode">
-                                                        </mat-form-field>
-                                                        <input type="hidden" formControlName="type">
+                                                        <div class="grid grid-cols-2 gap-4">
+                                                            <mat-form-field class="fuse-mat-no-subscript">
+                                                                <mat-label>State</mat-label>
+                                                                <input matInput formControlName="state">
+                                                            </mat-form-field>
+                                                            <mat-form-field class="fuse-mat-no-subscript">
+                                                                <mat-label>Postal</mat-label>
+                                                                <input matInput formControlName="postalCode">
+                                                            </mat-form-field>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <!-- Bank Account Detail Box -->
-                                        <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20">
-                                            <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800 flex items-center justify-between">
-                                                <span>Bank Account Detail</span>
-                                                <button type="button" mat-flat-button class="bg-teal-500 text-white text-xs px-3 h-7 min-w-0 rounded-md shadow-sm hover:bg-teal-600 transition-colors" 
+                                        <!-- Bank Account Table Section -->
+                                        <div class="bg-card shadow rounded-2xl p-8 border border-divider">
+                                            <div class="flex items-center justify-between border-b border-divider pb-2 mb-6">
+                                                <div class="flex flex-col">
+                                                    <span class="text-xl font-extrabold tracking-tight text-primary">Bank Accounts</span>
+                                                    <span class="text-[10px] font-bold text-secondary uppercase tracking-wider">Direct Payment Instructions</span>
+                                                </div>
+                                                <button type="button" mat-flat-button color="primary" class="rounded-xl h-10 px-4" 
                                                         (click)="addBankAccount()">
                                                     <mat-icon class="icon-size-4 mr-2" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
-                                                    Add Bank Detail
+                                                    Add New
                                                 </button>
                                             </div>
-                                            <div class="p-4 overflow-x-auto">
-                                                <table class="w-full text-left border-collapse" *ngIf="bankAccounts.length > 0">
+                                            
+                                            <div class="overflow-x-auto bg-white dark:bg-black/10 border border-divider rounded-2xl">
+                                                <table class="w-full text-left" *ngIf="bankAccounts.length > 0">
                                                     <thead>
-                                                        <tr class="text-xs font-semibold text-secondary uppercase tracking-wider border-b border-gray-200 dark:border-gray-800">
-                                                            <th class="pb-2 pr-4">Account Name</th>
-                                                            <th class="pb-2 pr-4">Bank Name</th>
-                                                            <th class="pb-2 pr-4">BSB</th>
-                                                            <th class="pb-2 pr-4">Account No#</th>
-                                                            <th class="pb-2 w-20 text-center">Actions</th>
+                                                        <tr class="bg-primary/10 dark:bg-primary-500/20 text-[10px] font-bold text-primary uppercase tracking-widest border-b border-primary/20">
+                                                            <th class="px-6 py-4">Account Name / Bank</th>
+                                                            <th class="px-6 py-4">BSB</th>
+                                                            <th class="px-6 py-4">Account No#</th>
+                                                            <th class="px-6 py-4 text-center">Actions</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                                                        <tr *ngFor="let bank of bankAccounts.controls; let i = index" class="group hover:bg-gray-50 dark:hover:bg-black/5 transition-colors">
-                                                            <td class="py-3 pr-4 text-sm font-medium">
-                                                                {{ bank.get('accountName').value }}
+                                                    <tbody class="divide-y divide-divider font-medium">
+                                                        <tr *ngFor="let bank of bankAccounts.controls; let i = index" class="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
+                                                            <td class="px-6 py-4">
+                                                                <div class="flex flex-col">
+                                                                    <span class="text-sm font-bold text-primary">{{ bank.get('accountName').value }}</span>
+                                                                    <span class="text-xs text-secondary">{{ bank.get('bankName').value }}</span>
+                                                                </div>
                                                             </td>
-                                                            <td class="py-3 pr-4 text-sm text-secondary">
-                                                                {{ bank.get('bankName').value }}
-                                                            </td>
-                                                            <td class="py-3 pr-4 text-sm text-secondary font-mono">
-                                                                {{ bank.get('bsb').value }}
-                                                            </td>
-                                                            <td class="py-3 pr-4 text-sm text-secondary font-mono">
-                                                                {{ bank.get('accountNumber').value }}
-                                                            </td>
-                                                            <td class="py-3 text-center">
-                                                                <div class="flex items-center justify-center gap-1">
-                                                                    <button type="button" mat-icon-button class="text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-500/10 transition-colors h-8 w-8" 
-                                                                            (click)="editBankAccount(i)" matTooltip="Edit Bank Detail">
+                                                            <td class="px-6 py-4 text-xs font-mono">{{ bank.get('bsb').value }}</td>
+                                                            <td class="px-6 py-4 text-xs font-mono">{{ bank.get('accountNumber').value }}</td>
+                                                            <td class="px-6 py-4">
+                                                                <div class="flex items-center justify-center gap-2">
+                                                                    <button type="button" mat-icon-button (click)="editBankAccount(i)" class="text-primary hover:bg-primary/10 w-8 h-8">
                                                                         <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:pencil'"></mat-icon>
                                                                     </button>
-                                                                    <button type="button" mat-icon-button class="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors h-8 w-8" 
-                                                                            (click)="removeBankAccount(i)" matTooltip="Remove Bank Detail">
+                                                                    <button type="button" mat-icon-button (click)="removeBankAccount(i)" class="text-rose-500 hover:bg-rose-500/10 w-8 h-8">
                                                                         <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:trash'"></mat-icon>
                                                                     </button>
                                                                 </div>
@@ -478,196 +396,342 @@
                                                         </tr>
                                                     </tbody>
                                                 </table>
-                                                <div *ngIf="bankAccounts.length === 0" class="flex flex-col items-center justify-center py-8 text-secondary">
-                                                    <mat-icon class="icon-size-10 mb-2 opacity-20" [svgIcon]="'heroicons_outline:credit-card'"></mat-icon>
-                                                    <span class="text-xs">No bank accounts added yet.</span>
+                                                <div *ngIf="bankAccounts.length === 0" class="p-12 text-center text-secondary italic">
+                                                    <mat-icon class="icon-size-10 mb-3 opacity-20" [svgIcon]="'heroicons_outline:credit-card'"></mat-icon>
+                                                    <p class="text-sm">No bank accounts linked to this contact yet.</p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- RIGHT COLUMN -->
-                                    <div class="space-y-6">
-                                        <!-- Record Status Panel (Authorized Roles Only) -->
-                                        <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" *ngIf="editMode">
-                                            <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800 flex items-center justify-between">
-                                                <span>Administrative Status</span>
-                                                <mat-icon class="icon-size-4 text-teal-500" [svgIcon]="'heroicons_solid:shield-check'"></mat-icon>
-                                            </div>
-                                            <div class="p-4 grid grid-cols-1 gap-3">
-                                                
-                                                <!-- Active/Inactive Button -->
-                                                <button type="button" 
-                                                        class="flex items-center justify-between w-full px-4 py-3 rounded-lg border transition-all duration-200 group"
-                                                        [ngClass]="customerForm.get('isActive').value ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400' : 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700 text-gray-500'"
-                                                        (click)="toggleActive()">
-                                                    <div class="flex items-center gap-3">
-                                                        <div class="p-2 rounded-full" [ngClass]="customerForm.get('isActive').value ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/50' : 'bg-gray-300 dark:bg-gray-700 text-white'">
-                                                            <mat-icon class="icon-size-4" [svgIcon]="customerForm.get('isActive').value ? 'heroicons_solid:check' : 'heroicons_solid:x-mark'"></mat-icon>
-                                                        </div>
-                                                        <div class="flex flex-col items-start leading-none">
-                                                            <span class="text-xs font-semibold uppercase tracking-wider">Active Status</span>
-                                                            <span class="text-sm font-bold">{{ customerForm.get('isActive').value ? 'Active' : 'Inactive' }}</span>
-                                                        </div>
+                                    <!-- RIGHT COLUMN (Sidebar Info) -->
+                                    <div class="space-y-10">
+                                        <!-- Visibility & Status Card -->
+                                        @if (editMode) {
+                                            <div class="p-8 bg-white dark:bg-card border border-divider rounded-3xl shadow-sm space-y-6">
+                                                <div class="flex items-center gap-3 pb-4 border-b border-divider">
+                                                    <div class="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+                                                        <mat-icon class="text-amber-600" [svgIcon]="'heroicons_outline:shield-check'"></mat-icon>
                                                     </div>
-                                                    <mat-icon class="icon-size-5 opacity-0 group-hover:opacity-100 transition-opacity" [svgIcon]="'heroicons_mini:chevron-right'"></mat-icon>
-                                                </button>
-
-                                                <!-- Archived/UnArchived Button -->
-                                                <button type="button" 
-                                                        class="flex items-center justify-between w-full px-4 py-3 rounded-lg border transition-all duration-200 group"
-                                                        [ngClass]="customerForm.get('isArchived').value ? 'bg-amber-50 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/30 text-amber-700 dark:text-amber-400' : 'bg-blue-50 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/30 text-blue-700 dark:text-blue-400'"
-                                                        (click)="toggleArchived()">
-                                                    <div class="flex items-center gap-3">
-                                                        <div class="p-2 rounded-full" [ngClass]="customerForm.get('isArchived').value ? 'bg-amber-500 text-white' : 'bg-blue-500 text-white'">
-                                                            <mat-icon class="icon-size-4" [svgIcon]="customerForm.get('isArchived').value ? 'heroicons_solid:archive-box' : 'heroicons_solid:document-duplicate'"></mat-icon>
-                                                        </div>
-                                                        <div class="flex flex-col items-start leading-none">
-                                                            <span class="text-xs font-semibold uppercase tracking-wider">Filing Status</span>
-                                                            <span class="text-sm font-bold">{{ customerForm.get('isArchived').value ? 'Archived' : 'UnArchived' }}</span>
-                                                        </div>
+                                                    <div class="flex flex-col">
+                                                        <span class="text-sm font-bold">Admin Status</span>
+                                                        <span class="text-[10px] text-secondary font-bold uppercase">System Flags</span>
                                                     </div>
-                                                    <mat-icon class="icon-size-5 opacity-0 group-hover:opacity-100 transition-opacity" [svgIcon]="'heroicons_mini:chevron-right'"></mat-icon>
-                                                </button>
-
-                                                <!-- Exclude Button (Admin Only) -->
-                                                <button type="button" *ngIf="isAdmin"
-                                                        class="flex items-center justify-between w-full px-4 py-3 rounded-lg border transition-all duration-200 group"
-                                                        [ngClass]="customerForm.get('isExcluded').value ? 'bg-rose-50 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/30 text-rose-700 dark:text-rose-400' : 'border-gray-200 dark:border-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'"
-                                                        (click)="toggleExcluded()">
-                                                    <div class="flex items-center gap-3">
-                                                        <div class="p-2 rounded-full" [ngClass]="customerForm.get('isExcluded').value ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/50' : 'bg-gray-200 dark:bg-gray-700 text-gray-500'">
-                                                            <mat-icon class="icon-size-4" [svgIcon]="customerForm.get('isExcluded').value ? 'heroicons_solid:eye-slash' : 'heroicons_solid:eye'"></mat-icon>
-                                                        </div>
-                                                        <div class="flex flex-col items-start leading-none">
-                                                            <span class="text-xs font-semibold uppercase tracking-wider">Visibility</span>
-                                                            <span class="text-sm font-bold">{{ customerForm.get('isExcluded').value ? 'Excluded' : 'Included' }}</span>
-                                                        </div>
-                                                    </div>
-                                                    <mat-icon class="icon-size-5 opacity-0 group-hover:opacity-100 transition-opacity" [svgIcon]="'heroicons_mini:chevron-right'"></mat-icon>
-                                                </button>
-
-                                            </div>
-                                        </div>
-
-                                        <!-- Verification Status Box -->
-                                        <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" *ngIf="editMode">
-                                            <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
-                                                Verification Status
-                                            </div>
-                                            <div class="p-4 flex items-center justify-between gap-4">
-                                                <div class="text-sm text-secondary flex-1">
-                                                    <ng-container *ngIf="lastVarifiedDate; else notVerified">
-                                                        Last verified on <span class="font-semibold text-teal-600">{{lastVarifiedDate | date:'MMM dd, yyyy'}}</span>
-                                                        by <span class="font-semibold text-teal-600">{{lastVarifiedUserName}}</span>
-                                                    </ng-container>
-                                                    <ng-template #notVerified>
-                                                        <div class="flex items-center text-amber-600 font-semibold text-base whitespace-nowrap">
-                                                            <mat-icon class="icon-size-5 mr-3 text-current" [svgIcon]="'heroicons_solid:exclamation-triangle'"></mat-icon>
-                                                            Not verified yet
-                                                        </div>
-                                                    </ng-template>
                                                 </div>
-                                                <div *ngIf="isChecker && !lastVarifiedDate">
-                                                    <button mat-flat-button class="bg-teal-500 text-white hover:bg-teal-600 transition-colors px-8 min-w-36 h-10 flex items-center justify-center rounded-lg shadow-sm" (click)="verify()" type="button">
-                                                        <mat-icon class="icon-size-5 mr-6" [svgIcon]="'heroicons_solid:check-badge'"></mat-icon>
-                                                        <span class="font-bold tracking-wide">Verify</span>
+                                                
+                                                <div class="grid grid-cols-1 gap-4">
+                                                    <!-- Toggleable States styled in Sidebar -->
+                                                    <div (click)="toggleActive()" class="flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all active:scale-95" 
+                                                         [ngClass]="customerForm.get('isActive').value ? 'bg-emerald-50 border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20' : 'bg-gray-50 border-divider'">
+                                                        <span class="text-xs font-bold" [ngClass]="customerForm.get('isActive').value ? 'text-emerald-700 dark:text-emerald-400' : 'text-secondary'">Active Account</span>
+                                                        <mat-icon class="icon-size-5" [ngClass]="customerForm.get('isActive').value ? 'text-emerald-600' : 'text-gray-300'" 
+                                                                  [svgIcon]="customerForm.get('isActive').value ? 'heroicons_solid:check-circle' : 'heroicons_outline:no-symbol'"></mat-icon>
+                                                    </div>
+                                                    
+                                                    <div (click)="toggleArchived()" class="flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all active:scale-95"
+                                                         [ngClass]="customerForm.get('isArchived').value ? 'bg-amber-50 border-amber-100' : 'bg-gray-50 border-divider'">
+                                                        <span class="text-xs font-bold" [ngClass]="customerForm.get('isArchived').value ? 'text-amber-700' : 'text-secondary'">Archived</span>
+                                                        <mat-icon class="icon-size-5" [ngClass]="customerForm.get('isArchived').value ? 'text-amber-600' : 'text-gray-300'" [svgIcon]="'heroicons_solid:archive-box'"></mat-icon>
+                                                    </div>
+
+                                                    <div *ngIf="isAdmin" (click)="toggleExcluded()" class="flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all active:scale-95"
+                                                         [ngClass]="customerForm.get('isExcluded').value ? 'bg-rose-50 border-rose-100' : 'bg-gray-50 border-divider'">
+                                                        <span class="text-xs font-bold" [ngClass]="customerForm.get('isExcluded').value ? 'text-rose-700' : 'text-secondary'">Excluded</span>
+                                                        <mat-icon class="icon-size-5" [ngClass]="customerForm.get('isExcluded').value ? 'text-rose-500' : 'text-gray-300'" [svgIcon]="'heroicons_solid:eye-slash'"></mat-icon>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Verification Box -->
+                                            <div class="p-8 bg-card shadow rounded-2xl border border-divider space-y-6">
+                                                <div class="flex items-center gap-3 pb-4 border-b border-divider">
+                                                    <div class="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+                                                        <mat-icon class="text-primary" [svgIcon]="'heroicons_outline:check-badge'"></mat-icon>
+                                                    </div>
+                                                    <div class="flex flex-col">
+                                                        <span class="text-sm font-bold">Verification</span>
+                                                        <span class="text-[10px] text-secondary font-bold uppercase uppercase">Identity Confirmation</span>
+                                                    </div>
+                                                </div>
+
+                                                <div *ngIf="lastVarifiedDate" class="space-y-4 animate-in fade-in duration-500">
+                                                    <div class="p-4 bg-emerald-50 border border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20 rounded-2xl">
+                                                        <div class="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 mb-1 leading-none">Identity Status</div>
+                                                        <div class="text-md font-bold text-emerald-800 dark:text-emerald-300 flex items-center">
+                                                            <mat-icon class="icon-size-5 mr-2 text-emerald-600" [svgIcon]="'heroicons_solid:check-badge'"></mat-icon>
+                                                            Verified Account
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-[11px] font-medium text-secondary space-y-1">
+                                                        <div>Verified on: <span class="text-primary font-bold">{{lastVarifiedDate | date:'MMM dd, yyyy'}}</span></div>
+                                                        <div>By Officer: <span class="text-primary font-bold uppercase">{{lastVarifiedUserName}}</span></div>
+                                                    </div>
+                                                </div>
+
+                                                <div *ngIf="!lastVarifiedDate" class="space-y-6">
+                                                    <div class="p-4 bg-primary/5 border border-primary/10 rounded-2xl">
+                                                        <p class="text-xs text-secondary leading-relaxed font-medium italic">Identification has not been verified by a responsible officer yet.</p>
+                                                    </div>
+                                                    <button *ngIf="isChecker" mat-flat-button color="primary" class="w-full rounded-xl h-12 font-extrabold shadow-sm" (click)="verify()">
+                                                        <mat-icon class="icon-size-5 mr-2" [svgIcon]="'heroicons_solid:shield-check'"></mat-icon>
+                                                        VERIFY NOW
                                                     </button>
                                                 </div>
                                             </div>
-                                        </div>
+                                        }
 
-
-                                        <!-- Communication Detail Box -->
-                                        <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" formGroupName="contactInfo">
-                                            <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
-                                                Communication Detail
+                                        <!-- Communication Detail Section -->
+                                        <div formGroupName="contactInfo" class="bg-card shadow rounded-2xl p-8 border border-divider">
+                                            <div class="flex items-center justify-between border-b border-divider pb-2 mb-6">
+                                                <div class="flex flex-col">
+                                                    <span class="text-lg font-extrabold tracking-tight text-primary">Communication</span>
+                                                    <span class="text-[10px] font-bold text-secondary uppercase tracking-wider">Contact Protocols</span>
+                                                </div>
                                             </div>
-                                            <div class="p-4 space-y-4">
-                                                <!-- Row 1: Salutation -->
-                                                <mat-form-field class="w-full">
+                                            <div class="space-y-4">
+                                                <mat-form-field class="fuse-mat-no-subscript w-full">
                                                     <mat-label>Salutation</mat-label>
                                                     <input matInput formControlName="salutation">
                                                 </mat-form-field>
-
-                                                <!-- Row 2: Mobile -->
-                                                <mat-form-field class="w-full">
+                                                <mat-form-field class="fuse-mat-no-subscript w-full">
                                                     <mat-label>Mobile Number</mat-label>
                                                     <input matInput formControlName="cellPhone" required>
-                                                    <mat-error *ngIf="customerForm.get('contactInfo.cellPhone').hasError('required')">
-                                                        Mobile is compulsory
-                                                    </mat-error>
+                                                    <mat-icon matPrefix class="icon-size-5" [svgIcon]="'heroicons_outline:device-phone-mobile'"></mat-icon>
                                                 </mat-form-field>
-
-                                                <!-- Row 3: Work Phone -->
-                                                <mat-form-field class="w-full">
-                                                    <mat-label>Work Phone Number</mat-label>
+                                                <mat-form-field class="fuse-mat-no-subscript w-full">
+                                                    <mat-label>Work Phone</mat-label>
                                                     <input matInput formControlName="workPhone">
+                                                    <mat-icon matPrefix class="icon-size-5" [svgIcon]="'heroicons_outline:phone'"></mat-icon>
                                                 </mat-form-field>
-
-                                                <!-- Row 4-5: Emails -->
-                                                <mat-form-field class="w-full">
-                                                    <mat-label>Email 1</mat-label>
+                                                <mat-form-field class="fuse-mat-no-subscript w-full">
+                                                    <mat-label>Primary Email</mat-label>
                                                     <input matInput formControlName="email">
-                                                </mat-form-field>
-                                                <mat-form-field class="w-full">
-                                                    <mat-label>Email 2</mat-label>
-                                                    <input matInput formControlName="email2">
+                                                    <mat-icon matPrefix class="icon-size-5" [svgIcon]="'heroicons_outline:envelope'"></mat-icon>
                                                 </mat-form-field>
                                             </div>
                                         </div>
 
-                                        <!-- Additional Info Box -->
-                                        <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20">
+                                        <!-- Taxation Sidebar Section -->
                                         @if (showAdditionalInfo()) {
-                                            <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20">
-                                                <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
-                                                    Additional Info
+                                            <div class="bg-primary/5 rounded-3xl p-8 border border-primary/20">
+                                                  <div class="flex items-center gap-3 mb-6">
+                                                    <mat-icon class="text-primary" [svgIcon]="'heroicons_outline:banknotes'"></mat-icon>
+                                                    <span class="text-md font-bold text-primary tracking-tight">Taxation Detail</span>
                                                 </div>
-                                                <div class="p-4">
-                                                    <mat-form-field class="w-full">
-                                                        <mat-label>Tax Agent</mat-label>
-                                                        <mat-select formControlName="taxAgent">
-                                                            <mat-option [value]="null">None</mat-option>
-                                                            <mat-option *ngFor="let a of taxAgents" [value]="a.id">{{a.name}}</mat-option>
-                                                        </mat-select>
-                                                    </mat-form-field>
-                                                </div>
+                                                <mat-form-field class="fuse-mat-no-subscript w-full mb-4">
+                                                    <mat-label>Tax Agent</mat-label>
+                                                    <mat-select formControlName="taxAgent">
+                                                        <mat-option [value]="null">No Agent</mat-option>
+                                                        <mat-option *ngFor="let a of taxAgents" [value]="a.id">{{a.name}}</mat-option>
+                                                    </mat-select>
+                                                </mat-form-field>
+                                                <p class="text-[10px] text-secondary font-medium italic">Assigned tax representative for legal filing and auditing.</p>
                                             </div>
                                         }
                                     </div>
-                                    
                                 </div>
-                            </div>
-                        </mat-tab>
+                            </mat-tab>
                             
-                            <!-- PLACEHOLDER TABS -->
-                            <mat-tab label="Jobs" [disabled]="true"></mat-tab>
-                            <mat-tab label="Dynamic Detail" [disabled]="true"></mat-tab>
-                            <mat-tab label="Relationships" [disabled]="true"></mat-tab>
-                            <mat-tab label="Forms" [disabled]="true"></mat-tab>
-                            <mat-tab label="Group" [disabled]="true"></mat-tab>
-                            <mat-tab label="Service" [disabled]="true"></mat-tab>
-                            <mat-tab label="Summary" [disabled]="true"></mat-tab>
-                            <mat-tab label="Admin" [disabled]="true"></mat-tab>
+                            <!-- JOBS TAB -->
+                            <mat-tab>
+                                <ng-template mat-tab-label>
+                                    <mat-icon class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:briefcase'"></mat-icon>
+                                    Jobs
+                                </ng-template>
 
+                                <mat-drawer-container class="h-full min-h-[500px] bg-transparent" [hasBackdrop]="true">
+                                    
+                                    <!-- Job Details Drawer -->
+                                    <mat-drawer
+                                        class="w-full md:w-160 dark:bg-gray-900"
+                                        [mode]="'over'"
+                                        [opened]="selectedJobId !== null"
+                                        [position]="'right'"
+                                        (closedStart)="closeJobDetails()">
+                                        <job-details *ngIf="selectedJobId" [jobId]="selectedJobId" [statusMasters]="jobStatusMasters" (jobUpdated)="loadJobs(customerId)" (closed)="closeJobDetails()"></job-details>
+                                    </mat-drawer>
+
+                                    <!-- Drawer Content (The Jobs List) -->
+                                    <mat-drawer-content>
+                                        <div class="p-6 md:p-10 bg-primary/5 dark:bg-primary-500/5 min-h-[500px]">
+                                            
+                                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10 gap-4">
+                                                <div class="flex flex-col">
+                                                    <div class="text-2xl font-extrabold tracking-tight text-primary">Service Tickets & Projects</div>
+                                                    <div class="text-sm text-secondary font-medium">Tracking all active work items and deliverables for this client.</div>
+                                                </div>
+                                                <button mat-flat-button color="primary" class="rounded-xl shadow-lg shadow-primary/20 h-12 px-6 transition-all active:scale-95" type="button"
+                                                        (click)="openAddJobDialog()">
+                                                    <mat-icon class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:plus-circle'"></mat-icon>
+                                                    {{ editMode ? 'Assign New Job' : 'Assign First Job' }}
+                                                </button>
+                                            </div>
+
+                                            <mat-progress-bar *ngIf="isLoadingJobs" mode="indeterminate" class="mb-6 rounded-full h-1"></mat-progress-bar>
+
+                                            @if (!isLoadingJobs && jobs.length > 0) {
+                                                <div class="bg-card border border-primary/20 rounded-3xl overflow-hidden shadow-sm">
+                                                    <table mat-table [dataSource]="jobs" class="w-full">
+                                                        
+                                                        <!-- Type Icon Column -->
+                                                        <ng-container matColumnDef="category">
+                                                            <th mat-header-cell *matHeaderCellDef class="bg-primary/10 dark:bg-primary-500/10 font-bold text-primary text-[10px] uppercase tracking-widest w-16 text-center"> TYPE </th>
+                                                            <td mat-cell *matCellDef="let job" class="text-center">
+                                                                <div class="w-8 h-8 rounded-full inline-flex items-center justify-center" 
+                                                                     [ngClass]="job.isRecurring ? 'bg-indigo-50 text-indigo-600' : 'bg-blue-50 text-blue-600'">
+                                                                    <mat-icon class="icon-size-4" [svgIcon]="job.isRecurring ? 'heroicons_outline:arrow-path' : 'heroicons_outline:document-text'"></mat-icon>
+                                                                </div>
+                                                            </td>
+                                                        </ng-container>
+
+                                                        <!-- Caption -->
+                                                        <ng-container matColumnDef="caption">
+                                                            <th mat-header-cell *matHeaderCellDef class="bg-primary/10 dark:bg-primary-500/10 font-bold text-primary text-[10px] uppercase tracking-widest"> JOB DESCRIPTION </th>
+                                                            <td mat-cell *matCellDef="let job" class="py-5"> 
+                                                                <div class="flex flex-col max-w-md">
+                                                                    <span class="font-extrabold text-sm text-gray-800 dark:text-gray-200 truncate">{{job.caption}}</span>
+                                                                    <span class="text-xs text-secondary font-medium">{{job.jobTypeName}}</span>
+                                                                </div>
+                                                            </td>
+                                                        </ng-container>
+
+                                                        <!-- Priority -->
+                                                        <ng-container matColumnDef="priority">
+                                                            <th mat-header-cell *matHeaderCellDef class="bg-primary/10 dark:bg-primary-500/10 font-bold text-primary text-[10px] uppercase tracking-widest"> PRIORITY </th>
+                                                            <td mat-cell *matCellDef="let job">
+                                                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide border"
+                                                                      [ngClass]="{
+                                                                        'bg-gray-50 border-gray-200 text-gray-500': job.priority === 0,
+                                                                        'bg-blue-50 border-blue-200 text-blue-600': job.priority === 1,
+                                                                        'bg-amber-50 border-amber-200 text-amber-600': job.priority === 2,
+                                                                        'bg-rose-50 border-rose-200 text-rose-600': job.priority === 3
+                                                                      }">
+                                                                    {{ job.priority === 0 ? 'Low' : job.priority === 1 ? 'Med' : job.priority === 2 ? 'High' : 'Urgent' }}
+                                                                </span>
+                                                            </td>
+                                                        </ng-container>
+
+                                                        <!-- Deadline -->
+                                                        <ng-container matColumnDef="deadline">
+                                                            <th mat-header-cell *matHeaderCellDef class="bg-primary/10 dark:bg-primary-500/10 font-bold text-primary text-[10px] uppercase tracking-widest"> DEADLINE </th>
+                                                            <td mat-cell *matCellDef="let job" class="text-xs font-bold">
+                                                                <span class="flex flex-col">
+                                                                    <span>{{job.deadline | date:'MMM dd'}}</span>
+                                                                    <span class="text-[9px] text-secondary font-medium">{{job.deadline | date:'yyyy'}}</span>
+                                                                </span>
+                                                            </td>
+                                                        </ng-container>
+
+                                                        <!-- Status -->
+                                                        <ng-container matColumnDef="status">
+                                                            <th mat-header-cell *matHeaderCellDef class="bg-primary/10 dark:bg-primary-500/10 font-bold text-primary text-[10px] uppercase tracking-widest"> STATUS </th>
+                                                            <td mat-cell *matCellDef="let job">
+                                                                <div class="flex items-center gap-2">
+                                                                    <div class="w-1.5 h-1.5 rounded-full" 
+                                                                         [ngClass]="job.currentStage === 1 ? 'bg-gray-400' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'"></div>
+                                                                    <span class="text-xs font-extrabold uppercase tracking-tight">{{job.statusName}}</span>
+                                                                </div>
+                                                            </td>
+                                                        </ng-container>
+
+                                                        <!-- Actions -->
+                                                        <ng-container matColumnDef="actions">
+                                                            <th mat-header-cell *matHeaderCellDef class="bg-primary/10 dark:bg-primary-500/10 w-20"> </th>
+                                                            <td mat-cell *matCellDef="let job" class="text-right pr-6">
+                                                                <button mat-icon-button class="h-10 w-10 text-primary hover:bg-primary/10 transition-colors" (click)="openJobDetails(job.id)">
+                                                                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+                                                                </button>
+                                                            </td>
+                                                        </ng-container>
+
+                                                        <tr mat-header-row *matHeaderRowDef="['category', 'caption', 'priority', 'deadline', 'status', 'actions']"></tr>
+                                                        <tr mat-row *matRowDef="let row; columns: ['category', 'caption', 'priority', 'deadline', 'status', 'actions']" 
+                                                            (click)="openJobDetails(row.id)"
+                                                            class="hover:bg-primary/5 transition-colors cursor-pointer group"></tr>
+                                                    </table>
+                                                </div>
+                                            }
+
+                                            <!-- Pending Jobs (During creation) -->
+                                            <div *ngIf="!editMode && pendingJobs.length > 0" class="mt-8 animate-in fade-in slide-in-from-top-4 duration-300">
+                                                <div class="text-[10px] font-bold text-primary uppercase tracking-widest mb-4 flex items-center bg-primary/10 px-3 py-1 rounded-full w-fit">
+                                                    <mat-icon class="icon-size-3 mr-2" [svgIcon]="'heroicons_outline:clock'"></mat-icon>
+                                                    Scheduled for Creation
+                                                </div>
+                                                <div class="bg-amber-50/30 dark:bg-amber-900/10 border border-amber-200/50 dark:border-amber-800/30 rounded-3xl overflow-hidden shadow-sm">
+                                                    <table class="w-full text-left border-collapse">
+                                                        <thead>
+                                                            <tr class="bg-amber-100/50 dark:bg-amber-900/20 text-[10px] font-extrabold text-amber-900 dark:text-amber-200 uppercase tracking-widest">
+                                                                <th class="px-6 py-4 w-16 text-center">TYPE</th>
+                                                                <th class="px-6 py-4">JOB DESCRIPTION</th>
+                                                                <th class="px-6 py-4">PRIORITY</th>
+                                                                <th class="px-6 py-4 text-right">ACTION</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="divide-y divide-amber-100/50 dark:divide-amber-900/30">
+                                                            <tr *ngFor="let job of pendingJobs; let i = index" class="hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
+                                                                <td class="px-6 py-4 text-center">
+                                                                    <div class="w-8 h-8 rounded-full inline-flex items-center justify-center bg-amber-200/50 text-amber-700 dark:text-amber-300">
+                                                                        <mat-icon class="icon-size-4" [svgIcon]="job.isRecurring ? 'heroicons_outline:arrow-path' : 'heroicons_outline:document-text'"></mat-icon>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="px-6 py-4">
+                                                                    <div class="flex flex-col">
+                                                                        <span class="font-extrabold text-sm text-amber-900 dark:text-amber-200">{{job.caption}}</span>
+                                                                        <span class="text-[10px] text-amber-700/70 dark:text-amber-400/70 font-semibold uppercase">{{job.isRecurring? 'Recurring' : 'One-off'}} Service</span>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="px-6 py-4">
+                                                                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-amber-300/50 text-amber-800/80 bg-amber-100/80">
+                                                                        {{ job.priority === 0 ? 'LOW' : job.priority === 1 ? 'MED' : job.priority === 2 ? 'HIGH' : 'URGENT' }}
+                                                                    </span>
+                                                                </td>
+                                                                <td class="px-6 py-4 text-right">
+                                                                    <button mat-icon-button color="warn" (click)="removePendingJob(i)" class="h-8 w-8 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
+                                                                        <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            <!-- Empty State -->
+                                            @if (!isLoadingJobs && jobs.length === 0 && pendingJobs.length === 0) {
+                                                <div class="flex flex-col items-center justify-center py-20 px-8 bg-card border border-divider border-dashed border-2 rounded-[2.5rem]">
+                                                    <div class="w-24 h-24 rounded-full bg-primary/5 flex items-center justify-center mb-6">
+                                                        <mat-icon class="icon-size-12 text-primary/30" [svgIcon]="'heroicons_outline:briefcase'"></mat-icon>
+                                                    </div>
+                                                    <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200">Welcome to Projects</h3>
+                                                    <p class="text-secondary text-sm text-center max-w-xs mt-2 font-medium">Start tracking milestones and service outcomes for this contact by creating the first job record.</p>
+                                                    <button mat-flat-button color="primary" class="mt-10 px-8 h-12 rounded-2xl shadow-xl shadow-primary/20" type="button" *ngIf="editMode"
+                                                            (click)="openAddJobDialog()">
+                                                        <mat-icon class="icon-size-5 mr-3" [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                                                        Create First Job
+                                                    </button>
+                                                </div>
+                                            }
+
+                                        </div>
+                                    </mat-drawer-content>
+                                </mat-drawer-container>
+                            </mat-tab>
+                            
+                            <mat-tab label="Relationships" [disabled]="true"></mat-tab>
+                            <mat-tab label="Notes" [disabled]="true"></mat-tab>
                         </mat-tab-group>
                     </div>
-
-                    <div class="mt-6 flex items-center justify-end pt-4 gap-4">
-                        <button mat-button class="px-8" [routerLink]="['../']" [disabled]="isSaving">Cancel</button>
-                        <button mat-flat-button class="px-12 bg-teal-600 text-white min-w-40" color="primary" (click)="save()" [disabled]="isSaving">
-                            @if (!isSaving) {
-                                {{editMode ? 'Update Contact' : 'Save Contact'}}
-                            }
-                            @if (isSaving) {
-                                <mat-progress-spinner class="mr-2" [diameter]="20" [mode]="'indeterminate'"></mat-progress-spinner>
-                                Saving...
-                            }
-                        </button>
+                } @else {
+                    <!-- Placeholder when type not chosen -->
+                    <div class="flex flex-col items-center justify-center py-32 border-2 border-dashed border-primary/20 rounded-3xl bg-primary/5 dark:bg-primary-500/5">
+                        <div class="w-20 h-20 rounded-full bg-primary/10 dark:bg-primary-500/20 flex items-center justify-center mb-6">
+                            <mat-icon class="icon-size-10 text-primary/40 dark:text-primary-500/40" [svgIcon]="'heroicons_outline:cursor-arrow-rays'"></mat-icon>
+                        </div>
+                        <h2 class="text-2xl font-extrabold text-secondary animate-pulse">Select Type to Begin</h2>
+                        <p class="text-sm text-secondary/60 mt-2 font-medium">Required fields above will unlock the complete contact profile.</p>
                     </div>
                 }
-
             </form>
         </div>
     </div>

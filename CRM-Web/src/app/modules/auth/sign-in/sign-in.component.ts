@@ -60,14 +60,11 @@ export class AuthSignInComponent implements OnInit {
     // @ Lifecycle hooks
     // -----------------------------------------------------------------------------------------------------
 
-    /**
-     * On init
-     */
     ngOnInit(): void {
-        // Create the form
         this.signInForm = this._formBuilder.group({
             email: ['', [Validators.required, Validators.email]],
             password: ['', Validators.required],
+            rememberMe: [''],
         });
     }
 

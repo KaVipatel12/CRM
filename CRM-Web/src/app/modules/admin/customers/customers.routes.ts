@@ -5,19 +5,19 @@ import { UploadComponent } from './upload/upload.component';
 
 export default [
     {
-        path     : '',
+        path: '',
         component: ListComponent,
     },
     {
-        path     : 'upload',
+        path: 'upload',
         component: UploadComponent,
     },
     {
-        path     : 'new',
+        path: 'new',
         component: DetailsComponent,
     },
     {
-        path     : ':id',
+        path: ':id',
         component: DetailsComponent,
     }
 ] as Routes;

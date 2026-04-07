@@ -39,7 +39,6 @@ import { Subject, takeUntil } from 'rxjs';
         MessagesComponent,
         NotificationsComponent,
         RouterOutlet,
-        QuickChatComponent,
     ],
 })
 export class FuturisticLayoutComponent implements OnInit, OnDestroy {

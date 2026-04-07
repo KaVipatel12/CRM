@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,6 +12,7 @@ import { CustomerService } from '../../customer.service';
 @Component({
     selector: 'app-change-type-dialog',
     templateUrl: './change-type-dialog.component.html',
+    encapsulation: ViewEncapsulation.None,
     standalone: true,
     imports: [
         CommonModule,
@@ -38,7 +39,7 @@ export class ChangeTypeDialogComponent implements OnInit {
     fieldsCarriedOver: string[] = [];
     fieldsGained: string[] = [];
 
-    // Field definitions per type
+    // Field definitions per type (Logic ported from old project)
     private typeFields: { [key: number]: string[] } = {
         1: ['First Name', 'Last Name', 'Date of Birth', 'Gender'],           // Individual
         2: ['Website', 'ACN Number'],                                         // Company

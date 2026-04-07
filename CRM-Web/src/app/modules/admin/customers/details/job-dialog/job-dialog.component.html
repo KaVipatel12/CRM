@@ -1,0 +1,200 @@
+<div class="flex flex-col max-w-240 md:min-w-160 max-h-screen -m-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between pl-8 pr-6 py-4 bg-primary text-on-primary">
+        <div class="text-lg font-medium">Add New Job</div>
+        <button
+            mat-icon-button
+            (click)="close()"
+            [tabIndex]="-1">
+            <mat-icon
+                class="text-current"
+                [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+        </button>
+    </div>
+
+    <!-- Job form -->
+    <form
+        class="flex flex-col flex-auto p-8 overflow-y-auto"
+        [formGroup]="jobForm">
+
+        <!-- Job Category Choice -->
+        <div class="bg-primary/5 dark:bg-primary-500/10 p-6 rounded-2xl border border-primary/10 mb-8 mt-2">
+            <div class="flex flex-col">
+                <span class="text-sm font-bold text-primary mb-3">Job Category</span>
+                <mat-radio-group [formControlName]="'isRecurring'" (change)="onCategoryChange($event.value)" class="flex gap-8">
+                    <mat-radio-button [value]="false" color="primary">
+                        <div class="flex flex-col">
+                            <span class="font-bold">Single Job</span>
+                            <span class="text-xs text-secondary">One-off service / One-time task</span>
+                        </div>
+                    </mat-radio-button>
+                    <mat-radio-button [value]="true" color="primary">
+                        <div class="flex flex-col">
+                            <span class="font-bold">Recurring Job</span>
+                            <span class="text-xs text-secondary">Automated scheduling / Repeated cycle</span>
+                        </div>
+                    </mat-radio-button>
+                </mat-radio-group>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+            <!-- Job Type -->
+            <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+                <mat-label>Job Type</mat-label>
+                <mat-select [formControlName]="'jobTypeId'">
+                    <mat-option [value]="null">Select Job Type</mat-option>
+                    <mat-option *ngFor="let type of jobTypes" [value]="type.id">{{type.type}}</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <!-- Caption -->
+            <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+                <mat-label>Job Caption / Title</mat-label>
+                <input
+                    matInput
+                    [formControlName]="'caption'"
+                    [placeholder]="'Short Caption'">
+            </mat-form-field>
+        </div>
+
+        <!-- Description -->
+        <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+            <mat-label>Description (Optional)</mat-label>
+            <textarea
+                matInput
+                [formControlName]="'description'"
+                [placeholder]="'Detailed description...'"
+                [rows]="2"></textarea>
+        </mat-form-field>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+            <!-- Priority -->
+            <div class="flex flex-col mb-6">
+                <span class="text-sm font-semibold mb-2">Priority Level</span>
+                <mat-radio-group [formControlName]="'priority'" class="flex flex-wrap gap-4 pt-1">
+                    <mat-radio-button *ngFor="let p of priorityLevels" [value]="p.id" color="primary">
+                        {{p.name}}
+                    </mat-radio-button>
+                </mat-radio-group>
+            </div>
+
+            <!-- Current Stage -->
+            <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+                <mat-label>Initial Status</mat-label>
+                <mat-select [formControlName]="'currentStage'">
+                    <mat-option *ngFor="let s of jobStatusMasters" [value]="s.id">{{s.statusName}}</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <!-- Recurring Specific Fields -->
+        <div *ngIf="jobForm.get('isRecurring').value" class="animate-in fade-in slide-in-from-top-4 duration-300">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                <!-- Frequency -->
+                <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+                    <mat-label>Frequency Period</mat-label>
+                    <mat-select [formControlName]="'period'">
+                        <mat-option *ngFor="let p of periods" [value]="p.id">{{p.name}}</mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <!-- Due Time Basis -->
+                <div class="flex gap-4 mb-6">
+                    <mat-form-field class="fuse-mat-no-subscript flex-1">
+                        <mat-label>Due Time (After Start)</mat-label>
+                        <input matInput type="number" [formControlName]="'dueDateDays'">
+                    </mat-form-field>
+                    <mat-form-field class="fuse-mat-no-subscript flex-1">
+                        <mat-label>Basis</mat-label>
+                        <mat-select [formControlName]="'dueDateBasis'">
+                            <mat-option *ngFor="let opt of dueDateBasisOptions" [value]="opt">{{opt}}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6">
+            <!-- Start Date -->
+            <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+                <mat-label>Start Date</mat-label>
+                <input matInput [matDatepicker]="startPicker" [formControlName]="'startDate'">
+                <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+                <mat-datepicker #startPicker></mat-datepicker>
+            </mat-form-field>
+
+            <!-- Deadline (Only for single jobs) -->
+            <mat-form-field *ngIf="!jobForm.get('isRecurring').value" class="fuse-mat-no-subscript w-full mb-6">
+                <mat-label>Internal Deadline</mat-label>
+                <input matInput [matDatepicker]="deadlinePicker" [formControlName]="'deadline'">
+                <mat-datepicker-toggle matSuffix [for]="deadlinePicker"></mat-datepicker-toggle>
+                <mat-datepicker #deadlinePicker></mat-datepicker>
+            </mat-form-field>
+
+            <!-- Target End Date -->
+            <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+                <mat-label>Target Completion Date</mat-label>
+                <input matInput [matDatepicker]="targetPicker" [formControlName]="'targetEndDate'">
+                <mat-datepicker-toggle matSuffix [for]="targetPicker"></mat-datepicker-toggle>
+                <mat-datepicker #targetPicker></mat-datepicker>
+            </mat-form-field>
+        </div>
+
+        <div class="grid grid-cols-1 gap-x-6">
+            <!-- Owner -->
+            <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+                <mat-label>Staff In Charge (Owner)</mat-label>
+                <mat-select [formControlName]="'ownerId'">
+                    <mat-option [value]="null">Select Staff</mat-option>
+                    <mat-option *ngFor="let s of staff" [value]="s.id">{{s.firstName}} {{s.lastName}}</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <!-- Inline Tasks Section (Only for single jobs) -->
+        <div *ngIf="!jobForm.get('isRecurring').value" class="mt-4 border-t pt-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-md font-bold text-primary">Initial Tasks / To-Dos</span>
+                <button mat-flat-button color="primary" class="rounded-xl h-10 px-4" (click)="addTask()" [disabled]="!newTaskText" type="button">
+                    <mat-icon class="icon-size-4 mr-2" [svgIcon]="'heroicons_solid:plus-circle'"></mat-icon>
+                    Add Task
+                </button>
+            </div>
+            
+            <mat-form-field class="fuse-mat-no-subscript w-full mb-4">
+                <input matInput [(ngModel)]="newTaskText" [ngModelOptions]="{standalone: true}" placeholder="Enter task description..." (keyup.enter)="addTask()">
+            </mat-form-field>
+
+            <div class="space-y-2 max-h-40 overflow-y-auto pr-2">
+                <div *ngFor="let task of tasksArray.controls; let i = index" class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg group border border-divider">
+                    <span class="text-sm font-medium">{{task.get('description').value}}</span>
+                    <button mat-icon-button color="warn" class="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" (click)="removeTask(i)" type="button">
+                        <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end mt-8">
+            <button
+                mat-button
+                (click)="close()"
+                type="button">
+                Cancel
+            </button>
+            <button
+                class="ml-2"
+                mat-flat-button
+                [color]="'primary'"
+                [disabled]="jobForm.invalid"
+                (click)="save()"
+                type="button">
+                Create Job
+            </button>
+        </div>
+
+    </form>
+</div>

@@ -36,7 +36,6 @@ import { Subject, takeUntil } from 'rxjs';
         NotificationsComponent,
         UserComponent,
         RouterOutlet,
-        QuickChatComponent,
         FuseVerticalNavigationComponent,
     ],
 })

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -13,16 +13,24 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { BankAccountDialogComponent } from './bank-account-dialog/bank-account-dialog.component';
-import { ChangeTypeDialogComponent } from './change-type-dialog/change-type-dialog.component';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
+import { FuseAlertType } from '@fuse/components/alert';
 import { CustomerService } from '../customer.service';
 import { LookupService } from '../lookup.service';
 import { UserService } from 'app/core/user/user.service';
 import { User } from 'app/core/user/user.types';
 import { FuseConfirmationService } from '@fuse/services/confirmation';
-import { Subject, takeUntil } from 'rxjs';
+import { Observable, Subject, takeUntil } from 'rxjs';
+import { JobService } from '../../jobs/job.service';
+import { Job } from '../../jobs/job.types';
+import { BankAccountDialogComponent } from './bank-account-dialog/bank-account-dialog.component';
+import { ChangeTypeDialogComponent } from './change-type-dialog/change-type-dialog.component';
+import { JobDialogComponent } from './job-dialog/job-dialog.component';
+
+import { MatTableModule } from '@angular/material/table';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { JobDetailsComponent } from './job-details/job-details.component';
 
 @Component({
     selector     : 'customers-details',
@@ -45,11 +53,25 @@ import { Subject, takeUntil } from 'rxjs';
         MatSnackBarModule,
         MatTooltipModule,
         MatDialogModule,
+        MatTableModule,
+        MatProgressBarModule,
+        MatSidenavModule,
         RouterLink,
-        FuseAlertComponent
+        JobDetailsComponent
     ]
 })
 export class DetailsComponent implements OnInit, OnDestroy {
+    private _activatedRoute = inject(ActivatedRoute);
+    private _customerService = inject(CustomerService);
+    private _jobService = inject(JobService);
+    private _lookupService = inject(LookupService);
+    private _userService = inject(UserService);
+    private _formBuilder = inject(FormBuilder);
+    private _fuseConfirmationService = inject(FuseConfirmationService);
+    private _router = inject(Router);
+    private _snackBar = inject(MatSnackBar);
+    private _matDialog = inject(MatDialog);
+
     customerForm: FormGroup;
     editMode: boolean = false;
     customerId: number;
@@ -68,8 +90,16 @@ export class DetailsComponent implements OnInit, OnDestroy {
     taxAgents: any[] = [];
     tradingStatuses: any[] = [];
     staff: any[] = [];
+    jobTypes: any[] = [];
+    jobStatusMasters: any[] = [];
     
-    // User info for verification
+    // Jobs data
+    jobs: Job[] = [];
+    pendingJobs: any[] = [];
+    isLoadingJobs: boolean = false;
+    selectedJobId: number | null = null;
+    
+    // User info for role based interactions
     currentUser: User | null = null;
     isChecker: boolean = false;
     isAdmin: boolean = false;
@@ -78,17 +108,9 @@ export class DetailsComponent implements OnInit, OnDestroy {
 
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
-    constructor(
-        private _activatedRoute: ActivatedRoute,
-        private _customerService: CustomerService,
-        private _lookupService: LookupService,
-        private _userService: UserService,
-        private _formBuilder: FormBuilder,
-        private _fuseConfirmationService: FuseConfirmationService,
-        private _router: Router,
-        private _snackBar: MatSnackBar,
-        private _matDialog: MatDialog
-    ) {}
+    // -----------------------------------------------------------------------------------------------------
+    // @ Lifecycle hooks
+    // -----------------------------------------------------------------------------------------------------
 
     ngOnInit(): void {
         // Initialize form
@@ -169,6 +191,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
                     this.editMode = true;
                     this.customerId = +params['id'];
                     this.loadCustomer(this.customerId);
+                    this.loadJobs(this.customerId);
                 } else {
                     this.editMode = false;
                     this.initDefaultAddresses();
@@ -180,8 +203,8 @@ export class DetailsComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((user: User) => {
                 this.currentUser = user;
-                this.isAdmin = (user as any).isAdmin || (user as any).isSuperAdmin;
-                this.isChecker = (user as any).isChecker;
+                this.isAdmin = user.isAdmin || user.isSuperAdmin;
+                this.isChecker = user.isChecker;
             });
 
         // Auto-generate code when Customer Type (clientType) changes
@@ -195,6 +218,15 @@ export class DetailsComponent implements OnInit, OnDestroy {
                 }
             });
     }
+
+    ngOnDestroy(): void {
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
+    }
+
+    // -----------------------------------------------------------------------------------------------------
+    // @ Public methods
+    // -----------------------------------------------------------------------------------------------------
 
     generateCode(clientType: number): void {
         this._customerService.getIncrementCode(clientType).subscribe(count => {
@@ -223,7 +255,6 @@ export class DetailsComponent implements OnInit, OnDestroy {
         this._customerService.checkDuplicateCode(code).subscribe(isDuplicate => {
             if (isDuplicate) {
                 this.customerForm.get('code').setErrors({ duplicate: true });
-                // Optional: show a toastr/alert here if MatSnackBar is available
             } else {
                 this.customerForm.get('code').setErrors(null);
             }
@@ -240,7 +271,73 @@ export class DetailsComponent implements OnInit, OnDestroy {
                 this.taxAgents = lookups.taxAgents;
                 this.tradingStatuses = lookups.tradingStatuses;
                 this.staff = lookups.staff;
+                this.jobTypes = lookups.jobTypes;
+                this.jobStatusMasters = lookups.jobStatusMasters;
             });
+    }
+
+    loadJobs(customerId: number): void {
+        this.isLoadingJobs = true;
+        this._jobService.getJobsByCustomerId(customerId)
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(jobs => {
+                this.jobs = jobs;
+                this.isLoadingJobs = false;
+            });
+    }
+
+    openAddJobDialog(): void {
+        const dialogRef = this._matDialog.open(JobDialogComponent, {
+            width: '640px',
+            data: {
+                customerId: this.customerId,
+                jobTypes: this.jobTypes,
+                staff: this.staff,
+                jobStatusMasters: this.jobStatusMasters
+            }
+        });
+
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result)
+            {
+                if (this.editMode)
+                {
+                    this._jobService.createJob(result).subscribe({
+                        next: () => {
+                            this._snackBar.open('Job created successfully', 'OK', { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top' });
+                            this.loadJobs(this.customerId);
+                        },
+                        error: () => {
+                            this._snackBar.open('Failed to create job', 'ERROR', { duration: 5000, horizontalPosition: 'right', verticalPosition: 'top' });
+                        }
+                    });
+                }
+                else
+                {
+                    // Add to pending jobs for new customer
+                    this.pendingJobs.push(result);
+                    this._snackBar.open('Job scheduled for creation', 'OK', { duration: 2000, horizontalPosition: 'right', verticalPosition: 'top' });
+                }
+            }
+        });
+    }
+
+    removePendingJob(index: number): void {
+        this.pendingJobs.splice(index, 1);
+    }
+
+    /**
+     * Open job details drawer
+     */
+    openJobDetails(jobId: number): void {
+        this.selectedJobId = jobId;
+    }
+
+    /**
+     * Close job details drawer
+     */
+    closeJobDetails(): void {
+        this.selectedJobId = null;
     }
 
     get addresses(): FormArray {
@@ -258,11 +355,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
         return this.customerForm.get('bankAccounts') as FormArray;
     }
 
-    /**
-     * Add bank account (opens dialog)
-     */
-    addBankAccount(): void
-    {
+    addBankAccount(): void {
         const dialogRef = this._matDialog.open(BankAccountDialogComponent, {
             width: '640px',
             data: {
@@ -279,13 +372,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
         });
     }
 
-    /**
-     * Edit bank account
-     *
-     * @param index
-     */
-    editBankAccount(index: number): void
-    {
+    editBankAccount(index: number): void {
         const account = this.bankAccounts.at(index).value;
         const dialogRef = this._matDialog.open(BankAccountDialogComponent, {
             width: '640px',
@@ -303,14 +390,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
         });
     }
 
-    /**
-     * Helper to add bank account to FormArray
-     *
-     * @param account
-     * @private
-     */
-    private _addBankAccountToForm(account: any = null): void
-    {
+    private _addBankAccountToForm(account: any = null): void {
         this.bankAccounts.push(this._formBuilder.group({
             id: [account?.id || 0],
             accountName: [account?.accountName || '', Validators.required],
@@ -320,13 +400,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
         }));
     }
 
-    /**
-     * Remove bank account
-     *
-     * @param index
-     */
-    removeBankAccount(index: number): void
-    {
+    removeBankAccount(index: number): void {
         this.bankAccounts.removeAt(index);
         this.customerForm.markAsDirty();
     }
@@ -345,10 +419,6 @@ export class DetailsComponent implements OnInit, OnDestroy {
         this.addresses.push(addressForm);
     }
 
-    removeAddress(index: number): void {
-        this.addresses.removeAt(index);
-    }
-
     loadCustomer(id: number): void {
         this._customerService.getCustomerById(id).subscribe(customer => {
             this.customerForm.patchValue(customer);
@@ -356,23 +426,20 @@ export class DetailsComponent implements OnInit, OnDestroy {
             this.customerForm.get('clientType').disable();
             this.customerForm.get('contactType').disable();
             
-            // Rebuild addresses array specifically for Home, Business, Postal
+            // Rebuild arrays
             this.addresses.clear();
             const home = customer.addresses?.find((a: any) => a.type === 1);
             const biz = customer.addresses?.find((a: any) => a.type === 2);
             const postal = customer.addresses?.find((a: any) => a.type === 3);
-            
             this.addAddressForType(home, 1);
             this.addAddressForType(biz, 2);
             this.addAddressForType(postal, 3);
             
-            // Rebuild bank accounts
             this.bankAccounts.clear();
             if (customer.bankAccounts && customer.bankAccounts.length > 0) {
                 customer.bankAccounts.forEach((b: any) => this._addBankAccountToForm(b));
             }
             
-            // Set verification data
             this.lastVarifiedDate = customer.lastVarifiedDate;
             this.lastVarifiedUserName = customer.lastVarifiedUserName;
             
@@ -406,18 +473,12 @@ export class DetailsComponent implements OnInit, OnDestroy {
     }
 
     private _updateNameValidators(): void {
-        const clientType = this.customerForm.get('clientType').value;
         const nameControl = this.customerForm.get('name');
-        
-        // Individual
         const indFirstName = this.customerForm.get('individualInfo.firstName');
         const indLastName = this.customerForm.get('individualInfo.lastName');
-        
-        // Sole Prop
         const spFirstName = this.customerForm.get('solePropriterInfo.firstName');
         const spLastName = this.customerForm.get('solePropriterInfo.lastName');
 
-        // Clear all first
         nameControl.clearValidators();
         indFirstName.clearValidators();
         indLastName.clearValidators();
@@ -445,19 +506,8 @@ export class DetailsComponent implements OnInit, OnDestroy {
         return !!this.customerForm.get('clientType').value && !!this.customerForm.get('contactType').value;
     }
 
-    //   Gender only for Individual (customerType == 1)
     showGender(): boolean {
         return this.customerForm.get('clientType').value === 1;
-    }
-
-    showDateOfBirth(): boolean {
-        const ct = this.customerForm.get('clientType').value;
-        return ct === 1 || ct === 3;
-    }
-
-    showDirectorID(): boolean {
-        const ct = this.customerForm.get('clientType').value;
-        return ct === 1 || ct === 3;
     }
 
     isTrust(): boolean {
@@ -495,41 +545,29 @@ export class DetailsComponent implements OnInit, OnDestroy {
     }
 
     save(): void {
-        if (this.customerForm.invalid) {
-            console.error('Form is invalid. Errors:', this.getFormValidationErrors());
-            return;
-        }
+        if (this.customerForm.invalid) return;
 
         this.showAlert = false;
         this.isSaving = true;
         
         if (this.isIndividual()) {
             const info = this.customerForm.get('individualInfo').value;
-            if (info.firstName || info.lastName) {
-                this.customerForm.patchValue({
-                    name: `${info.firstName || ''} ${info.lastName || ''}`.trim()
-                }, { emitEvent: false });
-            }
+            this.customerForm.patchValue({ name: `${info.firstName || ''} ${info.lastName || ''}`.trim() }, { emitEvent: false });
         } else if (this.isSoleProprietor()) {
             const info = this.customerForm.get('solePropriterInfo').value;
-            if (info.firstName || info.lastName) {
-                this.customerForm.patchValue({
-                    name: `${info.firstName || ''} ${info.lastName || ''}`.trim()
-                }, { emitEvent: false });
-            }
+            this.customerForm.patchValue({ name: `${info.firstName || ''} ${info.lastName || ''}`.trim() }, { emitEvent: false });
         }
 
         const data = Object.assign({}, this.customerForm.getRawValue());
-        
         data.addresses = data.addresses.filter((a: any) => 
             a.addressLine1 || a.city || a.state || a.postalCode || (a.id && a.id > 0)
         );
 
         const codeControl = this.customerForm.get('code');
-        if (!this.editMode || (this.editMode && codeControl.dirty)) {
+        if (!this.editMode || codeControl.dirty) {
             this._customerService.checkDuplicateCode(data.code).subscribe(isDuplicate => {
                 if (isDuplicate) {
-                    this._snackBar.open('Customer Code already exists. Please use a unique code.', 'ERROR', { duration: 5000, horizontalPosition: 'right', verticalPosition: 'top' });
+                    this._snackBar.open('Duplicate Code!', 'ERROR', { duration: 5000 });
                     this.isSaving = false;
                     return;
                 }
@@ -541,57 +579,32 @@ export class DetailsComponent implements OnInit, OnDestroy {
     }
 
     private _proceedToSave(data: any): void {
-        if (this.editMode) {
-            this._customerService.updateCustomer(this.customerId, data).subscribe({
-                next: () => {
-                    this._snackBar.open('Contact updated successfully', 'OK', { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top' });
-                    this.isSaving = false;
-                    setTimeout(() => this._router.navigate(['../'], { relativeTo: this._activatedRoute }), 500);
-                },
-                error: (err) => {
-                    this._snackBar.open('Failed to update contact', 'ERROR', { duration: 5000, horizontalPosition: 'right', verticalPosition: 'top' });
-                    this.isSaving = false;
-                    console.error('API Error:', err);
-                }
-            });
-        } else {
-            this._customerService.createCustomer(data).subscribe({
-                next: () => {
-                    this._snackBar.open('Contact created successfully', 'OK', { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top' });
-                    this.isSaving = false;
-                    setTimeout(() => this._router.navigate(['../'], { relativeTo: this._activatedRoute }), 500);
-                },
-                error: (err) => {
-                    this._snackBar.open('Failed to create contact', 'ERROR', { duration: 5000, horizontalPosition: 'right', verticalPosition: 'top' });
-                    this.isSaving = false;
-                    console.error('API Error:', err);
-                }
-            });
-        }
-    }
+        const request: Observable<any> = this.editMode 
+            ? this._customerService.updateCustomer(this.customerId, data)
+            : this._customerService.createCustomer(data);
 
-    getFormValidationErrors(): any {
-        const errors = {};
-        Object.keys(this.customerForm.controls).forEach(key => {
-            const controlErrors = this.customerForm.get(key).errors;
-            if (controlErrors != null) {
-                errors[key] = controlErrors;
+        request.subscribe({
+            next: (response: any) => {
+                // If creating a new customer, response is the new ID (integer)
+                // We handle both plain number and object cases for robustness
+                const newCustomerId = (typeof response === 'number') ? response : (response?.id || response?.ID);
+                
+                if (!this.editMode && newCustomerId && this.pendingJobs.length > 0) {
+                    this.pendingJobs.forEach(job => {
+                        job.customerId = newCustomerId;
+                        this._jobService.createJob(job).subscribe();
+                    });
+                }
+                
+                this._snackBar.open(`Contact ${this.editMode ? 'updated' : 'created'}`, 'OK', { duration: 3000 });
+                this.isSaving = false;
+                this._router.navigate(['../'], { relativeTo: this._activatedRoute });
+            },
+            error: () => {
+                this._snackBar.open('Operation failed', 'ERROR', { duration: 5000 });
+                this.isSaving = false;
             }
         });
-        
-        ['contactInfo', 'individualInfo', 'companyInfo', 'trustInfo', 'solePropriterInfo'].forEach(group => {
-            const groupCtrl = this.customerForm.get(group);
-            if (groupCtrl instanceof FormGroup) {
-                Object.keys(groupCtrl.controls).forEach(key => {
-                    const controlErrors = groupCtrl.get(key).errors;
-                    if (controlErrors != null) {
-                        errors[`${group}.${key}`] = controlErrors;
-                    }
-                });
-            }
-        });
-
-        return errors;
     }
 
     verify(): void {
@@ -599,24 +612,9 @@ export class DetailsComponent implements OnInit, OnDestroy {
         
         const dialogRef = this._fuseConfirmationService.open({
             title: 'Verify Contact',
-            message: 'Are you sure you want to verify this contact?',
-            icon: {
-                show: true,
-                name: 'heroicons_outline:check-badge',
-                color: 'success',
-            },
-            actions: {
-                confirm: {
-                    show: true,
-                    label: 'Verify',
-                    color: 'primary',
-                },
-                cancel: {
-                    show: true,
-                    label: 'Cancel',
-                },
-            },
-            dismissible: true,
+            message: 'Are you sure?',
+            icon: { show: true, name: 'heroicons_outline:check-badge', color: 'success' },
+            actions: { confirm: { show: true, label: 'Verify', color: 'primary' }, cancel: { show: true, label: 'Cancel' } }
         });
 
         dialogRef.afterClosed().subscribe((result) => {
@@ -624,13 +622,12 @@ export class DetailsComponent implements OnInit, OnDestroy {
                 this._customerService.verifyCustomer(this.customerId).subscribe({
                     next: (success) => {
                         if (success) {
-                            this._snackBar.open('Contact verified successfully', 'OK', { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top' });
+                            this._snackBar.open('Verified', 'OK', { duration: 3000 });
                             this.loadCustomer(this.customerId);
                         }
                     },
-                    error: (err) => {
-                        this._snackBar.open('Failed to verify contact', 'ERROR', { duration: 5000, horizontalPosition: 'right', verticalPosition: 'top' });
-                        console.error('Verification Error:', err);
+                    error: () => {
+                        this._snackBar.open('Verification failed', 'ERROR', { duration: 5000 });
                     }
                 });
             }
@@ -648,7 +645,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
 
         dialogRef.afterClosed().subscribe((result) => {
             if (result && result.success) {
-                this._snackBar.open('Customer type changed successfully!', 'OK', { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top' });
+                this._snackBar.open('Type changed', 'OK', { duration: 3000 });
                 this.loadCustomer(this.customerId);
             }
         });
@@ -670,10 +667,5 @@ export class DetailsComponent implements OnInit, OnDestroy {
         const ctrl = this.customerForm.get('isExcluded');
         ctrl.setValue(!ctrl.value);
         ctrl.markAsDirty();
-    }
-
-    ngOnDestroy(): void {
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
     }
 }

@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import {
     ApplicationConfig,
+    InjectionToken,
     inject,
     isDevMode,
     provideAppInitializer,
@@ -18,8 +19,14 @@ import { MockApiService } from 'app/mock-api';
 import { firstValueFrom } from 'rxjs';
 import { TranslocoHttpLoader } from './core/transloco/transloco.http-loader';
 
+export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL');
+
 export const appConfig: ApplicationConfig = {
     providers: [
+        {
+            provide: API_BASE_URL,
+            useValue: 'http://localhost:5266'
+        },
         provideAnimations(),
         provideHttpClient(),
         provideRouter(
@@ -79,12 +86,10 @@ export const appConfig: ApplicationConfig = {
         provideAuth(),
         provideIcons(),
         provideFuse({
-            /*
             mockApi: {
                 delay: 0,
                 service: MockApiService,
             },
-            */
             fuse: {
                 layout: 'classy',
                 scheme: 'light',
@@ -94,7 +99,7 @@ export const appConfig: ApplicationConfig = {
                     lg: '1280px',
                     xl: '1440px',
                 },
-                theme: 'theme-teal',
+                theme: 'theme-default',
                 themes: [
                     {
                         id: 'theme-default',

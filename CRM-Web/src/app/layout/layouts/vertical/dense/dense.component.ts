@@ -37,7 +37,6 @@ import { Subject, takeUntil } from 'rxjs';
         NotificationsComponent,
         UserComponent,
         RouterOutlet,
-        QuickChatComponent,
     ],
 })
 export class DenseLayoutComponent implements OnInit, OnDestroy {

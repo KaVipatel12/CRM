@@ -26,6 +26,8 @@ namespace CRM_Api.Controllers
             var taxAgents = await _context.TaxAgents.ToListAsync();
             var tradingStatuses = await _context.TradingStatuses.ToListAsync();
             var staff = await _context.Users.Select(u => new { id = u.Id, u.FirstName, u.LastName }).ToListAsync();
+            var jobTypes = await _context.TypeMasters.ToListAsync();
+            var jobStatusMasters = await _context.JobStatusMasters.ToListAsync();
 
             return Ok(new
             {
@@ -35,7 +37,9 @@ namespace CRM_Api.Controllers
                 BusinessTypes = businessTypes,
                 TaxAgents = taxAgents,
                 TradingStatuses = tradingStatuses,
-                Staff = staff
+                Staff = staff,
+                JobTypes = jobTypes,
+                JobStatusMasters = jobStatusMasters
             });
         }
     }

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -26,7 +26,10 @@ import { Subject, takeUntil } from 'rxjs';
         RouterLink
     ]
 })
-export class UploadComponent implements OnInit {
+export class UploadComponent implements OnInit, OnDestroy {
+    private _customerService = inject(CustomerService);
+    private _snackBar = inject(MatSnackBar);
+
     uploads: any[] = [];
     dataSource: MatTableDataSource<any> = new MatTableDataSource();
     displayedColumns: string[] = ['fileName', 'uploadDate', 'totalRecords', 'processed', 'failed', 'status', 'actions'];
@@ -39,14 +42,22 @@ export class UploadComponent implements OnInit {
 
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
-    constructor(
-        private _customerService: CustomerService,
-        private _snackBar: MatSnackBar
-    ) {}
+    // -----------------------------------------------------------------------------------------------------
+    // @ Lifecycle hooks
+    // -----------------------------------------------------------------------------------------------------
 
     ngOnInit(): void {
         this.loadHistory();
     }
+
+    ngOnDestroy(): void {
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
+    }
+
+    // -----------------------------------------------------------------------------------------------------
+    // @ Public methods
+    // -----------------------------------------------------------------------------------------------------
 
     loadHistory(): void {
         this.isLoading = true;
@@ -63,8 +74,7 @@ export class UploadComponent implements OnInit {
                     this._snackBar.open('Failed to load upload history.', 'Close', {
                         duration: 3000,
                         horizontalPosition: 'right',
-                        verticalPosition: 'top',
-                        panelClass: ['bg-red-600', 'text-white']
+                        verticalPosition: 'top'
                     });
                 }
             });
@@ -111,11 +121,10 @@ export class UploadComponent implements OnInit {
                 next: () => {
                     this.isUploading = false;
                     this.selectedFile = null;
-                    this._snackBar.open('File uploaded successfully! Click the process button to import records.', 'Close', {
+                    this._snackBar.open('File uploaded successfully! Click process to import.', 'Close', {
                         duration: 5000,
                         horizontalPosition: 'right',
-                        verticalPosition: 'top',
-                        panelClass: ['bg-green-600', 'text-white']
+                        verticalPosition: 'top'
                     });
                     this.loadHistory();
                 },
@@ -124,8 +133,7 @@ export class UploadComponent implements OnInit {
                     this._snackBar.open('Upload failed: ' + (err.error || 'Unknown error'), 'Close', {
                         duration: 4000,
                         horizontalPosition: 'right',
-                        verticalPosition: 'top',
-                        panelClass: ['bg-red-600', 'text-white']
+                        verticalPosition: 'top'
                     });
                 }
             });
@@ -144,8 +152,7 @@ export class UploadComponent implements OnInit {
                     this._snackBar.open(msg, 'Close', {
                         duration: 5000,
                         horizontalPosition: 'right',
-                        verticalPosition: 'top',
-                        panelClass: [result.recordFailed > 0 ? 'bg-orange-600' : 'bg-green-600', 'text-white']
+                        verticalPosition: 'top'
                     });
                     this.loadHistory();
                 },
@@ -154,8 +161,7 @@ export class UploadComponent implements OnInit {
                     this._snackBar.open('Processing failed: ' + (err.error || 'Unknown error'), 'Close', {
                         duration: 4000,
                         horizontalPosition: 'right',
-                        verticalPosition: 'top',
-                        panelClass: ['bg-red-600', 'text-white']
+                        verticalPosition: 'top'
                     });
                 }
             });
@@ -169,13 +175,8 @@ export class UploadComponent implements OnInit {
     }
 
     getStatusClass(processResult: number | null): string {
-        if (processResult === null || processResult === undefined || processResult === 0) return 'bg-amber-100 text-amber-800';
-        if (processResult === 1) return 'bg-green-100 text-green-800';
-        return 'bg-red-100 text-red-800';
-    }
-
-    ngOnDestroy(): void {
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
+        if (processResult === null || processResult === undefined || processResult === 0) return 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400';
+        if (processResult === 1) return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400';
+        return 'bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-400';
     }
 }

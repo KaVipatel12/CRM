@@ -1,0 +1,105 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { API_BASE_URL } from 'app/app.config';
+import { toCamelCase } from 'app/core/utils/case-utils';
+import { Observable, map } from 'rxjs';
+import { Job, JobFilter } from './job.types';
+
+@Injectable({ providedIn: 'root' })
+export class JobService {
+    private _httpClient = inject(HttpClient);
+    private _baseApiUrl = inject(API_BASE_URL);
+    private _baseUrl = `${this._baseApiUrl}/api/Jobs`;
+
+    /**
+     * Get jobs with filters and pagination
+     */
+    getJobs(filter: JobFilter): Observable<Job[]> {
+        let params = new HttpParams();
+        
+        if (filter.searchString) params = params.set('SearchString', filter.searchString);
+        if (filter.statusId !== undefined) params = params.set('StatusID', filter.statusId.toString());
+        if (filter.priority !== undefined) params = params.set('Priority', filter.priority.toString());
+        if (filter.jobTypeId !== undefined) params = params.set('JobTypeID', filter.jobTypeId.toString());
+        if (filter.staffId !== undefined) params = params.set('StaffID', filter.staffId.toString());
+        if (filter.customerId !== undefined) params = params.set('CustomerID', filter.customerId.toString());
+        
+        params = params.set('CurrentPage', filter.currentPage.toString());
+        params = params.set('PageSize', filter.pageSize.toString());
+ 
+        return this._httpClient.get<Job[]>(this._baseUrl, { params }).pipe(
+            map(data => toCamelCase(data))
+        );
+    }
+
+    /**
+     * Get jobs for a specific customer
+     */
+    getJobsByCustomerId(customerId: number): Observable<Job[]> {
+        return this._httpClient.get<Job[]>(`${this._baseUrl}/customer/${customerId}`).pipe(
+            map(data => toCamelCase(data))
+        );
+    }
+
+    /**
+     * Get single job by ID
+     */
+    getJob(id: number): Observable<Job> {
+        return this._httpClient.get<Job>(`${this._baseUrl}/${id}`).pipe(
+            map(data => toCamelCase(data))
+        );
+    }
+
+    /**
+     * Create job
+     */
+    createJob(job: Job): Observable<number> {
+        return this._httpClient.post<number>(this._baseUrl, job);
+    }
+
+    /**
+     * Update job
+     */
+    updateJob(id: number, job: Job): Observable<void> {
+        return this._httpClient.put<void>(`${this._baseUrl}/${id}`, job);
+    }
+
+    /**
+     * Delete job
+     */
+    deleteJob(id: number): Observable<void> {
+        return this._httpClient.delete<void>(`${this._baseUrl}/${id}`);
+    }
+
+    /**
+     * Add task to job
+     */
+    addTask(jobId: number, description: string): Observable<any> {
+        return this._httpClient.post<any>(`${this._baseUrl}/${jobId}/tasks`, JSON.stringify(description), {
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+
+    /**
+     * Toggle task status (complete/incomplete)
+     */
+    toggleTask(taskId: number): Observable<void> {
+        return this._httpClient.put<void>(`${this._baseUrl}/tasks/${taskId}/toggle`, {});
+    }
+
+    /**
+     * Delete task
+     */
+    deleteTask(taskId: number): Observable<void> {
+        return this._httpClient.delete<void>(`${this._baseUrl}/tasks/${taskId}`);
+    }
+
+    /**
+     * Add comment to job
+     */
+    addComment(jobId: number, text: string): Observable<any> {
+        return this._httpClient.post<any>(`${this._baseUrl}/${jobId}/comments`, JSON.stringify(text), {
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+}

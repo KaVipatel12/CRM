@@ -1,12 +1,15 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { API_BASE_URL } from 'app/app.config';
+import { toCamelCase } from 'app/core/utils/case-utils';
+import { Observable, map } from 'rxjs';
 import { Customer, CustomerListFilter } from './customer.types';
 
 @Injectable({ providedIn: 'root' })
 export class CustomerService {
     private _httpClient = inject(HttpClient);
-    private _baseUrl = 'api/Customers';
+    private _baseApiUrl = inject(API_BASE_URL);
+    private _baseUrl = `${this._baseApiUrl}/api/Customers`;
 
     /**
      * Get customers with filters and pagination
@@ -33,7 +36,9 @@ export class CustomerService {
      * Get single customer details
      */
     getCustomerById(id: number): Observable<any> {
-        return this._httpClient.get<any>(`${this._baseUrl}/${id}`);
+        return this._httpClient.get<any>(`${this._baseUrl}/${id}`).pipe(
+            map(data => toCamelCase(data))
+        );
     }
 
     /**
@@ -75,7 +80,9 @@ export class CustomerService {
      * File Upload History
      */
     getUploadHistory(): Observable<any[]> {
-        return this._httpClient.get<any[]>('api/FileUpload/history');
+        return this._httpClient.get<any[]>(`${this._baseApiUrl}/api/FileUpload/history`).pipe(
+            map(data => toCamelCase(data))
+        );
     }
 
     /**
@@ -84,14 +91,14 @@ export class CustomerService {
     uploadFile(file: File): Observable<any> {
         const formData = new FormData();
         formData.append('file', file);
-        return this._httpClient.post<any>('api/FileUpload/upload', formData);
+        return this._httpClient.post<any>(`${this._baseApiUrl}/api/FileUpload/upload`, formData);
     }
 
     /**
      * Trigger bulk processing
      */
     processFile(id: number): Observable<any> {
-        return this._httpClient.post<any>(`api/FileUpload/process/${id}`, {});
+        return this._httpClient.post<any>(`${this._baseApiUrl}/api/FileUpload/process/${id}`, {});
     }
 
     /**

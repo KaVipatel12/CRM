@@ -670,61 +670,61 @@ namespace CRM_Api.Migrations
                         {
                             Id = 1,
                             CustomerTypeNM = "Individual",
-                            UpdateDateTime = new DateTime(2026, 4, 7, 14, 12, 4, 724, DateTimeKind.Local).AddTicks(5250)
+                            UpdateDateTime = new DateTime(2026, 4, 7, 16, 0, 5, 170, DateTimeKind.Local).AddTicks(8552)
                         },
                         new
                         {
                             Id = 2,
                             CustomerTypeNM = "Company",
-                            UpdateDateTime = new DateTime(2026, 4, 7, 14, 12, 4, 727, DateTimeKind.Local).AddTicks(5389)
+                            UpdateDateTime = new DateTime(2026, 4, 7, 16, 0, 5, 172, DateTimeKind.Local).AddTicks(4204)
                         },
                         new
                         {
                             Id = 3,
                             CustomerTypeNM = "Sole Proprietor",
-                            UpdateDateTime = new DateTime(2026, 4, 7, 14, 12, 4, 727, DateTimeKind.Local).AddTicks(5407)
+                            UpdateDateTime = new DateTime(2026, 4, 7, 16, 0, 5, 172, DateTimeKind.Local).AddTicks(4227)
                         },
                         new
                         {
                             Id = 4,
                             CustomerTypeNM = "Trust",
-                            UpdateDateTime = new DateTime(2026, 4, 7, 14, 12, 4, 727, DateTimeKind.Local).AddTicks(5408)
+                            UpdateDateTime = new DateTime(2026, 4, 7, 16, 0, 5, 172, DateTimeKind.Local).AddTicks(4228)
                         },
                         new
                         {
                             Id = 5,
                             CustomerTypeNM = "AKA",
-                            UpdateDateTime = new DateTime(2026, 4, 7, 14, 12, 4, 727, DateTimeKind.Local).AddTicks(5409)
+                            UpdateDateTime = new DateTime(2026, 4, 7, 16, 0, 5, 172, DateTimeKind.Local).AddTicks(4229)
                         },
                         new
                         {
                             Id = 6,
                             CustomerTypeNM = "Partnership",
-                            UpdateDateTime = new DateTime(2026, 4, 7, 14, 12, 4, 727, DateTimeKind.Local).AddTicks(5410)
+                            UpdateDateTime = new DateTime(2026, 4, 7, 16, 0, 5, 172, DateTimeKind.Local).AddTicks(4230)
                         },
                         new
                         {
                             Id = 7,
                             CustomerTypeNM = "SMSF",
-                            UpdateDateTime = new DateTime(2026, 4, 7, 14, 12, 4, 727, DateTimeKind.Local).AddTicks(5411)
+                            UpdateDateTime = new DateTime(2026, 4, 7, 16, 0, 5, 172, DateTimeKind.Local).AddTicks(4260)
                         },
                         new
                         {
                             Id = 8,
                             CustomerTypeNM = "Staff",
-                            UpdateDateTime = new DateTime(2026, 4, 7, 14, 12, 4, 727, DateTimeKind.Local).AddTicks(5412)
+                            UpdateDateTime = new DateTime(2026, 4, 7, 16, 0, 5, 172, DateTimeKind.Local).AddTicks(4261)
                         },
                         new
                         {
                             Id = 9,
                             CustomerTypeNM = "Supplier",
-                            UpdateDateTime = new DateTime(2026, 4, 7, 14, 12, 4, 727, DateTimeKind.Local).AddTicks(5413)
+                            UpdateDateTime = new DateTime(2026, 4, 7, 16, 0, 5, 172, DateTimeKind.Local).AddTicks(4262)
                         },
                         new
                         {
                             Id = 10,
                             CustomerTypeNM = "Other",
-                            UpdateDateTime = new DateTime(2026, 4, 7, 14, 12, 4, 727, DateTimeKind.Local).AddTicks(5414)
+                            UpdateDateTime = new DateTime(2026, 4, 7, 16, 0, 5, 172, DateTimeKind.Local).AddTicks(4263)
                         });
                 });
 
@@ -1338,99 +1338,7 @@ namespace CRM_Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("CRM_Api.Models.Entities.Operations.Detail", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
-
-                    b.Property<int?>("AssignBy")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("AssignTo")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Caption")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ClientId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("EndTime")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool?>("IsRecurring")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Note")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PerformAction")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("PeriodEnded")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("Priority")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ScheduleID")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Stage")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("StartTime")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool?>("Status")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("TaskOwner")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TypeID")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("UpdateUserID")
-                        .HasColumnType("int");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("ScheduleID");
-
-                    b.HasIndex("TypeID");
-
-                    b.ToTable("Detail", "task");
-                });
-
-            modelBuilder.Entity("CRM_Api.Models.Entities.Operations.Schedule", b =>
+            modelBuilder.Entity("CRM_Api.Models.Entities.Operations.Job", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1441,46 +1349,53 @@ namespace CRM_Api.Migrations
 
                     b.Property<string>("Caption")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
-                    b.Property<int?>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("CreatedOn")
+                    b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("DayOfMonth")
+                    b.Property<int?>("CurrentStage")
                         .HasColumnType("int");
 
-                    b.Property<int?>("DayOfWeek")
+                    b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("DueDuration")
-                        .HasColumnType("int");
-
-                    b.Property<string>("DueMode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("EndDate")
+                    b.Property<DateTime?>("Deadline")
                         .HasColumnType("datetime2");
 
-                    b.Property<TimeSpan?>("EndTime")
-                        .HasColumnType("time");
-
-                    b.Property<string>("Mode")
-                        .IsRequired()
+                    b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ScheduleDays")
-                        .IsRequired()
+                    b.Property<string>("DueDateBasis")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("DueDateDays")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRecurring")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("JobTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("OwnerId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Period")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<TimeSpan?>("StartTime")
-                        .HasColumnType("time");
+                    b.Property<DateTime?>("TargetEndDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("UpdateDateTime")
                         .HasColumnType("datetime")
@@ -1492,108 +1407,35 @@ namespace CRM_Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Schedule", "task");
+                    b.HasIndex("CurrentStage");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("JobTypeId");
+
+                    b.ToTable("Job", "task");
                 });
 
-            modelBuilder.Entity("CRM_Api.Models.Entities.Operations.TaskAction", b =>
+            modelBuilder.Entity("CRM_Api.Models.Entities.Operations.JobComment", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("ID");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ActionMasterID")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("AssignDateTime")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("AssignTo")
+                    b.Property<int>("JobId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ClosedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("ClosedDateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("DetailID")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("DueDate")
-                        .HasColumnType("date")
-                        .HasColumnName("DueDate");
-
-                    b.Property<int?>("DueDuration")
-                        .HasColumnType("int");
-
-                    b.Property<string>("DueMode")
+                    b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("EmailJson")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ExecutionEndDate")
-                        .HasColumnType("date")
-                        .HasColumnName("ExecutionEndDate");
-
-                    b.Property<string>("ExecutionEndTime")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ExecutionStartDate")
-                        .HasColumnType("date")
-                        .HasColumnName("ExecutionStartDate");
-
-                    b.Property<string>("ExecutionStartTime")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("GroupName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool?>("IsBackground")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsRunning")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("NoOfTry")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PerformAction")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("Priority")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ScheduleID")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Stage")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool?>("Status")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("TaskOwner")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdateDateTime")
+                    b.Property<DateTime>("UpdateDateTime")
                         .HasColumnType("datetime")
                         .HasColumnName("UpdDT");
 
@@ -1601,13 +1443,94 @@ namespace CRM_Api.Migrations
                         .HasColumnType("int")
                         .HasColumnName("UpdUserID");
 
-                    b.HasKey("ID");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
-                    b.HasIndex("DetailID");
+                    b.HasKey("Id");
 
-                    b.HasIndex("ScheduleID");
+                    b.HasIndex("JobId");
 
-                    b.ToTable("Action", "task");
+                    b.ToTable("JobComment", "task");
+                });
+
+            modelBuilder.Entity("CRM_Api.Models.Entities.Operations.JobHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Event")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("JobId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("UpdateDateTime")
+                        .HasColumnType("datetime")
+                        .HasColumnName("UpdDT");
+
+                    b.Property<int?>("UpdateUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("UpdUserID");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobId");
+
+                    b.ToTable("JobHistory", "task");
+                });
+
+            modelBuilder.Entity("CRM_Api.Models.Entities.Operations.JobTask", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CompletedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("JobId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdateDateTime")
+                        .HasColumnType("datetime")
+                        .HasColumnName("UpdDT");
+
+                    b.Property<int?>("UpdateUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("UpdUserID");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobId");
+
+                    b.ToTable("JobTask", "task");
                 });
 
             modelBuilder.Entity("CRM_Api.Models.Entities.Utilities.FileUploadInfo", b =>
@@ -1988,36 +1911,62 @@ namespace CRM_Api.Migrations
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("CRM_Api.Models.Entities.Operations.Detail", b =>
+            modelBuilder.Entity("CRM_Api.Models.Entities.Operations.Job", b =>
                 {
-                    b.HasOne("CRM_Api.Models.Entities.Operations.Schedule", "Schedule")
-                        .WithMany("Detail")
-                        .HasForeignKey("ScheduleID");
-
-                    b.HasOne("CRM_Api.Models.Entities.Customer.TypeMaster", "Type")
+                    b.HasOne("CRM_Api.Models.Entities.Customer.JobStatusMaster", "Status")
                         .WithMany()
-                        .HasForeignKey("TypeID")
+                        .HasForeignKey("CurrentStage");
+
+                    b.HasOne("CRM_Api.Models.Entities.Customer.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Schedule");
+                    b.HasOne("CRM_Api.Models.Entities.Customer.TypeMaster", "JobType")
+                        .WithMany()
+                        .HasForeignKey("JobTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("Type");
+                    b.Navigation("Customer");
+
+                    b.Navigation("JobType");
+
+                    b.Navigation("Status");
                 });
 
-            modelBuilder.Entity("CRM_Api.Models.Entities.Operations.TaskAction", b =>
+            modelBuilder.Entity("CRM_Api.Models.Entities.Operations.JobComment", b =>
                 {
-                    b.HasOne("CRM_Api.Models.Entities.Operations.Detail", "Detail")
-                        .WithMany("Action")
-                        .HasForeignKey("DetailID");
+                    b.HasOne("CRM_Api.Models.Entities.Operations.Job", "Job")
+                        .WithMany("Comments")
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.HasOne("CRM_Api.Models.Entities.Operations.Schedule", "Schedule")
-                        .WithMany("Action")
-                        .HasForeignKey("ScheduleID");
+                    b.Navigation("Job");
+                });
 
-                    b.Navigation("Detail");
+            modelBuilder.Entity("CRM_Api.Models.Entities.Operations.JobHistory", b =>
+                {
+                    b.HasOne("CRM_Api.Models.Entities.Operations.Job", "Job")
+                        .WithMany("History")
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("Schedule");
+                    b.Navigation("Job");
+                });
+
+            modelBuilder.Entity("CRM_Api.Models.Entities.Operations.JobTask", b =>
+                {
+                    b.HasOne("CRM_Api.Models.Entities.Operations.Job", "Job")
+                        .WithMany("Tasks")
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Job");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -2095,16 +2044,13 @@ namespace CRM_Api.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("CRM_Api.Models.Entities.Operations.Detail", b =>
+            modelBuilder.Entity("CRM_Api.Models.Entities.Operations.Job", b =>
                 {
-                    b.Navigation("Action");
-                });
+                    b.Navigation("Comments");
 
-            modelBuilder.Entity("CRM_Api.Models.Entities.Operations.Schedule", b =>
-                {
-                    b.Navigation("Action");
+                    b.Navigation("History");
 
-                    b.Navigation("Detail");
+                    b.Navigation("Tasks");
                 });
 #pragma warning restore 612, 618
         }
