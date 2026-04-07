@@ -2,36 +2,38 @@ using CRM_Api.Models;
 using CRM_Api.Models.Entities.Customer;
 using CRM_Api.Models.Entities.Operations;
 using CRM_Api.Models.Entities.Utilities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CRM_Api.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
 
-        public DbSet<User> Users { get; set; }
-        public DbSet<ContactType> ContactTypes { get; set; }
-        public DbSet<RelationShipType> RelationShipTypes { get; set; }
-        public DbSet<Customer> Customers { get; set; }
-        public DbSet<JobStatusMaster> JobStatusMasters { get; set; }
-        public DbSet<TypeMaster> TypeMasters { get; set; }
-        public DbSet<CustomerType> CustomerTypes { get; set; }
-        public DbSet<BusinessType> BusinessTypes { get; set; }
-        public DbSet<TaxAgent> TaxAgents { get; set; }
-        public DbSet<TradingStatus> TradingStatuses { get; set; }
-        public DbSet<EntityType> EntityTypes { get; set; }
-        public DbSet<TaskAction> Actions { get; set; }
-        public DbSet<TrustInfo> TrustInfos { get; set; }
-        public DbSet<IndividualInfo> IndividualInfos { get; set; }
-        public DbSet<CompanyInfo> CompanyInfos { get; set; }
-        public DbSet<SolePropriterInfo> SolePropriterInfos { get; set; }
-        public DbSet<ContactInfo> ContactInfos { get; set; }
-        public DbSet<Address> Addresses { get; set; }
-        public DbSet<Detail> Details { get; set; }
-        public DbSet<FileUploadInfo> FileUploadInfos { get; set; }
+        public DbSet<ContactType> ContactTypes { get; set; } = null!;
+        public DbSet<RelationShipType> RelationShipTypes { get; set; } = null!;
+        public DbSet<Customer> Customers { get; set; } = null!;
+        public DbSet<JobStatusMaster> JobStatusMasters { get; set; } = null!;
+        public DbSet<TypeMaster> TypeMasters { get; set; } = null!;
+        public DbSet<CustomerType> CustomerTypes { get; set; } = null!;
+        public DbSet<BusinessType> BusinessTypes { get; set; } = null!;
+        public DbSet<TaxAgent> TaxAgents { get; set; } = null!;
+        public DbSet<TradingStatus> TradingStatuses { get; set; } = null!;
+        public DbSet<EntityType> EntityTypes { get; set; } = null!;
+        public DbSet<TaskAction> Actions { get; set; } = null!;
+        public DbSet<TrustInfo> TrustInfos { get; set; } = null!;
+        public DbSet<IndividualInfo> IndividualInfos { get; set; } = null!;
+        public DbSet<CompanyInfo> CompanyInfos { get; set; } = null!;
+        public DbSet<SolePropriterInfo> SolePropriterInfos { get; set; } = null!;
+        public DbSet<ContactInfo> ContactInfos { get; set; } = null!;
+        public DbSet<Address> Addresses { get; set; } = null!;
+        public DbSet<Detail> Details { get; set; } = null!;
+        public DbSet<FileUploadInfo> FileUploadInfos { get; set; } = null!;
+        public DbSet<BankAccount> BankAccounts { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -154,6 +156,13 @@ namespace CRM_Api.Data
             modelBuilder.Entity<TaxAgent>().HasData(
                 new TaxAgent { Id = 1, Name = "Internal Agent" },
                 new TaxAgent { Id = 2, Name = "External Agent" }
+            );
+
+            // Seed Identity Roles
+            modelBuilder.Entity<IdentityRole<int>>().HasData(
+                new IdentityRole<int> { Id = 1, Name = "Admin", NormalizedName = "ADMIN" },
+                new IdentityRole<int> { Id = 2, Name = "Checker", NormalizedName = "CHECKER" },
+                new IdentityRole<int> { Id = 3, Name = "SuperAdmin", NormalizedName = "SUPERADMIN" }
             );
         }
     }

@@ -21,13 +21,8 @@ namespace CRM_Api.Models.Entities.Customer
         [StringLength(50)]
         public string? FirmType { get; set; }
         public string? ABNNumber { get; set; }
-        public long? AccountNumber { get; set; }
-        public string? AccountName { get; set; }
-        public long? BSB { get; set; }
         public string? BalanceDate { get; set; }
         public bool? BillingEntity { get; set; }
-        public bool? ChargeInterest { get; set; }
-        public bool? ChargeMonthlyDisbursement { get; set; }
         public string? Class { get; set; }
         public bool? Client { get; set; }
         public string? ClientFrom { get; set; }
@@ -43,22 +38,15 @@ namespace CRM_Api.Models.Entities.Customer
         public string? Partner { get; set; }
         public bool? PostNewsLetter { get; set; }
         public bool? PrepareGST { get; set; }
-        public string? Salutation { get; set; }
         public string? TFNNumber { get; set; }
         public string? TaxAgent { get; set; }
         public string? TaxReturnType { get; set; }
-        public string? AnnualAccountsMonth { get; set; }
         public bool? AnnualFinancialStatements { get; set; }
         public bool? AnnualABNTaxReturn { get; set; }
         public bool? AnnualGSTClient { get; set; }
         public bool? AnnualNonGST { get; set; }
         public bool? BASA { get; set; }
         public bool? BASQ { get; set; }
-        public string? BusinessName { get; set; }
-        public string? BusinessBankAccount { get; set; }
-        public string? BusinessCreditCardAccount { get; set; }
-        public string? BusinessLoanAccount { get; set; }
-        public string? GroupName { get; set; }
         public bool? PrepareGroupCertificates { get; set; }
         public bool? Lodgement { get; set; }
         public bool? FinancialStatement { get; set; }
@@ -69,7 +57,6 @@ namespace CRM_Api.Models.Entities.Customer
         public bool? IsActive { get; set; }
         public int? LastVarifiedBy { get; set; }
         public DateTime? LastVarifiedDate { get; set; }
-        public string? DirectorID { get; set; }
         public int? BusinessType { get; set; }
         public bool? IsArchived { get; set; }
         public int? TradingStatus { get; set; }
@@ -77,7 +64,6 @@ namespace CRM_Api.Models.Entities.Customer
         public DateTime? CreatedDate { get; set; }
         public bool? IsExcluded { get; set; }
         public int? StaffInCharge { get; set; }
-        public string? ACN { get; set; }
         public virtual ICollection<BankAccount> BankAccounts { get; set; }
 
         public virtual ICollection<Address> Addresses { get; set; }
@@ -181,6 +167,7 @@ namespace CRM_Api.Models.Entities.Customer
         public bool? BASM { get; set; }
         public bool? DASP { get; set; }
         public bool? IndividualTaxReturn { get; set; }
+        public string? DirectorID { get; set; }
 
         [ForeignKey("CustomerID")]
         public virtual Customer Customer { get; set; }
@@ -251,6 +238,8 @@ namespace CRM_Api.Models.Entities.Customer
         public bool? DASP { get; set; }
         public bool? IndividualTaxReturn { get; set; }
         public DateTime? DateOfBirth { get; set; }
+        public string? DirectorID { get; set; }
+        public string? BusinessName { get; set; }
 
         [ForeignKey("CustomerID")]
         public virtual Customer Customer { get; set; }
@@ -271,6 +260,6 @@ namespace CRM_Api.Models.Entities.Customer
         public string? AccountNumber { get; set; }
 
         [ForeignKey("CustomerID")]
-        public virtual Customer Customer { get; set; }
+        public virtual Customer Customer { get; set; } = null!;
     }
 }

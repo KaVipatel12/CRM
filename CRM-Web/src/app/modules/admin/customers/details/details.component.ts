@@ -12,6 +12,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { BankAccountDialogComponent } from './bank-account-dialog/bank-account-dialog.component';
+import { ChangeTypeDialogComponent } from './change-type-dialog/change-type-dialog.component';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
 import { CustomerService } from '../customer.service';
@@ -41,6 +44,7 @@ import { Subject, takeUntil } from 'rxjs';
         MatTabsModule,
         MatSnackBarModule,
         MatTooltipModule,
+        MatDialogModule,
         RouterLink,
         FuseAlertComponent
     ]
@@ -82,7 +86,8 @@ export class DetailsComponent implements OnInit, OnDestroy {
         private _formBuilder: FormBuilder,
         private _fuseConfirmationService: FuseConfirmationService,
         private _router: Router,
-        private _snackBar: MatSnackBar
+        private _snackBar: MatSnackBar,
+        private _matDialog: MatDialog
     ) {}
 
     ngOnInit(): void {
@@ -96,7 +101,6 @@ export class DetailsComponent implements OnInit, OnDestroy {
             tradingName: [''],
             abnNumber: ['', [Validators.pattern('^[0-9]{11}$')]],
             tfnNumber: [''],
-            directorID: [''],
             businessType: [null],
             tradingStatus: [{ value: null, disabled: true }],
             taxAgent: [null],
@@ -105,7 +109,6 @@ export class DetailsComponent implements OnInit, OnDestroy {
             isActive: [true],
             isArchived: [false],
             isExcluded: [false],
-            groupName: [''],
             mailingName: [''],
             partner: [''],
             manager: [''],
@@ -121,11 +124,28 @@ export class DetailsComponent implements OnInit, OnDestroy {
                 firstName: [''],
                 lastName: [''],
                 dateOfBirth: [null],
-                gender: [null]
+                gender: [null],
+                directorID: [''],
+                chargeInterest: [false],
+                chargeMonthlyDisbursement: [false]
             }),
             companyInfo: this._formBuilder.group({
                 webSite: [''],
-                acnNumber: ['', [Validators.pattern('^[0-9]{9}$')]]
+                acnNumber: ['', [Validators.pattern('^[0-9]{9}$')]],
+                annualAccountsMonth: [null]
+            }),
+            trustInfo: this._formBuilder.group({
+                annualAccountsMonth: [null],
+                chargeInterest: [false],
+                chargeMonthlyDisbursement: [false],
+                filedbyFirm: [false]
+            }),
+            solePropriterInfo: this._formBuilder.group({
+                firstName: [''],
+                lastName: [''],
+                dateOfBirth: [null],
+                directorID: [''],
+                businessName: ['']
             }),
             addresses: this._formBuilder.array([]),
             bankAccounts: this._formBuilder.array([])
@@ -160,9 +180,6 @@ export class DetailsComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((user: User) => {
                 this.currentUser = user;
-                // Since our JWT now includes "Checker" role, we can check for it.
-                // Or if user object has specific flags, we can use those.
-                // Given the User model has IsAdmin and IsChecker:
                 this.isAdmin = (user as any).isAdmin || (user as any).isSuperAdmin;
                 this.isChecker = (user as any).isChecker;
             });
@@ -241,19 +258,77 @@ export class DetailsComponent implements OnInit, OnDestroy {
         return this.customerForm.get('bankAccounts') as FormArray;
     }
 
-    addBankAccount(account: any = null): void {
-        const bankForm = this._formBuilder.group({
-            id: [account?.id || 0],
-            accountName: [account?.accountName || ''],
-            bankName: [account?.bankName || ''],
-            bsb: [account?.bsb || ''],
-            accountNumber: [account?.accountNumber || '']
+    /**
+     * Add bank account (opens dialog)
+     */
+    addBankAccount(): void
+    {
+        const dialogRef = this._matDialog.open(BankAccountDialogComponent, {
+            width: '640px',
+            data: {
+                account: null
+            }
         });
-        this.bankAccounts.push(bankForm);
+
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result)
+            {
+                this._addBankAccountToForm(result);
+                this.customerForm.markAsDirty();
+            }
+        });
     }
 
-    removeBankAccount(index: number): void {
+    /**
+     * Edit bank account
+     *
+     * @param index
+     */
+    editBankAccount(index: number): void
+    {
+        const account = this.bankAccounts.at(index).value;
+        const dialogRef = this._matDialog.open(BankAccountDialogComponent, {
+            width: '640px',
+            data: {
+                account: account
+            }
+        });
+
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result)
+            {
+                this.bankAccounts.at(index).patchValue(result);
+                this.customerForm.markAsDirty();
+            }
+        });
+    }
+
+    /**
+     * Helper to add bank account to FormArray
+     *
+     * @param account
+     * @private
+     */
+    private _addBankAccountToForm(account: any = null): void
+    {
+        this.bankAccounts.push(this._formBuilder.group({
+            id: [account?.id || 0],
+            accountName: [account?.accountName || '', Validators.required],
+            bankName: [account?.bankName || '', Validators.required],
+            bsb: [account?.bsb || ''],
+            accountNumber: [account?.accountNumber || '', Validators.required]
+        }));
+    }
+
+    /**
+     * Remove bank account
+     *
+     * @param index
+     */
+    removeBankAccount(index: number): void
+    {
         this.bankAccounts.removeAt(index);
+        this.customerForm.markAsDirty();
     }
 
     addAddressForType(address: any, defaultType: number): void {
@@ -277,6 +352,10 @@ export class DetailsComponent implements OnInit, OnDestroy {
     loadCustomer(id: number): void {
         this._customerService.getCustomerById(id).subscribe(customer => {
             this.customerForm.patchValue(customer);
+            // Disable customer type controls in edit mode to prevent accidental data corruption
+            this.customerForm.get('clientType').disable();
+            this.customerForm.get('contactType').disable();
+            
             // Rebuild addresses array specifically for Home, Business, Postal
             this.addresses.clear();
             const home = customer.addresses?.find((a: any) => a.type === 1);
@@ -290,7 +369,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
             // Rebuild bank accounts
             this.bankAccounts.clear();
             if (customer.bankAccounts && customer.bankAccounts.length > 0) {
-                customer.bankAccounts.forEach((b: any) => this.addBankAccount(b));
+                customer.bankAccounts.forEach((b: any) => this._addBankAccountToForm(b));
             }
             
             // Set verification data
@@ -329,24 +408,37 @@ export class DetailsComponent implements OnInit, OnDestroy {
     private _updateNameValidators(): void {
         const clientType = this.customerForm.get('clientType').value;
         const nameControl = this.customerForm.get('name');
-        const firstNameControl = this.customerForm.get('individualInfo.firstName');
-        const lastNameControl = this.customerForm.get('individualInfo.lastName');
+        
+        // Individual
+        const indFirstName = this.customerForm.get('individualInfo.firstName');
+        const indLastName = this.customerForm.get('individualInfo.lastName');
+        
+        // Sole Prop
+        const spFirstName = this.customerForm.get('solePropriterInfo.firstName');
+        const spLastName = this.customerForm.get('solePropriterInfo.lastName');
 
         // Clear all first
         nameControl.clearValidators();
-        firstNameControl.clearValidators();
-        lastNameControl.clearValidators();
+        indFirstName.clearValidators();
+        indLastName.clearValidators();
+        spFirstName.clearValidators();
+        spLastName.clearValidators();
 
-        if (this.isIndividual() || this.isSoleProprietor()) {
-            firstNameControl.setValidators([Validators.required]);
-            lastNameControl.setValidators([Validators.required]);
+        if (this.isIndividual()) {
+            indFirstName.setValidators([Validators.required]);
+            indLastName.setValidators([Validators.required]);
+        } else if (this.isSoleProprietor()) {
+            spFirstName.setValidators([Validators.required]);
+            spLastName.setValidators([Validators.required]);
         } else {
             nameControl.setValidators([Validators.required]);
         }
 
         nameControl.updateValueAndValidity();
-        firstNameControl.updateValueAndValidity();
-        lastNameControl.updateValueAndValidity();
+        indFirstName.updateValueAndValidity();
+        indLastName.updateValueAndValidity();
+        spFirstName.updateValueAndValidity();
+        spLastName.updateValueAndValidity();
     }
 
     isTypeSelected(): boolean {
@@ -358,45 +450,45 @@ export class DetailsComponent implements OnInit, OnDestroy {
         return this.customerForm.get('clientType').value === 1;
     }
 
-    //   DOB for Individual (1) and Sole Proprietor (3)
     showDateOfBirth(): boolean {
         const ct = this.customerForm.get('clientType').value;
         return ct === 1 || ct === 3;
     }
 
-    //   Director ID for Individual (1) and Sole Proprietor (3)
     showDirectorID(): boolean {
         const ct = this.customerForm.get('clientType').value;
         return ct === 1 || ct === 3;
     }
 
-    //   Manager for Individual(1), SMSF(4), Trust(6), Partnership(7)
+    isTrust(): boolean {
+        const typeId = this.customerForm?.get('clientType')?.value;
+        if (!typeId) return false;
+        const type = this.customerTypes.find(t => t.id === typeId);
+        return type?.customerTypeNM?.toLowerCase() === 'trust';
+    }
+
     showManager(): boolean {
         const ct = this.customerForm.get('clientType').value;
         return ct === 1 || ct === 4 || ct === 6 || ct === 7;
     }
 
-    //   Partner hidden only for Supplier(contactType=4) + Other(clientType=9)
     showPartner(): boolean {
         const contactType = this.customerForm.get('contactType').value;
         const clientType = this.customerForm.get('clientType').value;
         return !(contactType === 4 && clientType === 9);
     }
 
-    //   Additional Info (Tax Agent) hidden for Supplier(4) + Other(9)
     showAdditionalInfo(): boolean {
         const contactType = this.customerForm.get('contactType').value;
         const clientType = this.customerForm.get('clientType').value;
         return !(contactType === 4 && clientType === 9);
     }
 
-    //   Business Type for Company(2), SoleProp(3), SMSF(4), Trust(6)
     showBusinessType(): boolean {
         const ct = this.customerForm.get('clientType').value;
         return ct === 2 || ct === 3 || ct === 4 || ct === 6;
     }
 
-    //   Trading Status for Company(2), SoleProp(3), SMSF(4), NonTrading(5), Trust(6)
     showTradingStatus(): boolean {
         const ct = this.customerForm.get('clientType').value;
         return ct === 2 || ct === 3 || ct === 4 || ct === 5 || ct === 6;
@@ -411,9 +503,15 @@ export class DetailsComponent implements OnInit, OnDestroy {
         this.showAlert = false;
         this.isSaving = true;
         
-        // Sync name field for Individuals/SoleProprietors if they used FirstName/LastName
-        if (this.isIndividual() || this.isSoleProprietor()) {
+        if (this.isIndividual()) {
             const info = this.customerForm.get('individualInfo').value;
+            if (info.firstName || info.lastName) {
+                this.customerForm.patchValue({
+                    name: `${info.firstName || ''} ${info.lastName || ''}`.trim()
+                }, { emitEvent: false });
+            }
+        } else if (this.isSoleProprietor()) {
+            const info = this.customerForm.get('solePropriterInfo').value;
             if (info.firstName || info.lastName) {
                 this.customerForm.patchValue({
                     name: `${info.firstName || ''} ${info.lastName || ''}`.trim()
@@ -421,14 +519,12 @@ export class DetailsComponent implements OnInit, OnDestroy {
             }
         }
 
-        const data = Object.assign({}, this.customerForm.value);
+        const data = Object.assign({}, this.customerForm.getRawValue());
         
-        // Filter out completely empty address blocks
         data.addresses = data.addresses.filter((a: any) => 
             a.addressLine1 || a.city || a.state || a.postalCode || (a.id && a.id > 0)
         );
 
-        // Check for duplicate code
         const codeControl = this.customerForm.get('code');
         if (!this.editMode || (this.editMode && codeControl.dirty)) {
             this._customerService.checkDuplicateCode(data.code).subscribe(isDuplicate => {
@@ -483,8 +579,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
             }
         });
         
-        // Check nested groups
-        ['contactInfo', 'individualInfo', 'companyInfo'].forEach(group => {
+        ['contactInfo', 'individualInfo', 'companyInfo', 'trustInfo', 'solePropriterInfo'].forEach(group => {
             const groupCtrl = this.customerForm.get(group);
             if (groupCtrl instanceof FormGroup) {
                 Object.keys(groupCtrl.controls).forEach(key => {
@@ -530,7 +625,6 @@ export class DetailsComponent implements OnInit, OnDestroy {
                     next: (success) => {
                         if (success) {
                             this._snackBar.open('Contact verified successfully', 'OK', { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top' });
-                            // Refresh data
                             this.loadCustomer(this.customerId);
                         }
                     },
@@ -544,10 +638,20 @@ export class DetailsComponent implements OnInit, OnDestroy {
     }
 
     changeCustomerType(): void {
-        this._snackBar.open('Change Customer Type feature is pending migration.', 'INFO', { duration: 3000 });
-        // In the old system this navigated to: /customer/manage/{id}/changetype
-        // Once that page/route is ready, we can uncomment the navigation:
-        // this._router.navigate(['../', this.customerId, 'changetype'], { relativeTo: this._activatedRoute });
+        const dialogRef = this._matDialog.open(ChangeTypeDialogComponent, {
+            width: '640px',
+            data: {
+                customer: this.customerForm.getRawValue(),
+                customerTypes: this.customerTypes
+            }
+        });
+
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result && result.success) {
+                this._snackBar.open('Customer type changed successfully!', 'OK', { duration: 3000, horizontalPosition: 'right', verticalPosition: 'top' });
+                this.loadCustomer(this.customerId);
+            }
+        });
     }
 
     toggleActive(): void {

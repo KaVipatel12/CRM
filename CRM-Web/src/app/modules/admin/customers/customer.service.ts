@@ -100,4 +100,11 @@ export class CustomerService {
     verifyCustomer(id: number): Observable<boolean> {
         return this._httpClient.post<boolean>(`${this._baseUrl}/${id}/verify`, {});
     }
+
+    /**
+     * Change Customer Type Migration
+     */
+    changeCustomerType(id: number, newClientType: number): Observable<boolean> {
+        return this._httpClient.post<boolean>(`${this._baseUrl}/${id}/change-type`, { newClientType });
+    }
 }

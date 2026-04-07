@@ -73,6 +73,9 @@ export class AuthService {
                     email: response.email,
                     avatar: null,
                     status: 'online',
+                    isAdmin: response.isAdmin,
+                    isChecker: response.isChecker,
+                    isSuperAdmin: response.isSuperAdmin,
                 };
 
                 // Return a new observable with the response
@@ -89,7 +92,7 @@ export class AuthService {
         // Note: My current backend doesn't have a standalone 'sign-in-with-token' endpoint yet.
         // Usually, this would hit a 'GET /api/user' or 'GET /api/auth/me' endpoint.
         // I implemented 'GET /api/user' earlier, so I'll use that here to verify the token.
-        return this._httpClient.get('api/user').pipe(
+        return this._httpClient.get('api/common/user').pipe(
             catchError(() =>
                 // Return false
                 of(false)
@@ -142,6 +145,9 @@ export class AuthService {
                         email: response.email,
                         avatar: null,
                         status: 'online',
+                        isAdmin: response.isAdmin,
+                        isChecker: response.isChecker,
+                        isSuperAdmin: response.isSuperAdmin,
                     };
                 }
                 return of(response);

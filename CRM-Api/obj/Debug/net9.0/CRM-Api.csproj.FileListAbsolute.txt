@@ -176,3 +176,4 @@ D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\Microsoft.Extensions
 D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\Microsoft.Extensions.FileSystemGlobbing.dll
 D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\Microsoft.IO.RecyclableMemoryStream.dll
 D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\System.Security.Cryptography.Xml.dll
+D:\000CS.Proj\SSP.CRM2\Updated CRM\CRM-Api\bin\Debug\net9.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll

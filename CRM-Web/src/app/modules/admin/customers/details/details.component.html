@@ -63,9 +63,8 @@
                                         <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20">
                                             <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800 flex items-center justify-between">
                                                 <span>Client Detail</span>
-                                                <!-- Change Customer Type Button kept here for easy access -->
                                                 <button type="button" mat-flat-button class="bg-teal-500 text-white text-xs px-3 h-7 min-w-0 rounded-md shadow-sm hover:bg-teal-600 transition-colors" 
-                                                        *ngIf="customerForm.get('clientType').value === 1 || customerForm.get('clientType').value === 3"
+                                                        *ngIf="editMode"
                                                         (click)="changeCustomerType()">
                                                     <mat-icon class="icon-size-4 mr-2" [svgIcon]="'heroicons_solid:user-group'"></mat-icon>
                                                     Change Customer Type
@@ -90,9 +89,19 @@
 
                                                 <!-- Row 2: Name | Mailing Name -->
                                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                                                    @if (isIndividual() || isSoleProprietor()) {
-                                                        <!-- Individual/Sole: FirstName + LastName side by side -->
+                                                    @if (isIndividual()) {
                                                         <div class="flex gap-2" formGroupName="individualInfo">
+                                                            <mat-form-field class="flex-1">
+                                                                <mat-label>First Name</mat-label>
+                                                                <input matInput formControlName="firstName">
+                                                            </mat-form-field>
+                                                            <mat-form-field class="flex-1">
+                                                                <mat-label>Last Name</mat-label>
+                                                                <input matInput formControlName="lastName">
+                                                            </mat-form-field>
+                                                        </div>
+                                                    } @else if (isSoleProprietor()) {
+                                                        <div class="flex gap-2" formGroupName="solePropriterInfo">
                                                             <mat-form-field class="flex-1">
                                                                 <mat-label>First Name</mat-label>
                                                                 <input matInput formControlName="firstName">
@@ -158,12 +167,6 @@
                                                     <div class="flex items-center pt-2 mb-4">
                                                         <mat-checkbox color="primary" formControlName="postNewsLetter">Post Newsletter</mat-checkbox>
                                                     </div>
-                                                    @if (showDirectorID()) {
-                                                        <mat-form-field class="w-full">
-                                                            <mat-label>Director ID</mat-label>
-                                                            <input matInput formControlName="directorID">
-                                                        </mat-form-field>
-                                                    }
                                                 </div>
 
                                                 <!-- Row 6: ABN Number | (empty) -->
@@ -201,34 +204,109 @@
                                         </div>
 
                                         <!-- Specific Info based on Type -->
-                                        @if (isIndividual() || isSoleProprietor()) {
+                                        @if (isIndividual()) {
                                             <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" formGroupName="individualInfo">
                                                 <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
-                                                    {{isSoleProprietor() ? 'Sole Proprietor' : 'Individual'}} Detail
+                                                    Individual Detail
                                                 </div>
-                                                <div class="p-4">
+                                                <div class="p-4 space-y-2">
                                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                                                        @if (showDateOfBirth()) {
-                                                            <mat-form-field class="w-full">
-                                                                <mat-label>Date of Birth</mat-label>
-                                                                <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
-                                                                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                                                                <mat-datepicker #picker></mat-datepicker>
-                                                            </mat-form-field>
-                                                        }
-                                                        @if (showGender()) {
-                                                            <div class="flex items-center gap-6 pt-2">
-                                                                <span class="text-sm font-medium text-secondary">Gender</span>
-                                                                <label class="flex items-center gap-1 cursor-pointer">
-                                                                    <input type="radio" formControlName="gender" [value]="1" class="accent-teal-500">
-                                                                    <span class="text-sm">Male</span>
-                                                                </label>
-                                                                <label class="flex items-center gap-1 cursor-pointer">
-                                                                    <input type="radio" formControlName="gender" [value]="2" class="accent-teal-500">
-                                                                    <span class="text-sm">Female</span>
-                                                                </label>
-                                                            </div>
-                                                        }
+                                                        <mat-form-field class="w-full">
+                                                            <mat-label>Date of Birth</mat-label>
+                                                            <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
+                                                            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                                                            <mat-datepicker #picker></mat-datepicker>
+                                                        </mat-form-field>
+                                                        <div class="flex items-center gap-6 pt-2">
+                                                            <span class="text-sm font-medium text-secondary">Gender</span>
+                                                            <label class="flex items-center gap-1 cursor-pointer">
+                                                                <input type="radio" formControlName="gender" [value]="1" class="accent-teal-500">
+                                                                <span class="text-sm">Male</span>
+                                                            </label>
+                                                            <label class="flex items-center gap-1 cursor-pointer">
+                                                                <input type="radio" formControlName="gender" [value]="2" class="accent-teal-500">
+                                                                <span class="text-sm">Female</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                        <mat-form-field>
+                                                            <mat-label>Director ID</mat-label>
+                                                            <input matInput formControlName="directorID">
+                                                        </mat-form-field>
+                                                        <div class="flex items-center pt-2">
+                                                            <mat-checkbox color="primary" formControlName="chargeInterest">Charge Interest</mat-checkbox>
+                                                        </div>
+                                                        <div class="flex items-center pt-2">
+                                                            <mat-checkbox color="primary" formControlName="chargeMonthlyDisbursement">Monthly Disbursement</mat-checkbox>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+
+                                        @if (isSoleProprietor()) {
+                                            <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" formGroupName="solePropriterInfo">
+                                                <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
+                                                    Sole Proprietor Detail
+                                                </div>
+                                                <div class="p-4 space-y-2">
+                                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                        <mat-form-field class="w-full">
+                                                            <mat-label>Date of Birth</mat-label>
+                                                            <input matInput [matDatepicker]="spPicker" formControlName="dateOfBirth">
+                                                            <mat-datepicker-toggle matSuffix [for]="spPicker"></mat-datepicker-toggle>
+                                                            <mat-datepicker #spPicker></mat-datepicker>
+                                                        </mat-form-field>
+                                                        <mat-form-field>
+                                                            <mat-label>Director ID</mat-label>
+                                                            <input matInput formControlName="directorID">
+                                                        </mat-form-field>
+                                                        <mat-form-field>
+                                                            <mat-label>Business Name</mat-label>
+                                                            <input matInput formControlName="businessName">
+                                                        </mat-form-field>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+
+                                        @if (isTrust()) {
+                                            <div class="border border-teal-200 dark:border-teal-800 rounded overflow-hidden bg-white dark:bg-black/20" formGroupName="trustInfo">
+                                                <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
+                                                    Trust Detail
+                                                </div>
+                                                <div class="p-4 space-y-2">
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                                                        <mat-form-field class="w-full">
+                                                            <mat-label>Annual Accounts Month</mat-label>
+                                                            <mat-select formControlName="annualAccountsMonth">
+                                                                <mat-option [value]="null">Please Select Month</mat-option>
+                                                                <mat-option [value]="1">January</mat-option>
+                                                                <mat-option [value]="2">February</mat-option>
+                                                                <mat-option [value]="3">March</mat-option>
+                                                                <mat-option [value]="4">April</mat-option>
+                                                                <mat-option [value]="5">May</mat-option>
+                                                                <mat-option [value]="6">June</mat-option>
+                                                                <mat-option [value]="7">July</mat-option>
+                                                                <mat-option [value]="8">August</mat-option>
+                                                                <mat-option [value]="9">September</mat-option>
+                                                                <mat-option [value]="10">October</mat-option>
+                                                                <mat-option [value]="11">November</mat-option>
+                                                                <mat-option [value]="12">December</mat-option>
+                                                            </mat-select>
+                                                        </mat-form-field>
+                                                        <div class="flex items-center gap-6 pt-2">
+                                                            <mat-checkbox color="primary" formControlName="filedbyFirm">Filed By Firm</mat-checkbox>
+                                                        </div>
+                                                    </div>
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                        <div class="flex items-center pt-2">
+                                                            <mat-checkbox color="primary" formControlName="chargeInterest">Charge Interest</mat-checkbox>
+                                                        </div>
+                                                        <div class="flex items-center pt-2">
+                                                            <mat-checkbox color="primary" formControlName="chargeMonthlyDisbursement">Monthly Disbursement</mat-checkbox>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -239,7 +317,7 @@
                                                 <div class="bg-white dark:bg-transparent text-teal-600 text-sm px-4 py-2 border-b border-teal-200 dark:border-teal-800">
                                                     Organization Detail
                                                 </div>
-                                                <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
                                                     <mat-form-field>
                                                         <mat-label>ACN Number</mat-label>
                                                         <input matInput formControlName="acnNumber">
@@ -248,9 +326,23 @@
                                                         <mat-label>Website</mat-label>
                                                         <input matInput formControlName="webSite">
                                                     </mat-form-field>
-                                                    <mat-form-field>
-                                                            <mat-label>Group Name</mat-label>
-                                                            <input matInput formControlName="groupName">
+                                                    <mat-form-field class="w-full">
+                                                        <mat-label>Annual Accounts Month</mat-label>
+                                                        <mat-select formControlName="annualAccountsMonth">
+                                                            <mat-option [value]="null">Please Select Month</mat-option>
+                                                            <mat-option [value]="1">January</mat-option>
+                                                            <mat-option [value]="2">February</mat-option>
+                                                            <mat-option [value]="3">March</mat-option>
+                                                            <mat-option [value]="4">April</mat-option>
+                                                            <mat-option [value]="5">May</mat-option>
+                                                            <mat-option [value]="6">June</mat-option>
+                                                            <mat-option [value]="7">July</mat-option>
+                                                            <mat-option [value]="8">August</mat-option>
+                                                            <mat-option [value]="9">September</mat-option>
+                                                            <mat-option [value]="10">October</mat-option>
+                                                            <mat-option [value]="11">November</mat-option>
+                                                            <mat-option [value]="12">December</mat-option>
+                                                        </mat-select>
                                                     </mat-form-field>
                                                 </div>
                                             </div>
@@ -354,32 +446,34 @@
                                                             <th class="pb-2 pr-4">Bank Name</th>
                                                             <th class="pb-2 pr-4">BSB</th>
                                                             <th class="pb-2 pr-4">Account No#</th>
-                                                            <th class="pb-2 w-10"></th>
+                                                            <th class="pb-2 w-20 text-center">Actions</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody formArrayName="bankAccounts">
-                                                        <tr *ngFor="let bank of bankAccounts.controls; let i = index" [formGroupName]="i" class="group">
-                                                            <td class="py-2 pr-4">
-                                                                <input class="w-full bg-transparent border-none focus:ring-0 p-0 text-sm font-medium" 
-                                                                       formControlName="accountName" placeholder="Account Name">
+                                                    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                                                        <tr *ngFor="let bank of bankAccounts.controls; let i = index" class="group hover:bg-gray-50 dark:hover:bg-black/5 transition-colors">
+                                                            <td class="py-3 pr-4 text-sm font-medium">
+                                                                {{ bank.get('accountName').value }}
                                                             </td>
-                                                            <td class="py-2 pr-4">
-                                                                <input class="w-full bg-transparent border-none focus:ring-0 p-0 text-sm" 
-                                                                       formControlName="bankName" placeholder="Bank Name">
+                                                            <td class="py-3 pr-4 text-sm text-secondary">
+                                                                {{ bank.get('bankName').value }}
                                                             </td>
-                                                            <td class="py-2 pr-4">
-                                                                <input class="w-full bg-transparent border-none focus:ring-0 p-0 text-sm" 
-                                                                       formControlName="bsb" placeholder="BSB">
+                                                            <td class="py-3 pr-4 text-sm text-secondary font-mono">
+                                                                {{ bank.get('bsb').value }}
                                                             </td>
-                                                            <td class="py-2 pr-4">
-                                                                <input class="w-full bg-transparent border-none focus:ring-0 p-0 text-sm" 
-                                                                       formControlName="accountNumber" placeholder="Account Number">
+                                                            <td class="py-3 pr-4 text-sm text-secondary font-mono">
+                                                                {{ bank.get('accountNumber').value }}
                                                             </td>
-                                                            <td class="py-2 text-center">
-                                                                <button type="button" mat-icon-button class="text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity" 
-                                                                        (click)="removeBankAccount(i)">
-                                                                    <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:trash'"></mat-icon>
-                                                                </button>
+                                                            <td class="py-3 text-center">
+                                                                <div class="flex items-center justify-center gap-1">
+                                                                    <button type="button" mat-icon-button class="text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-500/10 transition-colors h-8 w-8" 
+                                                                            (click)="editBankAccount(i)" matTooltip="Edit Bank Detail">
+                                                                        <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:pencil'"></mat-icon>
+                                                                    </button>
+                                                                    <button type="button" mat-icon-button class="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors h-8 w-8" 
+                                                                            (click)="removeBankAccount(i)" matTooltip="Remove Bank Detail">
+                                                                        <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:trash'"></mat-icon>
+                                                                    </button>
+                                                                </div>
                                                             </td>
                                                         </tr>
                                                     </tbody>

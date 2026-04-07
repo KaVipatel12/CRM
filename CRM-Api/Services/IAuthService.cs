@@ -7,7 +7,7 @@ namespace CRM_Api.Services
     public interface IAuthService
     {
         Task<AuthResponseDto?> LoginAsync(LoginDto loginDto);
-        Task<AuthResponseDto?> RegisterAsync(RegisterDto registerDto);
+        Task<RegistrationResponseDto> RegisterAsync(RegisterDto registerDto);
         Task<UserProfileDto?> GetUserInfoAsync(int userId);
     }
 }

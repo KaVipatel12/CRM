@@ -28,12 +28,12 @@ namespace CRM_Api.Controllers
 
             var response = await _authService.RegisterAsync(registerDto);
 
-            if (response == null)
+            if (!response.Succeeded)
             {
-                return Conflict(new { message = "User already exists with this email." });
+                return BadRequest(new { errors = response.Errors });
             }
 
-            return Ok(response);
+            return Ok(response.Data);
         }
 
         [HttpPost("login")]
@@ -61,7 +61,8 @@ namespace CRM_Api.Controllers
         }
 
         [Authorize]
-        [HttpGet("/api/user")]
+        [HttpGet("user")]
+        [HttpGet("/api/common/user")]
         public async Task<IActionResult> GetUserInfo()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);

@@ -18,6 +18,13 @@ namespace CRM_Api.DTOs
         public string Password { get; set; } = string.Empty;
     }
 
+    public class RegistrationResponseDto
+    {
+        public bool Succeeded { get; set; }
+        public IEnumerable<string>? Errors { get; set; }
+        public AuthResponseDto? Data { get; set; }
+    }
+
     public class AuthResponseDto
     {
         public string Token { get; set; } = string.Empty;
@@ -25,6 +32,9 @@ namespace CRM_Api.DTOs
         public string? Email { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+        public bool? IsAdmin { get; set; }
+        public bool? IsChecker { get; set; }
+        public bool? IsSuperAdmin { get; set; }
     }
 
     public class UserProfileDto

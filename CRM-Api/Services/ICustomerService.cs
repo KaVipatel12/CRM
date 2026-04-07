@@ -16,5 +16,6 @@ namespace CRM_Api.Services
         Task<IEnumerable<FileUploadInfoDto>> GetUploadHistoryAsync();
         Task<FileUploadInfoDto> ProcessFileAsync(int fileId);
         Task<bool> VerifyCustomerAsync(int id, int userId);
+        Task<bool> MigrateCustomerTypeAsync(int customerId, int newClientType);
     }
 }

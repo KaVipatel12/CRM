@@ -90,7 +90,6 @@ namespace CRM_Api.Services
                     ContactType = c.ContactType,
                     TradingName = c.TradingName,
                     IsActive = c.IsActive,
-                    GroupName = c.GroupName,
                     LastVarifiedBy = c.LastVarifiedBy,
                     LastVarifiedDate = c.LastVarifiedDate,
                     IsArchived = c.IsArchived,
@@ -109,7 +108,9 @@ namespace CRM_Api.Services
                 .Include(c => c.IndividualInfo)
                 .Include(c => c.CompanyInfo)
                 .Include(c => c.SolePropriterInfo)
+                .Include(c => c.TrustInfo)
                 .Include(c => c.Addresses)
+                .Include(c => c.BankAccounts)
                 .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
 
             if (customer == null) return null;
@@ -124,10 +125,8 @@ namespace CRM_Api.Services
                 ContactType = customer.ContactType,
                 TradingName = customer.TradingName,
                 IsActive = customer.IsActive,
-                GroupName = customer.GroupName,
                 ABNNumber = customer.ABNNumber,
                 TFNNumber = customer.TFNNumber,
-                DirectorID = customer.DirectorID,
                 BusinessType = customer.BusinessType,
                 TradingStatus = customer.TradingStatus,
                 TaxAgent = int.TryParse(customer.TaxAgent, out int taId) ? taId : null,
@@ -149,6 +148,41 @@ namespace CRM_Api.Services
                     BSB = b.BSB,
                     AccountNumber = b.AccountNumber
                 }).ToList(),
+                IndividualInfo = customer.IndividualInfo != null ? new IndividualInfoDto
+                {
+                    Id = customer.IndividualInfo.Id,
+                    FirstName = customer.IndividualInfo.FirstName,
+                    LastName = customer.IndividualInfo.LastName,
+                    DateOfBirth = customer.IndividualInfo.DateOfBirth,
+                    Gender = customer.IndividualInfo.Gender,
+                    DirectorID = customer.IndividualInfo.DirectorID,
+                    ChargeInterest = customer.IndividualInfo.ChargeInterest,
+                    ChargeMonthlyDisbursement = customer.IndividualInfo.ChargeMonthlyDisbursement
+                } : null,
+                CompanyInfo = customer.CompanyInfo != null ? new CompanyInfoDto
+                {
+                    Id = customer.CompanyInfo.Id,
+                    WebSite = customer.CompanyInfo.WebSite,
+                    ACNNumber = customer.CompanyInfo.ACNNumber,
+                    AnnualAccountsMonth = customer.CompanyInfo.AnnualAccountsMonth
+                } : null,
+                TrustInfo = customer.TrustInfo != null ? new TrustInfoDto
+                {
+                    Id = customer.TrustInfo.Id,
+                    AnnualAccountsMonth = customer.TrustInfo.AnnualAccountsMonth,
+                    ChargeInterest = customer.TrustInfo.ChargeInterest,
+                    ChargeMonthlyDisbursement = customer.TrustInfo.ChargeMonthlyDisbursement,
+                    FiledbyFirm = customer.TrustInfo.FiledbyFirm
+                } : null,
+                SolePropriterInfo = customer.SolePropriterInfo != null ? new SolePropriterInfoDto
+                {
+                    Id = customer.SolePropriterInfo.Id,
+                    FirstName = customer.SolePropriterInfo.FirstName,
+                    LastName = customer.SolePropriterInfo.LastName,
+                    DateOfBirth = customer.SolePropriterInfo.DateOfBirth,
+                    DirectorID = customer.SolePropriterInfo.DirectorID,
+                    BusinessName = customer.SolePropriterInfo.BusinessName
+                } : null,
                 ContactInfo = customer.ContactInfo != null ? new ContactInfoDto
                 {
                     Id = customer.ContactInfo.Id,
@@ -158,26 +192,6 @@ namespace CRM_Api.Services
                     WorkPhone = customer.ContactInfo.WorkPhone,
                     Email = customer.ContactInfo.Email,
                     Email2 = customer.ContactInfo.Email2
-                } : null,
-                IndividualInfo = customer.IndividualInfo != null ? new IndividualInfoDto
-                {
-                    Id = customer.IndividualInfo.Id,
-                    FirstName = customer.IndividualInfo.FirstName,
-                    LastName = customer.IndividualInfo.LastName,
-                    DateOfBirth = customer.IndividualInfo.DateOfBirth,
-                    Gender = customer.IndividualInfo.Gender
-                } : (customer.SolePropriterInfo != null ? new IndividualInfoDto
-                {
-                    Id = customer.SolePropriterInfo.Id,
-                    FirstName = customer.SolePropriterInfo.FirstName,
-                    LastName = customer.SolePropriterInfo.LastName,
-                    DateOfBirth = customer.SolePropriterInfo.DateOfBirth
-                } : null),
-                CompanyInfo = customer.CompanyInfo != null ? new CompanyInfoDto
-                {
-                    Id = customer.CompanyInfo.Id,
-                    WebSite = customer.CompanyInfo.WebSite,
-                    ACNNumber = customer.CompanyInfo.ACNNumber
                 } : null,
                 Addresses = customer.Addresses?.Select(a => new AddressDto
                 {
@@ -193,7 +207,7 @@ namespace CRM_Api.Services
                 LastVarifiedBy = customer.LastVarifiedBy,
                 LastVarifiedDate = customer.LastVarifiedDate,
                 LastVarifiedUserName = customer.LastVarifiedBy.HasValue 
-                    ? _context.Users.Where(u => u.ID == customer.LastVarifiedBy.Value).Select(u => u.FirstName + " " + u.LastName).FirstOrDefault() 
+                    ? _context.Users.Where(u => u.Id == customer.LastVarifiedBy.Value).Select(u => u.FirstName + " " + u.LastName).FirstOrDefault() 
                     : null
             };
         }
@@ -213,8 +227,6 @@ namespace CRM_Api.Services
                     TFNNumber = dto.TFNNumber,
                     IsActive = dto.IsActive,
                     ContactType = dto.ContactType,
-                    GroupName = dto.GroupName,
-                    DirectorID = dto.DirectorID,
                     BusinessType = dto.BusinessType,
                     TradingStatus = dto.TradingStatus,
                     TaxAgent = dto.TaxAgent?.ToString(),
@@ -257,7 +269,10 @@ namespace CRM_Api.Services
                         FirstName = dto.IndividualInfo.FirstName,
                         LastName = dto.IndividualInfo.LastName,
                         DateOfBirth = dto.IndividualInfo.DateOfBirth,
-                        Gender = dto.IndividualInfo.Gender
+                        Gender = dto.IndividualInfo.Gender,
+                        DirectorID = dto.IndividualInfo.DirectorID,
+                        ChargeInterest = dto.IndividualInfo.ChargeInterest,
+                        ChargeMonthlyDisbursement = dto.IndividualInfo.ChargeMonthlyDisbursement
                     };
                     _context.IndividualInfos.Add(individual);
                 }
@@ -267,20 +282,35 @@ namespace CRM_Api.Services
                     {
                         CustomerID = customer.Id,
                         WebSite = dto.CompanyInfo.WebSite,
-                        ACNNumber = dto.CompanyInfo.ACNNumber
+                        ACNNumber = dto.CompanyInfo.ACNNumber,
+                        AnnualAccountsMonth = dto.CompanyInfo.AnnualAccountsMonth
                     };
                     _context.CompanyInfos.Add(company);
                 }
-                else if (dto.ClientType == 3 && dto.IndividualInfo != null) // Sole Proprietor 
+                else if (dto.ClientType == 3 && dto.SolePropriterInfo != null) // Sole Proprietor 
                 {
                     var sole = new SolePropriterInfo
                     {
                         CustomerID = customer.Id,
-                        FirstName = dto.IndividualInfo.FirstName,
-                        LastName = dto.IndividualInfo.LastName,
-                        DateOfBirth = dto.IndividualInfo.DateOfBirth
+                        FirstName = dto.SolePropriterInfo.FirstName,
+                        LastName = dto.SolePropriterInfo.LastName,
+                        DateOfBirth = dto.SolePropriterInfo.DateOfBirth,
+                        DirectorID = dto.SolePropriterInfo.DirectorID,
+                        BusinessName = dto.SolePropriterInfo.BusinessName
                     };
                     _context.SolePropriterInfos.Add(sole);
+                }
+                else if (dto.ClientType == 4 && dto.TrustInfo != null) // Trust
+                {
+                    var trust = new TrustInfo
+                    {
+                        CustomerID = customer.Id,
+                        AnnualAccountsMonth = dto.TrustInfo.AnnualAccountsMonth,
+                        ChargeInterest = dto.TrustInfo.ChargeInterest,
+                        ChargeMonthlyDisbursement = dto.TrustInfo.ChargeMonthlyDisbursement,
+                        FiledbyFirm = dto.TrustInfo.FiledbyFirm
+                    };
+                    _context.TrustInfos.Add(trust);
                 }
 
                 // 3. Addresses
@@ -303,6 +333,23 @@ namespace CRM_Api.Services
                     }
                 }
 
+                // 4. Bank Accounts
+                if (dto.BankAccounts != null)
+                {
+                    foreach (var bankDto in dto.BankAccounts)
+                    {
+                        var bank = new BankAccount
+                        {
+                            CustomerID = customer.Id,
+                            AccountName = bankDto.AccountName,
+                            BankName = bankDto.BankName,
+                            BSB = bankDto.BSB,
+                            AccountNumber = bankDto.AccountNumber
+                        };
+                        _context.BankAccounts.Add(bank);
+                    }
+                }
+
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
@@ -322,7 +369,9 @@ namespace CRM_Api.Services
                 .Include(c => c.IndividualInfo)
                 .Include(c => c.CompanyInfo)
                 .Include(c => c.SolePropriterInfo)
+                .Include(c => c.TrustInfo)
                 .Include(c => c.Addresses)
+                .Include(c => c.BankAccounts)
                 .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
 
             if (customer == null) return false;
@@ -339,8 +388,6 @@ namespace CRM_Api.Services
                 customer.TFNNumber = dto.TFNNumber;
                 customer.IsActive = dto.IsActive;
                 customer.ContactType = dto.ContactType;
-                customer.GroupName = dto.GroupName;
-                customer.DirectorID = dto.DirectorID;
                 customer.BusinessType = dto.BusinessType;
                 customer.TradingStatus = dto.TradingStatus;
                 customer.StaffInCharge = dto.StaffInCharge;
@@ -381,19 +428,24 @@ namespace CRM_Api.Services
                     customer.IndividualInfo.LastName = dto.IndividualInfo.LastName;
                     customer.IndividualInfo.DateOfBirth = dto.IndividualInfo.DateOfBirth;
                     customer.IndividualInfo.Gender = dto.IndividualInfo.Gender;
+                    customer.IndividualInfo.DirectorID = dto.IndividualInfo.DirectorID;
+                    customer.IndividualInfo.ChargeInterest = dto.IndividualInfo.ChargeInterest;
+                    customer.IndividualInfo.ChargeMonthlyDisbursement = dto.IndividualInfo.ChargeMonthlyDisbursement;
                     customer.IndividualInfo.UpdateDateTime = DateTime.Now;
                 }
                 // (Sole Proprietor)
-                else if (dto.ClientType == 3 && dto.IndividualInfo != null)
+                else if (dto.ClientType == 3 && dto.SolePropriterInfo != null)
                 {
                     if (customer.SolePropriterInfo == null)
                     {
                         customer.SolePropriterInfo = new SolePropriterInfo { CustomerID = id };
                         _context.SolePropriterInfos.Add(customer.SolePropriterInfo);
                     }
-                    customer.SolePropriterInfo.FirstName = dto.IndividualInfo.FirstName;
-                    customer.SolePropriterInfo.LastName = dto.IndividualInfo.LastName;
-                    customer.SolePropriterInfo.DateOfBirth = dto.IndividualInfo.DateOfBirth;
+                    customer.SolePropriterInfo.FirstName = dto.SolePropriterInfo.FirstName;
+                    customer.SolePropriterInfo.LastName = dto.SolePropriterInfo.LastName;
+                    customer.SolePropriterInfo.DateOfBirth = dto.SolePropriterInfo.DateOfBirth;
+                    customer.SolePropriterInfo.DirectorID = dto.SolePropriterInfo.DirectorID;
+                    customer.SolePropriterInfo.BusinessName = dto.SolePropriterInfo.BusinessName;
                     customer.SolePropriterInfo.UpdateDateTime = DateTime.Now;
                 }
                 // (Company)
@@ -406,7 +458,22 @@ namespace CRM_Api.Services
                     }
                     customer.CompanyInfo.WebSite = dto.CompanyInfo.WebSite;
                     customer.CompanyInfo.ACNNumber = dto.CompanyInfo.ACNNumber;
+                    customer.CompanyInfo.AnnualAccountsMonth = dto.CompanyInfo.AnnualAccountsMonth;
                     customer.CompanyInfo.UpdateDateTime = DateTime.Now;
+                }
+                // (Trust)
+                else if (dto.ClientType == 4 && dto.TrustInfo != null)
+                {
+                    if (customer.TrustInfo == null)
+                    {
+                        customer.TrustInfo = new TrustInfo { CustomerID = id };
+                        _context.TrustInfos.Add(customer.TrustInfo);
+                    }
+                    customer.TrustInfo.AnnualAccountsMonth = dto.TrustInfo.AnnualAccountsMonth;
+                    customer.TrustInfo.ChargeInterest = dto.TrustInfo.ChargeInterest;
+                    customer.TrustInfo.ChargeMonthlyDisbursement = dto.TrustInfo.ChargeMonthlyDisbursement;
+                    customer.TrustInfo.FiledbyFirm = dto.TrustInfo.FiledbyFirm;
+                    customer.TrustInfo.UpdateDateTime = DateTime.Now;
                 }
 
                 if (dto.Addresses != null)
@@ -639,6 +706,99 @@ namespace CRM_Api.Services
 
             customer.LastVarifiedBy = userId;
             customer.LastVarifiedDate = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> MigrateCustomerTypeAsync(int customerId, int newClientType)
+        {
+            var customer = await _context.Customers
+                .Include(c => c.IndividualInfo)
+                .Include(c => c.CompanyInfo)
+                .Include(c => c.SolePropriterInfo)
+                .Include(c => c.TrustInfo)
+                .FirstOrDefaultAsync(c => c.Id == customerId && !c.IsDeleted);
+
+            if (customer == null) return false;
+
+            int oldType = customer.ClientType;
+
+            // ── Carry-over compatible fields before deleting old data ──
+            string? carryFirstName = null, carryLastName = null, carryDirectorID = null;
+            DateTime? carryDOB = null;
+
+            // Extract reusable fields from old type
+            if (oldType == 1 && customer.IndividualInfo != null) // from Individual
+            {
+                carryFirstName = customer.IndividualInfo.FirstName;
+                carryLastName = customer.IndividualInfo.LastName;
+                carryDOB = customer.IndividualInfo.DateOfBirth;
+                carryDirectorID = customer.IndividualInfo.DirectorID;
+            }
+            else if (oldType == 3 && customer.SolePropriterInfo != null) // from Sole Proprietor
+            {
+                carryFirstName = customer.SolePropriterInfo.FirstName;
+                carryLastName = customer.SolePropriterInfo.LastName;
+                carryDOB = customer.SolePropriterInfo.DateOfBirth;
+                carryDirectorID = customer.SolePropriterInfo.DirectorID;
+            }
+
+            // ── Remove ALL old type-specific info ──
+            if (customer.IndividualInfo != null)
+                _context.IndividualInfos.Remove(customer.IndividualInfo);
+            if (customer.CompanyInfo != null)
+                _context.CompanyInfos.Remove(customer.CompanyInfo);
+            if (customer.SolePropriterInfo != null)
+                _context.SolePropriterInfos.Remove(customer.SolePropriterInfo);
+            if (customer.TrustInfo != null)
+                _context.TrustInfos.Remove(customer.TrustInfo);
+
+            // ── Update the master type ──
+            customer.ClientType = newClientType;
+
+            // ── Create new type entity with carried-over fields where compatible ──
+            if (newClientType == 1) // → Individual
+            {
+                var info = new IndividualInfo { CustomerID = customerId };
+                // Carry over from Sole Proprietor (compatible)
+                if (oldType == 3)
+                {
+                    info.FirstName = carryFirstName;
+                    info.LastName = carryLastName;
+                    info.DateOfBirth = carryDOB;
+                    info.DirectorID = carryDirectorID;
+                }
+                _context.IndividualInfos.Add(info);
+            }
+            else if (newClientType == 2) // → Company
+            {
+                _context.CompanyInfos.Add(new CompanyInfo { CustomerID = customerId });
+            }
+            else if (newClientType == 3) // → Sole Proprietor
+            {
+                var info = new SolePropriterInfo { CustomerID = customerId };
+                // Carry over from Individual (compatible)
+                if (oldType == 1)
+                {
+                    info.FirstName = carryFirstName;
+                    info.LastName = carryLastName;
+                    info.DateOfBirth = carryDOB;
+                    info.DirectorID = carryDirectorID;
+                }
+                _context.SolePropriterInfos.Add(info);
+            }
+            else if (newClientType == 4) // → Trust
+            {
+                _context.TrustInfos.Add(new TrustInfo { CustomerID = customerId });
+            }
+
+            // ── Regenerate Customer Code ──
+            var nextVal = await GetIncrementCodeByTypeAsync(newClientType) + 1;
+            string typePart = ("0" + newClientType);
+            typePart = typePart.Substring(typePart.Length - 2);
+            string valStr = nextVal.ToString().PadLeft(4, '0');
+            customer.Code = $"SSP{typePart}{valStr}";
 
             await _context.SaveChangesAsync();
             return true;

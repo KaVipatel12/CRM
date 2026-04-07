@@ -27,7 +27,6 @@ namespace CRM_Api.DTOs
         public int? ContactType { get; set; }
         public string? TradingName { get; set; }
         public bool? IsActive { get; set; }
-        public string? GroupName { get; set; }
         public int? LastVarifiedBy { get; set; }
         public DateTime? LastVarifiedDate { get; set; }
         public bool? IsArchived { get; set; }
@@ -43,7 +42,6 @@ namespace CRM_Api.DTOs
         public string? Phone { get; set; }
         public string? Mobile { get; set; }
         public string? Website { get; set; }
-        public string? DirectorID { get; set; }
         public int? BusinessType { get; set; }
         public int? TradingStatus { get; set; }
         public int? TaxAgent { get; set; }
@@ -56,6 +54,8 @@ namespace CRM_Api.DTOs
         public ContactInfoDto? ContactInfo { get; set; }
         public IndividualInfoDto? IndividualInfo { get; set; }
         public CompanyInfoDto? CompanyInfo { get; set; }
+        public TrustInfoDto? TrustInfo { get; set; }
+        public SolePropriterInfoDto? SolePropriterInfo { get; set; }
         public List<BankAccountDto>? BankAccounts { get; set; }
     }
 
@@ -70,8 +70,6 @@ namespace CRM_Api.DTOs
         public string? TFNNumber { get; set; }
         public bool? IsActive { get; set; } = true;
         public int? ContactType { get; set; }
-        public string? GroupName { get; set; }
-        public string? DirectorID { get; set; }
         public int? BusinessType { get; set; }
         public int? TradingStatus { get; set; }
         public int? TaxAgent { get; set; }
@@ -86,6 +84,8 @@ namespace CRM_Api.DTOs
         public ContactInfoDto? ContactInfo { get; set; }
         public IndividualInfoDto? IndividualInfo { get; set; }
         public CompanyInfoDto? CompanyInfo { get; set; }
+        public TrustInfoDto? TrustInfo { get; set; }
+        public SolePropriterInfoDto? SolePropriterInfo { get; set; }
         public List<AddressDto>? Addresses { get; set; }
         public List<BankAccountDto>? BankAccounts { get; set; }
     }
@@ -108,6 +108,9 @@ namespace CRM_Api.DTOs
         public string? LastName { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public int? Gender { get; set; }
+        public string? DirectorID { get; set; }
+        public bool? ChargeInterest { get; set; }
+        public bool? ChargeMonthlyDisbursement { get; set; }
     }
 
     public class CompanyInfoDto
@@ -115,6 +118,26 @@ namespace CRM_Api.DTOs
         public int Id { get; set; }
         public string? WebSite { get; set; }
         public string? ACNNumber { get; set; }
+        public string? AnnualAccountsMonth { get; set; }
+    }
+
+    public class TrustInfoDto
+    {
+        public int Id { get; set; }
+        public string? AnnualAccountsMonth { get; set; }
+        public bool? ChargeInterest { get; set; }
+        public bool? ChargeMonthlyDisbursement { get; set; }
+        public bool? FiledbyFirm { get; set; }
+    }
+
+    public class SolePropriterInfoDto
+    {
+        public int Id { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public string? DirectorID { get; set; }
+        public string? BusinessName { get; set; }
     }
 
     public class AddressDto
@@ -136,5 +159,10 @@ namespace CRM_Api.DTOs
         public string? BankName { get; set; }
         public string? BSB { get; set; }
         public string? AccountNumber { get; set; }
+    }
+
+    public class ChangeTypeRequestDto
+    {
+        public int NewClientType { get; set; }
     }
 }

@@ -109,5 +109,19 @@ namespace CRM_Api.Controllers
             }
             return Ok(true);
         }
+
+        [HttpPost("{id:int}/change-type")]
+        public async Task<IActionResult> ChangeCustomerType(int id, [FromBody] ChangeTypeRequestDto req)
+        {
+            if (req == null || req.NewClientType <= 0) 
+                return BadRequest("Invalid client type provided.");
+
+            var result = await _customerService.MigrateCustomerTypeAsync(id, req.NewClientType);
+            if (!result)
+            {
+                return NotFound("Customer not found or migration failed.");
+            }
+            return Ok(true);
+        }
     }
 }

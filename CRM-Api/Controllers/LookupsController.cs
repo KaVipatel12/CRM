@@ -25,7 +25,7 @@ namespace CRM_Api.Controllers
             var businessTypes = await _context.BusinessTypes.ToListAsync();
             var taxAgents = await _context.TaxAgents.ToListAsync();
             var tradingStatuses = await _context.TradingStatuses.ToListAsync();
-            var staff = await _context.Users.Select(u => new { id = u.ID, u.FirstName, u.LastName }).ToListAsync();
+            var staff = await _context.Users.Select(u => new { id = u.Id, u.FirstName, u.LastName }).ToListAsync();
 
             return Ok(new
             {
