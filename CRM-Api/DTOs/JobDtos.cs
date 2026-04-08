@@ -18,6 +18,7 @@ namespace CRM_Api.DTOs
         public DateTime? StartDate { get; set; }
         public DateTime? Deadline { get; set; }
         public int? OwnerId { get; set; }
+        public int? ResponsibleId { get; set; }
         public int? Period { get; set; }
         public DateTime? TargetEndDate { get; set; }
         public int? DueDateDays { get; set; }
@@ -40,6 +41,7 @@ namespace CRM_Api.DTOs
         public DateTime? StartDate { get; set; }
         public DateTime? Deadline { get; set; }
         public int? OwnerId { get; set; }
+        public int? ResponsibleId { get; set; }
         public int? Period { get; set; }
         public DateTime? TargetEndDate { get; set; }
         public int? DueDateDays { get; set; }
@@ -85,6 +87,7 @@ namespace CRM_Api.DTOs
         public int? Priority { get; set; }
         public int? JobTypeId { get; set; }
         public int? OwnerId { get; set; }
+        public int? ResponsibleId { get; set; }
         public int? CustomerId { get; set; }
         public bool? IsActive { get; set; }
         public bool? IsRecurring { get; set; }
@@ -99,5 +102,15 @@ namespace CRM_Api.DTOs
         public int TotalCount { get; set; }
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
+    }
+
+    public class JobStatisticsDto
+    {
+        public int TotalActive { get; set; }
+        public int Active { get; set; }
+        public int OnHold { get; set; }
+        public int Overdue { get; set; }
+        public int TodoLater { get; set; }
+        public int Completed { get; set; }
     }
 }

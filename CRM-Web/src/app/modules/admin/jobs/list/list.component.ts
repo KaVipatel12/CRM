@@ -11,10 +11,13 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDialog } from '@angular/material/dialog';
 import { Subject, debounceTime, takeUntil } from 'rxjs';
-import { Job, JobFilter } from '../job.types';
+import { UserService } from 'app/core/user/user.service';
+import { Job, JobFilter, JobStatistics } from '../job.types';
 import { JobService } from '../job.service';
 import { JobDetailsComponent } from '../../customers/details/job-details/job-details.component';
+import { JobDialogComponent } from '../../customers/details/job-dialog/job-dialog.component';
 
 @Component({
     selector: 'jobs-list',
@@ -50,6 +53,8 @@ export class JobsListComponent implements OnInit, OnDestroy {
     jobTypes: any[] = [];
     statusMasters: any[] = [];
     staff: any[] = [];
+    customers: any[] = [];
+    stats: JobStatistics | null = null;
     
     // Filters
     filter: JobFilter = {
@@ -64,12 +69,16 @@ export class JobsListComponent implements OnInit, OnDestroy {
 
     searchInputControl: FormControl = new FormControl();
     selectedJobId: number | null = null;
+    currentUserId: number | null = null;
+    isGlobalAdmin: boolean = false;
     
     // Displayed columns
-    displayedColumns: string[] = ['customer', 'jobType', 'caption', 'priority', 'status', 'deadline', 'owner'];
+    displayedColumns: string[] = ['customer', 'jobType', 'caption', 'priority', 'status', 'deadline', 'responsible', 'owner', 'actions'];
 
     private _changeDetectorRef = inject(ChangeDetectorRef);
+    private _matDialog = inject(MatDialog);
     private _jobService = inject(JobService);
+    private _userService = inject(UserService);
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     constructor() {}
@@ -77,11 +86,28 @@ export class JobsListComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         // Load lookups
         this._jobService.getLookups().subscribe((lookups) => {
-            this.jobTypes = lookups.jobTypes;
-            this.statusMasters = lookups.jobStatusMasters;
-            this.staff = lookups.staff;
+            if (lookups) {
+                this.jobTypes = lookups.jobTypes || [];
+                this.statusMasters = lookups.jobStatusMasters || [];
+                this.staff = lookups.staff || [];
+                this.customers = lookups.customers || [];
+            }
+            this.mapStaffNamesToJobs();
             this._changeDetectorRef.markForCheck();
         });
+
+        // Determine user role and ID
+        this._userService.user$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((user) => {
+                if (user) {
+                    this.isGlobalAdmin = user.isAdmin || user.isChecker || user.isSuperAdmin;
+                    this.currentUserId = Number(user.id);
+                    if (!this.isGlobalAdmin) {
+                        this.displayedColumns = this.displayedColumns.filter(c => c !== 'owner');
+                    }
+                }
+            });
 
         // Search input debounce
         this.searchInputControl.valueChanges
@@ -97,6 +123,7 @@ export class JobsListComponent implements OnInit, OnDestroy {
 
         // Load initial data
         this.loadJobs();
+        this.loadStats();
     }
 
     ngOnDestroy(): void {
@@ -116,9 +143,42 @@ export class JobsListComponent implements OnInit, OnDestroy {
             .subscribe((response) => {
                 this.jobs = response.items;
                 this.totalCount = response.totalCount;
+                this.mapStaffNamesToJobs();
                 this.isLoading = false;
                 this._changeDetectorRef.markForCheck();
             });
+    }
+
+    /**
+     * Load dashboard statistics
+     */
+    loadStats(): void {
+        this._jobService.getStatistics()
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((stats) => {
+                this.stats = stats;
+                this._changeDetectorRef.markForCheck();
+            });
+    }
+
+    /**
+     * Helper to map staff names client-side since API returns OwnerId
+     */
+    private mapStaffNamesToJobs(): void {
+        if (!this.staff.length || !this.jobs.length) return;
+        
+        this.jobs.forEach(job => {
+            if (job.ownerId) {
+                const s = this.staff.find(x => x.id === job.ownerId);
+                job.staffName = s ? `${s.firstName} ${s.lastName ?? ''}`.trim() : 'Unknown';
+            }
+            if (job.responsibleId) {
+                const s = this.staff.find(x => x.id === job.responsibleId);
+                job.responsibleName = s ? `${s.firstName} ${s.lastName ?? ''}`.trim() : 'Unassigned';
+            } else {
+                job.responsibleName = 'Unassigned';
+            }
+        });
     }
 
     /**
@@ -128,6 +188,14 @@ export class JobsListComponent implements OnInit, OnDestroy {
         this.filter.pageNumber = event.pageIndex + 1;
         this.filter.pageSize = event.pageSize;
         this.loadJobs();
+    }
+
+    /**
+     * Check if deadline is overdue
+     */
+    isOverdue(dateStr: string | null | undefined): boolean {
+        if (!dateStr) return false;
+        return new Date(dateStr) < new Date();
     }
 
     /**
@@ -161,5 +229,84 @@ export class JobsListComponent implements OnInit, OnDestroy {
      */
     onJobUpdated(): void {
         this.loadJobs();
+        this.loadStats();
+    }
+
+    /**
+     * Quick close a job
+     */
+    quickClose(job: Job): void {
+        this._jobService.closeJob(job.id).subscribe(() => {
+            this.loadJobs();
+            this.loadStats();
+        });
+    }
+
+    /**
+     * Open Job Create Dialog
+     */
+    openAddJobDialog(): void {
+        const dialogRef = this._matDialog.open(JobDialogComponent, {
+            panelClass: 'mail-compose-dialog',
+            width: '720px',
+            maxHeight: '85vh',
+            data: {
+                isGlobalCall: true,
+                jobTypes: this.jobTypes,
+                staff: this.staff,
+                jobStatusMasters: this.statusMasters,
+                customers: this.customers,
+                currentUserId: this.currentUserId,
+                isAdmin: this.isGlobalAdmin
+            }
+        });
+
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result) {
+                this._jobService.createJob(result).subscribe({
+                    next: () => {
+                        this.loadJobs();
+                        this.loadStats();
+                    },
+                    error: (err) => {
+                        console.error('Error creating job', err);
+                    }
+                });
+            }
+        });
+    }
+    /**
+     * Open Job Edit Dialog
+     */
+    openEditJobDialog(job: Job): void {
+        const dialogRef = this._matDialog.open(JobDialogComponent, {
+            panelClass: 'mail-compose-dialog',
+            width: '720px',
+            maxHeight: '85vh',
+            data: {
+                job: job,
+                isGlobalCall: true,
+                jobTypes: this.jobTypes,
+                staff: this.staff,
+                jobStatusMasters: this.statusMasters,
+                customers: this.customers,
+                currentUserId: this.currentUserId,
+                isAdmin: this.isGlobalAdmin
+            }
+        });
+
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result) {
+                this._jobService.updateJob(job.id, result).subscribe({
+                    next: () => {
+                        this.loadJobs();
+                        this.loadStats();
+                    },
+                    error: (err) => {
+                        console.error('Error updating job', err);
+                    }
+                });
+            }
+        });
     }
 }

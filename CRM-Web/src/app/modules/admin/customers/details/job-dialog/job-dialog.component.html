@@ -1,8 +1,8 @@
-<div class="flex flex-col max-w-240 md:min-w-160 max-h-screen -m-6">
+<div class="flex flex-col max-w-240 md:min-w-160 -m-6">
 
     <!-- Header -->
     <div class="flex items-center justify-between pl-8 pr-6 py-4 bg-primary text-on-primary">
-        <div class="text-lg font-medium">Add New Job</div>
+        <div class="text-lg font-medium">{{isEditMode ? 'Edit Job' : 'Add New Job'}}</div>
         <button
             mat-icon-button
             (click)="close()"
@@ -39,7 +39,19 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+
+
+        <div class="flex flex-col sm:flex-row sm:gap-6 mt-2">
+            <!-- Global Call Customer Selector -->
+            <mat-form-field class="fuse-mat-no-subscript w-full mb-6" *ngIf="isGlobalCall">
+                <mat-label>Select Customer</mat-label>
+                <mat-select [formControlName]="'customerId'" required>
+                    <mat-option *ngFor="let c of customers" [value]="c.id">
+                        {{c.name}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
             <!-- Job Type -->
             <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
                 <mat-label>Job Type</mat-label>
@@ -48,16 +60,36 @@
                     <mat-option *ngFor="let type of jobTypes" [value]="type.id">{{type.type}}</mat-option>
                 </mat-select>
             </mat-form-field>
+        </div>
 
-            <!-- Caption -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+            <!-- Lead Person (Owner) -->
             <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
-                <mat-label>Job Caption / Title</mat-label>
-                <input
-                    matInput
-                    [formControlName]="'caption'"
-                    [placeholder]="'Short Caption'">
+                <mat-label>Lead Person (Manager)</mat-label>
+                <mat-select [formControlName]="'ownerId'" [disabled]="isEditMode && !isAdmin">
+                    <mat-option [value]="null">Select Manager</mat-option>
+                    <mat-option *ngFor="let s of staff" [value]="s.id">{{s.firstName}} {{s.lastName}}</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <!-- Responsible Person (Staff) -->
+            <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+                <mat-label>Responsible Person (Staff)</mat-label>
+                <mat-select [formControlName]="'responsibleId'">
+                    <mat-option [value]="null">Select Staff</mat-option>
+                    <mat-option *ngFor="let s of staff" [value]="s.id">{{s.firstName}} {{s.lastName}}</mat-option>
+                </mat-select>
             </mat-form-field>
         </div>
+
+        <!-- Job Caption / Title (Full Width) -->
+        <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+            <mat-label>Job Caption / Title</mat-label>
+            <input
+                matInput
+                [formControlName]="'caption'"
+                [placeholder]="'Enter a descriptive title for this job...'">
+        </mat-form-field>
 
         <!-- Description -->
         <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
@@ -142,16 +174,6 @@
             </mat-form-field>
         </div>
 
-        <div class="grid grid-cols-1 gap-x-6">
-            <!-- Owner -->
-            <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
-                <mat-label>Staff In Charge (Owner)</mat-label>
-                <mat-select [formControlName]="'ownerId'">
-                    <mat-option [value]="null">Select Staff</mat-option>
-                    <mat-option *ngFor="let s of staff" [value]="s.id">{{s.firstName}} {{s.lastName}}</mat-option>
-                </mat-select>
-            </mat-form-field>
-        </div>
 
         <!-- Inline Tasks Section (Only for single jobs) -->
         <div *ngIf="!jobForm.get('isRecurring').value" class="mt-4 border-t pt-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -178,7 +200,13 @@
         </div>
 
         <!-- Actions -->
-        <div class="flex items-center justify-end mt-8">
+        <div class="flex items-center justify-end mt-8 border-t pt-4">
+            <!-- Validation hint -->
+            <div *ngIf="jobForm.invalid" class="text-xs text-red-500 mr-auto">
+                <span *ngIf="isGlobalCall && jobForm.get('customerId')?.invalid">* Please select a Customer</span>
+                <span *ngIf="jobForm.get('jobTypeId')?.invalid"> * Select Job Type</span>
+                <span *ngIf="jobForm.get('caption')?.invalid"> * Enter Caption</span>
+            </div>
             <button
                 mat-button
                 (click)="close()"
@@ -192,7 +220,7 @@
                 [disabled]="jobForm.invalid"
                 (click)="save()"
                 type="button">
-                Create Job
+                {{isEditMode ? 'Save Changes' : 'Create Job'}}
             </button>
         </div>
 

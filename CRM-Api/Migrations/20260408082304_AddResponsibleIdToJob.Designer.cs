@@ -4,6 +4,7 @@ using CRM_Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CRM_Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260408082304_AddResponsibleIdToJob")]
+    partial class AddResponsibleIdToJob
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -670,61 +673,61 @@ namespace CRM_Api.Migrations
                         {
                             Id = 1,
                             CustomerTypeNM = "Individual",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 14, 9, 24, 840, DateTimeKind.Local).AddTicks(215)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 13, 53, 1, 134, DateTimeKind.Local).AddTicks(6135)
                         },
                         new
                         {
                             Id = 2,
                             CustomerTypeNM = "Company",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 14, 9, 24, 841, DateTimeKind.Local).AddTicks(4276)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 13, 53, 1, 136, DateTimeKind.Local).AddTicks(1103)
                         },
                         new
                         {
                             Id = 3,
                             CustomerTypeNM = "Sole Proprietor",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 14, 9, 24, 841, DateTimeKind.Local).AddTicks(4288)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 13, 53, 1, 136, DateTimeKind.Local).AddTicks(1119)
                         },
                         new
                         {
                             Id = 4,
                             CustomerTypeNM = "Trust",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 14, 9, 24, 841, DateTimeKind.Local).AddTicks(4290)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 13, 53, 1, 136, DateTimeKind.Local).AddTicks(1120)
                         },
                         new
                         {
                             Id = 5,
                             CustomerTypeNM = "AKA",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 14, 9, 24, 841, DateTimeKind.Local).AddTicks(4291)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 13, 53, 1, 136, DateTimeKind.Local).AddTicks(1121)
                         },
                         new
                         {
                             Id = 6,
                             CustomerTypeNM = "Partnership",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 14, 9, 24, 841, DateTimeKind.Local).AddTicks(4292)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 13, 53, 1, 136, DateTimeKind.Local).AddTicks(1122)
                         },
                         new
                         {
                             Id = 7,
                             CustomerTypeNM = "SMSF",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 14, 9, 24, 841, DateTimeKind.Local).AddTicks(4293)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 13, 53, 1, 136, DateTimeKind.Local).AddTicks(1123)
                         },
                         new
                         {
                             Id = 8,
                             CustomerTypeNM = "Staff",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 14, 9, 24, 841, DateTimeKind.Local).AddTicks(4294)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 13, 53, 1, 136, DateTimeKind.Local).AddTicks(1125)
                         },
                         new
                         {
                             Id = 9,
                             CustomerTypeNM = "Supplier",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 14, 9, 24, 841, DateTimeKind.Local).AddTicks(4295)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 13, 53, 1, 136, DateTimeKind.Local).AddTicks(1126)
                         },
                         new
                         {
                             Id = 10,
                             CustomerTypeNM = "Other",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 14, 9, 24, 841, DateTimeKind.Local).AddTicks(4296)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 13, 53, 1, 136, DateTimeKind.Local).AddTicks(1127)
                         });
                 });
 
@@ -869,27 +872,42 @@ namespace CRM_Api.Migrations
                         new
                         {
                             ID = 2,
-                            StatusName = "Active"
+                            StatusName = "Allocated"
                         },
                         new
                         {
                             ID = 3,
-                            StatusName = "On Hold"
+                            StatusName = "Active"
                         },
                         new
                         {
                             ID = 4,
-                            StatusName = "Todo Later"
+                            StatusName = "Pending"
                         },
                         new
                         {
                             ID = 5,
-                            StatusName = "Payment made for invoice"
+                            StatusName = "Pre-Interview"
                         },
                         new
                         {
                             ID = 6,
-                            StatusName = "Completed"
+                            StatusName = "Draft"
+                        },
+                        new
+                        {
+                            ID = 7,
+                            StatusName = "Interviewed"
+                        },
+                        new
+                        {
+                            ID = 8,
+                            StatusName = "Finalising"
+                        },
+                        new
+                        {
+                            ID = 9,
+                            StatusName = "Complete"
                         });
                 });
 

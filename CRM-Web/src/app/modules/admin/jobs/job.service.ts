@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { API_BASE_URL } from 'app/app.config';
 import { toCamelCase } from 'app/core/utils/case-utils';
 import { Observable, map } from 'rxjs';
-import { Job, JobFilter, JobPagedResponse } from './job.types';
+import { Job, JobFilter, JobPagedResponse, JobStatistics } from './job.types';
 
 @Injectable({ providedIn: 'root' })
 export class JobService {
@@ -22,6 +22,7 @@ export class JobService {
         if (filter.priority !== undefined) params = params.set('Priority', filter.priority.toString());
         if (filter.jobTypeId !== undefined) params = params.set('JobTypeID', filter.jobTypeId.toString());
         if (filter.ownerId !== undefined) params = params.set('OwnerID', filter.ownerId.toString());
+        if (filter.responsibleId !== undefined) params = params.set('ResponsibleID', filter.responsibleId.toString());
         if (filter.customerId !== undefined) params = params.set('CustomerID', filter.customerId.toString());
         if (filter.isActive !== undefined) params = params.set('IsActive', filter.isActive.toString());
         if (filter.isRecurring !== undefined) params = params.set('IsRecurring', filter.isRecurring.toString());
@@ -105,6 +106,22 @@ export class JobService {
         return this._httpClient.post<any>(`${this._baseUrl}/${jobId}/comments`, JSON.stringify(text), {
             headers: { 'Content-Type': 'application/json' }
         });
+    }
+
+    /**
+     * Get dashboard statistics
+     */
+    getStatistics(): Observable<JobStatistics> {
+        return this._httpClient.get<JobStatistics>(`${this._baseUrl}/stats`).pipe(
+            map(data => toCamelCase(data))
+        );
+    }
+
+    /**
+     * Quick close a job
+     */
+    closeJob(id: number): Observable<void> {
+        return this._httpClient.put<void>(`${this._baseUrl}/${id}/close`, {});
     }
 
     /**

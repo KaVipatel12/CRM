@@ -69,6 +69,8 @@ namespace CRM_Api.Models.Entities.Operations
         
         public int? OwnerId { get; set; }
         
+        public int? ResponsibleId { get; set; }
+        
         public bool IsActive { get; set; } = true;
         
         public bool IsRecurring { get; set; } = false;

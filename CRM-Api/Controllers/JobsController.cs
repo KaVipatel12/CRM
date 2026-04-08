@@ -39,10 +39,19 @@ namespace CRM_Api.Controllers
                                          j.Customer.Name.ToLower().Contains(search));
             }
 
-            if (filter.StatusId.HasValue) query = query.Where(j => j.CurrentStage == filter.StatusId);
+            if (filter.StatusId.HasValue) 
+            {
+                query = query.Where(j => j.CurrentStage == filter.StatusId);
+            }
+            else 
+            {
+                // Default: Hide "Todo Later" (ID 4) and "Completed" (ID 6)
+                query = query.Where(j => j.CurrentStage != 4 && j.CurrentStage != 6);
+            }
             if (filter.Priority.HasValue) query = query.Where(j => j.Priority == filter.Priority);
             if (filter.JobTypeId.HasValue) query = query.Where(j => j.JobTypeId == filter.JobTypeId);
             if (filter.OwnerId.HasValue) query = query.Where(j => j.OwnerId == filter.OwnerId);
+            if (filter.ResponsibleId.HasValue) query = query.Where(j => j.ResponsibleId == filter.ResponsibleId);
             if (filter.CustomerId.HasValue) query = query.Where(j => j.CustomerId == filter.CustomerId);
             if (filter.IsActive.HasValue) query = query.Where(j => j.IsActive == filter.IsActive);
             if (filter.IsRecurring.HasValue) query = query.Where(j => j.IsRecurring == filter.IsRecurring);
@@ -70,6 +79,7 @@ namespace CRM_Api.Controllers
                     StartDate = j.StartDate,
                     Deadline = j.Deadline,
                     OwnerId = j.OwnerId,
+                    ResponsibleId = j.ResponsibleId,
                     Period = j.Period,
                     TargetEndDate = j.TargetEndDate,
                     DueDateDays = j.DueDateDays,
@@ -86,6 +96,25 @@ namespace CRM_Api.Controllers
                 PageNumber = filter.PageNumber,
                 PageSize = filter.PageSize
             });
+        }
+
+        [HttpGet("stats")]
+        public async Task<ActionResult<JobStatisticsDto>> GetStatistics()
+        {
+            var now = DateTime.Now;
+            var query = _context.Jobs.AsQueryable();
+
+            var stats = new JobStatisticsDto
+            {
+                TotalActive = await query.CountAsync(j => j.CurrentStage != 4 && j.CurrentStage != 6),
+                Active = await query.CountAsync(j => j.CurrentStage == 1 || j.CurrentStage == 2),
+                OnHold = await query.CountAsync(j => j.CurrentStage == 3),
+                Overdue = await query.CountAsync(j => j.CurrentStage != 6 && j.CurrentStage != 4 && j.Deadline < now),
+                TodoLater = await query.CountAsync(j => j.CurrentStage == 4),
+                Completed = await query.CountAsync(j => j.CurrentStage == 6)
+            };
+
+            return stats;
         }
 
         [HttpGet("customer/{customerId}")]
@@ -112,6 +141,7 @@ namespace CRM_Api.Controllers
                     StartDate = j.StartDate,
                     Deadline = j.Deadline,
                     OwnerId = j.OwnerId,
+                    ResponsibleId = j.ResponsibleId,
                     Period = j.Period,
                     TargetEndDate = j.TargetEndDate,
                     DueDateDays = j.DueDateDays,
@@ -153,6 +183,7 @@ namespace CRM_Api.Controllers
                 StartDate = job.StartDate,
                 Deadline = job.Deadline,
                 OwnerId = job.OwnerId,
+                ResponsibleId = job.ResponsibleId,
                 Period = job.Period,
                 TargetEndDate = job.TargetEndDate,
                 DueDateDays = job.DueDateDays,
@@ -205,6 +236,7 @@ namespace CRM_Api.Controllers
                 StartDate = dto.StartDate,
                 Deadline = dto.Deadline,
                 OwnerId = dto.OwnerId,
+                ResponsibleId = dto.ResponsibleId,
                 Period = dto.Period,
                 TargetEndDate = dto.TargetEndDate,
                 DueDateDays = dto.DueDateDays,
@@ -263,6 +295,7 @@ namespace CRM_Api.Controllers
             job.StartDate = dto.StartDate;
             job.Deadline = dto.Deadline;
             job.OwnerId = dto.OwnerId;
+            job.ResponsibleId = dto.ResponsibleId;
             job.Period = dto.Period;
             job.TargetEndDate = dto.TargetEndDate;
             job.DueDateDays = dto.DueDateDays;
@@ -359,6 +392,18 @@ namespace CRM_Api.Controllers
             if (task == null) return NotFound();
 
             _context.JobTasks.Remove(task);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+        [HttpPut("{id}/close")]
+        public async Task<IActionResult> CloseJob(int id)
+        {
+            var job = await _context.Jobs.FindAsync(id);
+            if (job == null) return NotFound();
+
+            job.CurrentStage = 6; // Completed
+            job.UpdateDateTime = DateTime.Now;
+
             await _context.SaveChangesAsync();
             return NoContent();
         }

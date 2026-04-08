@@ -7,6 +7,8 @@ export interface Job {
     customerName?: string;
     ownerId?: number;
     staffName?: string;
+    responsibleId?: number;
+    responsibleName?: string;
     currentStage?: number;
     statusName?: string;
     priority: number;
@@ -29,6 +31,13 @@ export interface JobTask {
     isCompleted: boolean;
     completedDate?: string;
     sequence: number;
+}
+
+export interface JobLookups {
+    jobTypes: any[];
+    jobStatusMasters: any[];
+    staff: any[];
+    customers: {id: number, name: string}[];
 }
 
 export interface JobComment {
@@ -55,6 +64,7 @@ export interface JobFilter {
     priority?: number;
     jobTypeId?: number;
     ownerId?: number;
+    responsibleId?: number;
     customerId?: number;
     isActive?: boolean;
     isRecurring?: boolean;
@@ -68,4 +78,13 @@ export interface JobPagedResponse {
     totalCount: number;
     pageNumber: number;
     pageSize: number;
+}
+
+export interface JobStatistics {
+    totalActive: number;
+    active: number;
+    onHold: number;
+    overdue: number;
+    todoLater: number;
+    completed: number;
 }

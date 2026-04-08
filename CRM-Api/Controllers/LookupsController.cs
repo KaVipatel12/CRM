@@ -28,6 +28,7 @@ namespace CRM_Api.Controllers
             var staff = await _context.Users.Select(u => new { id = u.Id, u.FirstName, u.LastName }).ToListAsync();
             var jobTypes = await _context.TypeMasters.ToListAsync();
             var jobStatusMasters = await _context.JobStatusMasters.ToListAsync();
+            var customers = await _context.Customers.Select(c => new { id = c.Id, name = c.Name }).ToListAsync();
 
             return Ok(new
             {
@@ -39,7 +40,8 @@ namespace CRM_Api.Controllers
                 TradingStatuses = tradingStatuses,
                 Staff = staff,
                 JobTypes = jobTypes,
-                JobStatusMasters = jobStatusMasters
+                JobStatusMasters = jobStatusMasters,
+                Customers = customers
             });
         }
     }

@@ -35,6 +35,11 @@ export class JobDialogComponent implements OnInit
     jobTypes: any[] = [];
     staff: any[] = [];
     jobStatusMasters: any[] = [];
+    customers: any[] = [];
+    isGlobalCall: boolean = false;
+    isAdmin: boolean = false;
+    isEditMode: boolean = false;
+
     priorityLevels = [
         { id: 0, name: 'Low' },
         { id: 1, name: 'Medium' },
@@ -63,28 +68,52 @@ export class JobDialogComponent implements OnInit
         this.jobTypes = data.jobTypes || [];
         this.staff = data.staff || [];
         this.jobStatusMasters = data.jobStatusMasters || [];
+        this.customers = data.customers || [];
+        this.isGlobalCall = data.isGlobalCall || false;
+        this.isAdmin = data.isAdmin || false;
+        this.isEditMode = !!data.job;
     }
 
     ngOnInit(): void
     {
         // Create the form
         this.jobForm = this._formBuilder.group({
-            customerId  : [this.data.customerId],
-            jobTypeId   : [null, Validators.required],
-            caption     : ['', Validators.required],
-            description : [''],
-            priority    : [1, Validators.required], // Default to Medium
-            currentStage: [1], // Default to Not Yet In (or current status)
-            startDate   : [new Date()],
-            targetEndDate: [null],
-            deadline    : [null], // We'll keep this if needed or repurpose for due date
-            dueDateDays : [0],
-            dueDateBasis: ['Days'], 
-            ownerId     : [null], // Staff in charge (Owner)
-            isRecurring : [false],
-            period      : [1], // 1: General
-            tasks       : this._formBuilder.array([]) // Inline To-Dos for single jobs
+            customerId  : [this.data.customerId || (this.data.job ? this.data.job.customerId : null), this.isGlobalCall ? Validators.required : null],
+            jobTypeId   : [this.data.job ? this.data.job.jobTypeId : null, Validators.required],
+            caption     : [this.data.job ? this.data.job.caption : 'General', Validators.required],
+            description : [this.data.job ? this.data.job.description : ''],
+            priority    : [this.data.job ? this.data.job.priority : 1, Validators.required],
+            currentStage: [this.data.job ? this.data.job.currentStage : 1],
+            startDate   : [this.data.job ? new Date(this.data.job.startDate) : new Date()],
+            targetEndDate: [this.data.job && this.data.job.targetEndDate ? new Date(this.data.job.targetEndDate) : null],
+            deadline    : [this.data.job && this.data.job.deadline ? new Date(this.data.job.deadline) : null],
+            dueDateDays : [this.data.job ? this.data.job.dueDateDays : 0],
+            dueDateBasis: [this.data.job ? this.data.job.dueDateBasis : 'Days'], 
+            ownerId     : [this.data.job ? this.data.job.ownerId : (this.data.currentUserId || null)],
+            responsibleId: [this.data.job ? this.data.job.responsibleId : null],
+            isRecurring : [this.data.job ? this.data.job.isRecurring : false],
+            period      : [this.data.job ? this.data.job.period : 1],
+            tasks       : this._formBuilder.array([])
         });
+
+        // Lock fields in edit mode
+        if (this.isEditMode) {
+            this.jobForm.get('customerId').disable();
+            this.jobForm.get('isRecurring').disable();
+            this.jobForm.get('startDate').disable();
+        }
+
+        // If edit mode and has tasks, patch them
+        if (this.isEditMode && this.data.job.tasks) {
+            this.data.job.tasks.forEach(t => {
+                this.tasksArray.push(this._formBuilder.group({
+                    id: [t.id],
+                    description: [t.description, Validators.required],
+                    isCompleted: [t.isCompleted],
+                    sequence: [t.sequence]
+                }));
+            });
+        }
     }
 
     /**
@@ -135,7 +164,9 @@ export class JobDialogComponent implements OnInit
             return;
         }
 
-        this.matDialogRef.close(this.jobForm.value);
+        // Get value including disabled fields (like customerId)
+        const result = this.jobForm.getRawValue();
+        this.matDialogRef.close(result);
     }
 
     close(): void

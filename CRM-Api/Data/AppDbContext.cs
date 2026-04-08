@@ -84,17 +84,14 @@ namespace CRM_Api.Data
                 new RelationShipType { ID = 13, Name = "Beneficiary" }
             );
 
-            // Seed JobStatusMaster
+            // Seed JobStatusMaster (to match legacy system)
             modelBuilder.Entity<JobStatusMaster>().HasData(
                 new JobStatusMaster { ID = 1, StatusName = "Not Yet In" },
-                new JobStatusMaster { ID = 2, StatusName = "Allocated" },
-                new JobStatusMaster { ID = 3, StatusName = "Active" },
-                new JobStatusMaster { ID = 4, StatusName = "Pending" },
-                new JobStatusMaster { ID = 5, StatusName = "Pre-Interview" },
-                new JobStatusMaster { ID = 6, StatusName = "Draft" },
-                new JobStatusMaster { ID = 7, StatusName = "Interviewed" },
-                new JobStatusMaster { ID = 8, StatusName = "Finalising" },
-                new JobStatusMaster { ID = 9, StatusName = "Complete" }
+                new JobStatusMaster { ID = 2, StatusName = "Active" },
+                new JobStatusMaster { ID = 3, StatusName = "On Hold" },
+                new JobStatusMaster { ID = 4, StatusName = "Todo Later" },
+                new JobStatusMaster { ID = 5, StatusName = "Payment made for invoice" },
+                new JobStatusMaster { ID = 6, StatusName = "Completed" }
             );
 
             // Seed TypeMaster
