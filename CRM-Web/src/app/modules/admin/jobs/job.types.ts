@@ -3,7 +3,7 @@ export interface Job {
     caption: string;
     jobTypeId: number;
     jobTypeName?: string;
-    customerId: number;
+    customerId?: number | null;
     customerName?: string;
     ownerId?: number;
     staffName?: string;
@@ -15,6 +15,7 @@ export interface Job {
     deadline?: string;
     startDate?: string;
     isRecurring: boolean;
+    isInternal?: boolean;
     period?: number;
     targetEndDate?: string;
     dueDateDays?: number;
@@ -68,6 +69,7 @@ export interface JobFilter {
     customerId?: number;
     isActive?: boolean;
     isRecurring?: boolean;
+    isInternal?: boolean;
     pageNumber: number;
     pageSize: number;
     orderBy?: string;

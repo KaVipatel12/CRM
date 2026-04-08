@@ -1,0 +1,31 @@
+<mat-form-field class="fuse-mat-no-subscript w-full">
+    <mat-label *ngIf="label">{{label}}</mat-label>
+    <mat-select [multiple]="multiple" [value]="value" (selectionChange)="onValueChange($event)" [required]="required">
+        
+        <!-- Search Input Header -->
+        <div class="search-container">
+            <div class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-md px-3 py-1">
+                <mat-icon class="icon-size-4 mr-2 text-secondary" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+                <input class="w-full bg-transparent border-none outline-none text-sm p-0 min-h-8"
+                    [formControl]="filterCtrl" [placeholder]="placeholder" (keydown)="$event.stopPropagation()">
+                <button *ngIf="filterCtrl.value" mat-icon-button (click)="filterCtrl.setValue('')" class="w-6 h-6 min-h-6 ml-1">
+                    <mat-icon class="icon-size-3" [svgIcon]="'heroicons_solid:x-mark'"></mat-icon>
+                </button>
+            </div>
+            
+            <!-- Select All / Clear All for multiple -->
+            <div *ngIf="multiple" class="flex items-center gap-4 mt-2 px-1">
+                <button type="button" class="text-[10px] text-primary font-bold uppercase tracking-wider hover:underline" (click)="$event.stopPropagation(); toggleAll(true)">Select All</button>
+                <button type="button" class="text-[10px] text-secondary font-bold uppercase tracking-wider hover:underline" (click)="$event.stopPropagation(); toggleAll(false)">Clear All</button>
+            </div>
+        </div>
+
+        <mat-option *ngFor="let item of filteredItems" [value]="item[valueKey]">
+            {{item[displayKey]}}
+        </mat-option>
+        
+        <div *ngIf="filteredItems.length === 0" class="p-4 text-center text-secondary text-sm">
+            No results found matching "{{filterCtrl.value}}"
+        </div>
+    </mat-select>
+</mat-form-field>

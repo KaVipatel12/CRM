@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, inject } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, inject } from '@angular/core';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,20 +12,21 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { RouterLink } from '@angular/router';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { Customer, CustomerListFilter } from '../customer.types';
 import { CustomerService } from '../customer.service';
 import { LookupService } from '../lookup.service';
-import { debounceTime, Subject, takeUntil } from 'rxjs';
+import { debounceTime, Subject, takeUntil, map } from 'rxjs';
 import { FuseConfirmationService } from '@fuse/services/confirmation';
 import { UserService } from 'app/core/user/user.service';
 import { User } from 'app/core/user/user.types';
+import { RouterLink } from '@angular/router';
 
 @Component({
     selector     : 'customers-list',
     templateUrl  : './list.component.html',
     encapsulation: ViewEncapsulation.None,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     standalone   : true,
     imports      : [
         CommonModule,
@@ -42,7 +43,7 @@ import { User } from 'app/core/user/user.types';
         MatTableModule,
         MatSnackBarModule,
         MatTooltipModule,
-        MatProgressSpinnerModule,
+        MatProgressBarModule,
         RouterLink
     ]
 })
@@ -74,7 +75,16 @@ export class ListComponent implements OnInit, OnDestroy {
     customerTypes: any[] = [];
     isLoading: boolean = false;
     isChecker: boolean = false;
-    private _searchSubject: Subject<string> = new Subject<string>();
+    stats: any = {
+        total: 0,
+        verified: 0,
+        unverified: 0,
+        active: 0,
+        inactive: 0
+    };
+    
+    searchInputControl: FormControl = new FormControl();
+    private _changeDetectorRef = inject(ChangeDetectorRef);
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     /**
@@ -98,7 +108,7 @@ export class ListComponent implements OnInit, OnDestroy {
             });
 
         // Setup search throttling
-        this._searchSubject.pipe(
+        this.searchInputControl.valueChanges.pipe(
             debounceTime(400),
             takeUntil(this._unsubscribeAll)
         ).subscribe(searchString => {
@@ -123,11 +133,14 @@ export class ListComponent implements OnInit, OnDestroy {
             .subscribe(lookups => {
                 this.contactTypes = lookups.contactTypes;
                 this.customerTypes = lookups.customerTypes;
+                this._changeDetectorRef.markForCheck();
             });
     }
 
     loadCustomers(): void {
         this.isLoading = true;
+        this._changeDetectorRef.markForCheck();
+        
         this._customerService.getCustomers(this.filters)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
@@ -135,9 +148,21 @@ export class ListComponent implements OnInit, OnDestroy {
                     this.customers = data;
                     this.dataSource.data = data;
                     this.isLoading = false;
+                    
+                    // Update stats (Local calculation for now)
+                    if (data && data.length > 0) {
+                        this.stats.total = data.length; // This is just the page count, will be totalCount later
+                        this.stats.verified = data.filter(c => c.lastVarifiedDate).length;
+                        this.stats.unverified = data.filter(c => !c.lastVarifiedDate).length;
+                        this.stats.active = data.filter(c => c.isActive && !c.isDeleted).length;
+                        this.stats.inactive = data.filter(c => !c.isActive || c.isDeleted).length;
+                    }
+                    
+                    this._changeDetectorRef.markForCheck();
                 },
                 error: () => {
                     this.isLoading = false;
+                    this._changeDetectorRef.markForCheck();
                 }
             });
     }
@@ -147,9 +172,7 @@ export class ListComponent implements OnInit, OnDestroy {
         this.loadCustomers();
     }
 
-    onSearch(event: any): void {
-        this._searchSubject.next(event.target.value);
-    }
+
 
     getCustomerTypeLabel(typeId: number): string {
         if (!this.customerTypes?.length) return '';

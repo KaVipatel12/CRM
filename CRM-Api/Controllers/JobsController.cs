@@ -36,7 +36,7 @@ namespace CRM_Api.Controllers
                 var search = filter.SearchString.ToLower();
                 query = query.Where(j => j.Caption.ToLower().Contains(search) || 
                                          (j.Description != null && j.Description.ToLower().Contains(search)) ||
-                                         j.Customer.Name.ToLower().Contains(search));
+                                         (j.CustomerId.HasValue && j.Customer.Name.ToLower().Contains(search)));
             }
 
             if (filter.StatusId.HasValue) 
@@ -55,6 +55,7 @@ namespace CRM_Api.Controllers
             if (filter.CustomerId.HasValue) query = query.Where(j => j.CustomerId == filter.CustomerId);
             if (filter.IsActive.HasValue) query = query.Where(j => j.IsActive == filter.IsActive);
             if (filter.IsRecurring.HasValue) query = query.Where(j => j.IsRecurring == filter.IsRecurring);
+            if (filter.IsInternal.HasValue) query = query.Where(j => j.IsInternal == filter.IsInternal);
 
             // Total Count before paging
             var totalCount = await query.CountAsync();
@@ -68,7 +69,8 @@ namespace CRM_Api.Controllers
                 {
                     Id = j.Id,
                     CustomerId = j.CustomerId,
-                    CustomerName = j.Customer.Name,
+                    CustomerName = j.CustomerId.HasValue ? j.Customer.Name : "Internal Operation",
+                    IsInternal = j.IsInternal,
                     JobTypeId = j.JobTypeId,
                     JobTypeName = j.JobType.Type,
                     Caption = j.Caption,
@@ -130,7 +132,8 @@ namespace CRM_Api.Controllers
                 {
                     Id = j.Id,
                     CustomerId = j.CustomerId,
-                    CustomerName = j.Customer.Name,
+                    CustomerName = j.CustomerId.HasValue ? j.Customer.Name : "Internal Operation",
+                    IsInternal = j.IsInternal,
                     JobTypeId = j.JobTypeId,
                     JobTypeName = j.JobType.Type,
                     Caption = j.Caption,
@@ -172,7 +175,8 @@ namespace CRM_Api.Controllers
             {
                 Id = job.Id,
                 CustomerId = job.CustomerId,
-                CustomerName = job.Customer.Name,
+                CustomerName = job.CustomerId.HasValue ? job.Customer.Name : "Office Schedule",
+                IsInternal = job.IsInternal,
                 JobTypeId = job.JobTypeId,
                 JobTypeName = job.JobType.Type,
                 Caption = job.Caption,
@@ -243,6 +247,7 @@ namespace CRM_Api.Controllers
                 DueDateBasis = dto.DueDateBasis,
                 IsActive = true,
                 IsRecurring = dto.IsRecurring,
+                IsInternal = dto.IsInternal,
                 CreatedDate = DateTime.Now
             };
 
@@ -301,6 +306,7 @@ namespace CRM_Api.Controllers
             job.DueDateDays = dto.DueDateDays;
             job.DueDateBasis = dto.DueDateBasis;
             job.IsRecurring = dto.IsRecurring;
+            job.IsInternal = dto.IsInternal;
             job.UpdateDateTime = DateTime.Now;
 
             if (stageChanged)

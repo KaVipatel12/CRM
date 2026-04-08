@@ -6,8 +6,9 @@ namespace CRM_Api.DTOs
     public class JobDto
     {
         public int Id { get; set; }
-        public int CustomerId { get; set; }
-        public string CustomerName { get; set; }
+        public int? CustomerId { get; set; }
+        public string? CustomerName { get; set; }
+        public bool IsInternal { get; set; }
         public int JobTypeId { get; set; }
         public string JobTypeName { get; set; }
         public string Caption { get; set; }
@@ -32,7 +33,8 @@ namespace CRM_Api.DTOs
 
     public class JobCreateUpdateDto
     {
-        public int CustomerId { get; set; }
+        public int? CustomerId { get; set; }
+        public bool IsInternal { get; set; }
         public int JobTypeId { get; set; }
         public string Caption { get; set; }
         public string? Description { get; set; }
@@ -91,6 +93,7 @@ namespace CRM_Api.DTOs
         public int? CustomerId { get; set; }
         public bool? IsActive { get; set; }
         public bool? IsRecurring { get; set; }
+        public bool? IsInternal { get; set; }
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
         public string? OrderBy { get; set; }

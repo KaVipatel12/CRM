@@ -12,7 +12,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { Subject, debounceTime, takeUntil } from 'rxjs';
+import { Subject, debounceTime, takeUntil, concatMap, from, finalize } from 'rxjs';
 import { UserService } from 'app/core/user/user.service';
 import { Job, JobFilter, JobStatistics } from '../job.types';
 import { JobService } from '../job.service';
@@ -64,7 +64,8 @@ export class JobsListComponent implements OnInit, OnDestroy {
         statusId: undefined,
         priority: undefined,
         jobTypeId: undefined,
-        ownerId: undefined
+        ownerId: undefined,
+        isInternal: false
     };
 
     searchInputControl: FormControl = new FormControl();
@@ -275,6 +276,58 @@ export class JobsListComponent implements OnInit, OnDestroy {
             }
         });
     }
+
+    /**
+     * Open Add Multi Job Dialog
+     */
+    openAddMultiJobDialog(): void {
+        const dialogRef = this._matDialog.open(JobDialogComponent, {
+            panelClass: 'mail-compose-dialog',
+            width: '720px',
+            maxHeight: '85vh',
+            data: {
+                jobTypes: this.jobTypes,
+                staff: this.staff,
+                jobStatusMasters: this.statusMasters,
+                customers: this.customers,
+                isGlobalCall: true,
+                isMultiMode: true,
+                isAdmin: this.isGlobalAdmin,
+                currentUserId: this.currentUserId
+            }
+        });
+
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result && result.customerIds && result.customerIds.length > 0) {
+                this.isLoading = true;
+                this._changeDetectorRef.markForCheck();
+
+                const { customerIds, ...jobTemplate } = result;
+
+                // Create jobs sequentially for each customer
+                from(customerIds).pipe(
+                    concatMap((cid: number) => {
+                        const jobData = { ...jobTemplate, customerId: cid };
+                        return this._jobService.createJob(jobData);
+                    }),
+                    finalize(() => {
+                        this.isLoading = false;
+                        this.loadJobs();
+                        this.loadStats();
+                        this._changeDetectorRef.markForCheck();
+                    })
+                ).subscribe({
+                    next: () => {
+                        // Success for individual job
+                    },
+                    error: (err) => {
+                        console.error('Error in batch creation', err);
+                    }
+                });
+            }
+        });
+    }
+
     /**
      * Open Job Edit Dialog
      */
@@ -308,5 +361,63 @@ export class JobsListComponent implements OnInit, OnDestroy {
                 });
             }
         });
+    }
+
+    /**
+     * Open Add Schedule Job Dialog
+     */
+    openAddScheduleJobDialog(): void {
+        const dialogRef = this._matDialog.open(JobDialogComponent, {
+            panelClass: 'mail-compose-dialog',
+            width: '720px',
+            maxHeight: '85vh',
+            data: {
+                isGlobalCall: true,
+                isInternal: true,
+                jobTypes: this.jobTypes,
+                staff: this.staff,
+                jobStatusMasters: this.statusMasters,
+                customers: this.customers,
+                currentUserId: this.currentUserId,
+                isAdmin: this.isGlobalAdmin
+            }
+        });
+
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result) {
+                // Ensure isInternal is set
+                result.isInternal = true;
+                result.customerId = null;
+
+                this._jobService.createJob(result).subscribe({
+                    next: () => {
+                        this.loadJobs();
+                        this.loadStats();
+                    },
+                    error: (err) => {
+                        console.error('Error creating internal job', err);
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * Open List of Schedule Jobs Dialog
+     * For now, we reuse the filter logic by toggling isInternal
+     */
+    viewScheduleJobs(): void {
+        this.filter.isInternal = true;
+        this.filter.pageNumber = 1;
+        this.loadJobs();
+    }
+
+    /**
+     * Reset to Client Jobs
+     */
+    viewClientJobs(): void {
+        this.filter.isInternal = false;
+        this.filter.pageNumber = 1;
+        this.loadJobs();
     }
 }

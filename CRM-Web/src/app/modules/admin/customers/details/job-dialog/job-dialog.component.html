@@ -1,12 +1,9 @@
 <div class="flex flex-col max-w-240 md:min-w-160 -m-6">
 
     <!-- Header -->
-    <div class="flex items-center justify-between pl-8 pr-6 py-4 bg-primary text-on-primary">
-        <div class="text-lg font-medium">{{isEditMode ? 'Edit Job' : 'Add New Job'}}</div>
-        <button
-            mat-icon-button
-            (click)="close()"
-            [tabIndex]="-1">
+    <div class="flex items-center justify-between pl-8 pr-3 py-4 bg-primary text-on-primary">
+        <div class="text-lg font-semibold">{{isEditMode ? 'Edit' : 'Add'}} {{isInternal ? 'Internal Operation' : isMultiMode ? 'Multi-Client' : 'New'}} Job</div>
+        <button mat-icon-button (click)="close()" [disabled]="jobForm.disabled">
             <mat-icon
                 class="text-current"
                 [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
@@ -18,39 +15,140 @@
         class="flex flex-col flex-auto p-8 overflow-y-auto"
         [formGroup]="jobForm">
 
-        <!-- Job Category Choice -->
-        <div class="bg-primary/5 dark:bg-primary-500/10 p-6 rounded-2xl border border-primary/10 mb-8 mt-2">
-            <div class="flex flex-col">
-                <span class="text-sm font-bold text-primary mb-3">Job Category</span>
-                <mat-radio-group [formControlName]="'isRecurring'" (change)="onCategoryChange($event.value)" class="flex gap-8">
-                    <mat-radio-button [value]="false" color="primary">
-                        <div class="flex flex-col">
-                            <span class="font-bold">Single Job</span>
-                            <span class="text-xs text-secondary">One-off service / One-time task</span>
+        <!-- Premium Segmented Selection -->
+        <div class="space-y-6 mb-8 mt-2">
+            <!-- Job Source (Hidden in Multi-Job Mode) -->
+            <div class="space-y-3" *ngIf="!isMultiMode">
+                <div class="flex items-baseline justify-between px-1">
+                    <span class="text-xs font-bold text-secondary uppercase tracking-wider">Job Source</span>
+                    <span class="text-[10px] text-hint" *ngIf="isEditMode">(Disabled in Edit Mode)</span>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- External Assignment -->
+                    <div (click)="!isEditMode && toggleInternal(false)"
+                        class="flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer group relative overflow-hidden"
+                        [ngClass]="{
+                            'bg-primary/5 border-primary shadow-sm': !isInternal,
+                            'bg-white border-gray-200 hover:border-gray-300': isInternal,
+                            'opacity-70 cursor-not-allowed': isEditMode && isInternal
+                        }">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-all duration-300 group-hover:scale-110 shadow-sm"
+                            [ngClass]="!isInternal ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'">
+                            <mat-icon class="icon-size-6" [svgIcon]="'heroicons_outline:user-group'"></mat-icon>
                         </div>
-                    </mat-radio-button>
-                    <mat-radio-button [value]="true" color="primary">
-                        <div class="flex flex-col">
-                            <span class="font-bold">Recurring Job</span>
-                            <span class="text-xs text-secondary">Automated scheduling / Repeated cycle</span>
+                        <span class="font-bold text-sm mb-0.5" [ngClass]="!isInternal ? 'text-primary' : 'text-secondary'">External Assignment</span>
+                        <span class="text-[10px] text-secondary/60 text-center leading-tight">Client-specific service delivery</span>
+                        
+                        <!-- Active Indicator -->
+                        <div *ngIf="!isInternal" class="absolute top-0 right-0 p-1">
+                            <mat-icon class="icon-size-4 text-primary" [svgIcon]="'heroicons_solid:check-circle'"></mat-icon>
                         </div>
-                    </mat-radio-button>
-                </mat-radio-group>
+                    </div>
+
+                    <!-- Internal Operation -->
+                    <div (click)="!isEditMode && toggleInternal(true)"
+                        class="flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer group relative overflow-hidden"
+                        [ngClass]="{
+                            'bg-primary/5 border-primary shadow-sm': isInternal,
+                            'bg-white border-gray-200 hover:border-gray-300': !isInternal,
+                            'opacity-70 cursor-not-allowed': isEditMode && !isInternal
+                        }">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-all duration-300 group-hover:scale-110 shadow-sm"
+                            [ngClass]="isInternal ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'">
+                            <mat-icon class="icon-size-6" [svgIcon]="'heroicons_outline:building-office'"></mat-icon>
+                        </div>
+                        <span class="font-bold text-sm mb-0.5" [ngClass]="isInternal ? 'text-primary' : 'text-secondary'">Internal Operation</span>
+                        <span class="text-[10px] text-secondary/60 text-center leading-tight">Administrative & System tasks</span>
+
+                        <!-- Active Indicator -->
+                        <div *ngIf="isInternal" class="absolute top-0 right-0 p-1">
+                            <mat-icon class="icon-size-4 text-primary" [svgIcon]="'heroicons_solid:check-circle'"></mat-icon>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Category -->
+            <div class="space-y-3">
+                <div class="flex items-baseline justify-between px-1">
+                    <span class="text-xs font-bold text-secondary uppercase tracking-wider">Job Category</span>
+                    <span class="text-[10px] text-hint" *ngIf="isEditMode">(Disabled in Edit Mode)</span>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Single Job Card -->
+                    <div (click)="!isEditMode && onCategoryChange(false)"
+                        class="flex items-center p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer group relative overflow-hidden"
+                        [ngClass]="{
+                            'bg-primary/5 border-primary shadow-sm': !isRecurring,
+                            'bg-white border-gray-200 hover:border-gray-300': isRecurring,
+                            'opacity-70 cursor-not-allowed': isEditMode && isRecurring
+                        }">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-4 transition-colors duration-300 shadow-sm"
+                            [ngClass]="!isRecurring ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="font-bold text-sm" [ngClass]="!isRecurring ? 'text-primary' : 'text-secondary'">Single Job</span>
+                            <span class="text-[10px] text-secondary/60">One-off deliverables</span>
+                        </div>
+                        <div *ngIf="!isRecurring" class="absolute bottom-1 right-1">
+                            <mat-icon class="icon-size-3 text-primary/50" [svgIcon]="'heroicons_solid:check'"></mat-icon>
+                        </div>
+                    </div>
+
+                    <!-- Recurring Job Card -->
+                    <div (click)="!isEditMode && onCategoryChange(true)"
+                        class="flex items-center p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer group relative overflow-hidden"
+                        [ngClass]="{
+                            'bg-primary/5 border-primary shadow-sm': isRecurring,
+                            'bg-white border-gray-200 hover:border-gray-300': !isRecurring,
+                            'opacity-70 cursor-not-allowed': isEditMode && !isRecurring
+                        }">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-4 transition-colors duration-300 shadow-sm"
+                            [ngClass]="isRecurring ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="font-bold text-sm" [ngClass]="isRecurring ? 'text-primary' : 'text-secondary'">Recurring Job</span>
+                            <span class="text-[10px] text-secondary/60">Automated service cycles</span>
+                        </div>
+                        <div *ngIf="isRecurring" class="absolute bottom-1 right-1">
+                            <mat-icon class="icon-size-3 text-primary/50" [svgIcon]="'heroicons_solid:check'"></mat-icon>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-
-
         <div class="flex flex-col sm:flex-row sm:gap-6 mt-2">
-            <!-- Global Call Customer Selector -->
-            <mat-form-field class="fuse-mat-no-subscript w-full mb-6" *ngIf="isGlobalCall">
-                <mat-label>Select Customer</mat-label>
-                <mat-select [formControlName]="'customerId'" required>
-                    <mat-option *ngFor="let c of customers" [value]="c.id">
-                        {{c.name}}
-                    </mat-option>
-                </mat-select>
-            </mat-form-field>
+            <!-- Customer Selector (Single Mode) -->
+            <searchable-select 
+                class="w-full mb-6" 
+                *ngIf="isGlobalCall && !isMultiMode && !isInternal"
+                [formControlName]="'customerId'"
+                [items]="customers"
+                [label]="'Select Customer'"
+                [placeholder]="'Search customers...'"
+                [displayKey]="'name'"
+                [valueKey]="'id'"
+                [required]="true">
+            </searchable-select>
+
+            <!-- Customer Selector (Multi Mode) -->
+            <searchable-select 
+                class="w-full mb-6" 
+                *ngIf="isGlobalCall && isMultiMode && !isInternal"
+                [formControlName]="'customerIds'"
+                [items]="customers"
+                [label]="'Select Customers (Bulk)'"
+                [placeholder]="'Search customers...'"
+                [displayKey]="'name'"
+                [valueKey]="'id'"
+                [multiple]="true"
+                [required]="true">
+            </searchable-select>
+
+
 
             <!-- Job Type -->
             <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
@@ -64,22 +162,26 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
             <!-- Lead Person (Owner) -->
-            <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
-                <mat-label>Lead Person (Manager)</mat-label>
-                <mat-select [formControlName]="'ownerId'" [disabled]="isEditMode && !isAdmin">
-                    <mat-option [value]="null">Select Manager</mat-option>
-                    <mat-option *ngFor="let s of staff" [value]="s.id">{{s.firstName}} {{s.lastName}}</mat-option>
-                </mat-select>
-            </mat-form-field>
+            <searchable-select 
+                class="w-full mb-6"
+                [formControlName]="'ownerId'"
+                [items]="staff"
+                [label]="'Lead Person (Manager)'"
+                [placeholder]="'Search staff...'"
+                [displayKey]="'name'"
+                [valueKey]="'id'">
+            </searchable-select>
 
             <!-- Responsible Person (Staff) -->
-            <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
-                <mat-label>Responsible Person (Staff)</mat-label>
-                <mat-select [formControlName]="'responsibleId'">
-                    <mat-option [value]="null">Select Staff</mat-option>
-                    <mat-option *ngFor="let s of staff" [value]="s.id">{{s.firstName}} {{s.lastName}}</mat-option>
-                </mat-select>
-            </mat-form-field>
+            <searchable-select 
+                class="w-full mb-6"
+                [formControlName]="'responsibleId'"
+                [items]="staff"
+                [label]="'Responsible Person (Staff)'"
+                [placeholder]="'Search staff...'"
+                [displayKey]="'name'"
+                [valueKey]="'id'">
+            </searchable-select>
         </div>
 
         <!-- Job Caption / Title (Full Width) -->
@@ -203,7 +305,8 @@
         <div class="flex items-center justify-end mt-8 border-t pt-4">
             <!-- Validation hint -->
             <div *ngIf="jobForm.invalid" class="text-xs text-red-500 mr-auto">
-                <span *ngIf="isGlobalCall && jobForm.get('customerId')?.invalid">* Please select a Customer</span>
+                <span *ngIf="isGlobalCall && !isMultiMode && jobForm.get('customerId')?.invalid">* Please select a Customer</span>
+                <span *ngIf="isGlobalCall && isMultiMode && jobForm.get('customerIds')?.invalid">* Please select at least one Customer</span>
                 <span *ngIf="jobForm.get('jobTypeId')?.invalid"> * Select Job Type</span>
                 <span *ngIf="jobForm.get('caption')?.invalid"> * Enter Caption</span>
             </div>
@@ -220,7 +323,7 @@
                 [disabled]="jobForm.invalid"
                 (click)="save()"
                 type="button">
-                {{isEditMode ? 'Save Changes' : 'Create Job'}}
+                {{isEditMode ? 'Save Changes' : (isMultiMode ? 'Create Multi Jobs' : 'Create Job')}}
             </button>
         </div>
 

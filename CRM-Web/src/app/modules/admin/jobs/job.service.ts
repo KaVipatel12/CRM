@@ -26,6 +26,7 @@ export class JobService {
         if (filter.customerId !== undefined) params = params.set('CustomerID', filter.customerId.toString());
         if (filter.isActive !== undefined) params = params.set('IsActive', filter.isActive.toString());
         if (filter.isRecurring !== undefined) params = params.set('IsRecurring', filter.isRecurring.toString());
+        if (filter.isInternal !== undefined) params = params.set('IsInternal', filter.isInternal.toString());
         
         params = params.set('PageNumber', filter.pageNumber.toString());
         params = params.set('PageSize', filter.pageSize.toString());

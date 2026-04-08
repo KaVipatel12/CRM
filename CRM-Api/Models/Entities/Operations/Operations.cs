@@ -47,8 +47,7 @@ namespace CRM_Api.Models.Entities.Operations
     [Table("Job", Schema = "task")]
     public class Job : EntityBase, IApiResultModel
     {
-        [Required]
-        public int CustomerId { get; set; }
+        public int? CustomerId { get; set; }
         
         [Required]
         public int JobTypeId { get; set; }
@@ -74,6 +73,8 @@ namespace CRM_Api.Models.Entities.Operations
         public bool IsActive { get; set; } = true;
         
         public bool IsRecurring { get; set; } = false;
+        
+        public bool IsInternal { get; set; } = false;
 
         public int? Period { get; set; }
         public DateTime? TargetEndDate { get; set; }

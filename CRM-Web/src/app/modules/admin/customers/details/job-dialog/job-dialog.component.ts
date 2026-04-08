@@ -8,7 +8,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatDividerModule } from '@angular/material/divider';
 import { CommonModule } from '@angular/common';
+import { SearchableSelectComponent } from 'app/shared/components/searchable-select/searchable-select.component';
 
 @Component({
     selector     : 'job-dialog',
@@ -26,7 +28,9 @@ import { CommonModule } from '@angular/common';
         MatInputModule,
         MatSelectModule,
         MatDatepickerModule,
-        MatRadioModule
+        MatRadioModule,
+        MatDividerModule,
+        SearchableSelectComponent
     ]
 })
 export class JobDialogComponent implements OnInit
@@ -39,6 +43,9 @@ export class JobDialogComponent implements OnInit
     isGlobalCall: boolean = false;
     isAdmin: boolean = false;
     isEditMode: boolean = false;
+    isMultiMode: boolean = false;
+    isInternal: boolean = false;
+    isRecurring: boolean = false;
 
     priorityLevels = [
         { id: 0, name: 'Low' },
@@ -72,13 +79,17 @@ export class JobDialogComponent implements OnInit
         this.isGlobalCall = data.isGlobalCall || false;
         this.isAdmin = data.isAdmin || false;
         this.isEditMode = !!data.job;
+        this.isMultiMode = data.isMultiMode || false;
+        this.isInternal = this.isMultiMode ? false : (data.isInternal || (data.job?.isInternal) || false);
+        this.isRecurring = data.job?.isRecurring || false;
     }
 
     ngOnInit(): void
     {
         // Create the form
         this.jobForm = this._formBuilder.group({
-            customerId  : [this.data.customerId || (this.data.job ? this.data.job.customerId : null), this.isGlobalCall ? Validators.required : null],
+            customerId  : [this.data.customerId || (this.data.job ? this.data.job.customerId : null), (this.isGlobalCall && !this.isMultiMode) ? Validators.required : null],
+            customerIds : [this.isMultiMode ? [] : null, (this.isGlobalCall && this.isMultiMode) ? Validators.required : null],
             jobTypeId   : [this.data.job ? this.data.job.jobTypeId : null, Validators.required],
             caption     : [this.data.job ? this.data.job.caption : 'General', Validators.required],
             description : [this.data.job ? this.data.job.description : ''],
@@ -88,13 +99,16 @@ export class JobDialogComponent implements OnInit
             targetEndDate: [this.data.job && this.data.job.targetEndDate ? new Date(this.data.job.targetEndDate) : null],
             deadline    : [this.data.job && this.data.job.deadline ? new Date(this.data.job.deadline) : null],
             dueDateDays : [this.data.job ? this.data.job.dueDateDays : 0],
-            dueDateBasis: [this.data.job ? this.data.job.dueDateBasis : 'Days'], 
-            ownerId     : [this.data.job ? this.data.job.ownerId : (this.data.currentUserId || null)],
+            dueDateBasis: [this.data.job ? this.data.job.dueDateBasis : 'Days'],             ownerId     : [this.data.job ? this.data.job.ownerId : (this.data.currentUserId || null)],
             responsibleId: [this.data.job ? this.data.job.responsibleId : null],
             isRecurring : [this.data.job ? this.data.job.isRecurring : false],
+            isInternal  : [this.isInternal],
             period      : [this.data.job ? this.data.job.period : 1],
             tasks       : this._formBuilder.array([])
         });
+
+        // Set customerId validator based on mode
+        this._updateCustomerValidator();
 
         // Lock fields in edit mode
         if (this.isEditMode) {
@@ -114,6 +128,12 @@ export class JobDialogComponent implements OnInit
                 }));
             });
         }
+
+        // Map staff names for searchable select
+        this.staff = this.staff.map(s => ({
+            ...s,
+            name: `${s.firstName} ${s.lastName}`
+        }));
     }
 
     /**
@@ -121,6 +141,8 @@ export class JobDialogComponent implements OnInit
      */
     onCategoryChange(isRecurring: boolean): void
     {
+        this.isRecurring = isRecurring;
+        this.jobForm.get('isRecurring').setValue(isRecurring);
         if (isRecurring)
         {
             this.jobForm.get('period').setValue(3); // Default to Weekly for recurring
@@ -130,6 +152,30 @@ export class JobDialogComponent implements OnInit
         {
             this.jobForm.get('period').setValue(1); // Reset to General
         }
+    }
+
+    /**
+     * Toggle Internal mode
+     */
+    toggleInternal(isInternal: boolean): void
+    {
+        this.isInternal = isInternal;
+        this.jobForm.get('isInternal').setValue(isInternal);
+        this._updateCustomerValidator();
+    }
+
+    private _updateCustomerValidator(): void
+    {
+        const customerIdControl = this.jobForm.get('customerId');
+        if (this.isInternal || this.isMultiMode || !this.isGlobalCall)
+        {
+            customerIdControl.clearValidators();
+        }
+        else
+        {
+            customerIdControl.setValidators(Validators.required);
+        }
+        customerIdControl.updateValueAndValidity();
     }
 
     newTaskText: string = '';
@@ -155,6 +201,21 @@ export class JobDialogComponent implements OnInit
     removeTask(index: number): void
     {
         this.tasksArray.removeAt(index);
+    }
+
+    /**
+     * Select/Deselect all customers
+     */
+    toggleAllCustomers(all: boolean): void
+    {
+        if (all)
+        {
+            this.jobForm.get('customerIds').setValue(this.customers.map(c => c.id));
+        }
+        else
+        {
+            this.jobForm.get('customerIds').setValue([]);
+        }
     }
 
     save(): void
