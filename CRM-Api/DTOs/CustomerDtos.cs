@@ -19,8 +19,8 @@ namespace CRM_Api.DTOs
     public class CustomerListDto
     {
         public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
         public string? Code { get; set; }
-        public string? Name { get; set; }
         public int ClientType { get; set; }
         public string? CustomerTypeNM { get; set; }
         public string? Email { get; set; }
@@ -164,5 +164,22 @@ namespace CRM_Api.DTOs
     public class ChangeTypeRequestDto
     {
         public int NewClientType { get; set; }
+    }
+
+    public class CustomerStatisticsDto
+    {
+        public int Total { get; set; }
+        public int Verified { get; set; }
+        public int Unverified { get; set; }
+        public int Active { get; set; }
+        public int Inactive { get; set; }
+    }
+
+    public class CustomerPagedResponseDto
+    {
+        public List<CustomerListDto> Items { get; set; } = new();
+        public int TotalCount { get; set; }
+        public int CurrentPage { get; set; }
+        public int PageSize { get; set; }
     }
 }

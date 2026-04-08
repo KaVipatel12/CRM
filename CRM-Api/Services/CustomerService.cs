@@ -21,12 +21,10 @@ namespace CRM_Api.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<CustomerListDto>> GetHistoryListAsync(CustomerListFilter filter)
+        public async Task<CustomerPagedResponseDto> GetHistoryListAsync(CustomerListFilter filter)
         {
             var query = _context.Customers
                 .Include(c => c.ContactInfo)
-                .Include(c => c.IndividualInfo)
-                .Include(c => c.CompanyInfo)
                 .AsQueryable();
 
             // Filtering logic
@@ -75,8 +73,10 @@ namespace CRM_Api.Services
                 );
             }
 
+            var totalCount = await query.CountAsync();
+
             // Pagination
-            var result = await query
+            var items = await query
                 .OrderBy(c => c.Name)
                 .Skip((filter.CurrentPage - 1) * filter.PageSize)
                 .Take(filter.PageSize)
@@ -98,7 +98,27 @@ namespace CRM_Api.Services
                 })
                 .ToListAsync();
 
-            return result;
+            return new CustomerPagedResponseDto
+            {
+                Items = items,
+                TotalCount = totalCount,
+                CurrentPage = filter.CurrentPage,
+                PageSize = filter.PageSize
+            };
+        }
+
+        public async Task<CustomerStatisticsDto> GetStatisticsAsync()
+        {
+            var baseQuery = _context.Customers.Where(c => !c.IsDeleted);
+            
+            return new CustomerStatisticsDto
+            {
+                Total = await baseQuery.CountAsync(),
+                Verified = await baseQuery.CountAsync(c => c.LastVarifiedDate != null),
+                Unverified = await baseQuery.CountAsync(c => c.LastVarifiedDate == null),
+                Active = await baseQuery.CountAsync(c => c.IsActive == true && (c.IsArchived == false || c.IsArchived == null) && (c.IsExcluded == false || c.IsExcluded == null)),
+                Inactive = await baseQuery.CountAsync(c => c.IsActive == false || c.IsArchived == true || c.IsExcluded == true)
+            };
         }
 
         public async Task<CustomerDetailsDto?> GetCustomerByIdAsync(int id)

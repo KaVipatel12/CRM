@@ -64,6 +64,14 @@ export class JobDialogComponent implements OnInit
         { id: 7, name: 'Yearly' }
     ];
 
+    recurringModes = [
+        { id: 'Weekly', name: 'Weekly' },
+        { id: 'Fortnightly', name: 'Fortnightly' },
+        { id: 'Monthly', name: 'Monthly' },
+        { id: 'Quarterly', name: 'Quarterly' },
+        { id: 'Yearly', name: 'Yearly' }
+    ];
+
     dueDateBasisOptions = ['Days', 'Weeks', 'Months'];
 
     constructor(
@@ -102,6 +110,7 @@ export class JobDialogComponent implements OnInit
             dueDateBasis: [this.data.job ? this.data.job.dueDateBasis : 'Days'],             ownerId     : [this.data.job ? this.data.job.ownerId : (this.data.currentUserId || null)],
             responsibleId: [this.data.job ? this.data.job.responsibleId : null],
             isRecurring : [this.data.job ? this.data.job.isRecurring : false],
+            recurringMode: [this.data.job ? this.data.job.recurringMode : 'Monthly'],
             isInternal  : [this.isInternal],
             period      : [this.data.job ? this.data.job.period : 1],
             tasks       : this._formBuilder.array([])

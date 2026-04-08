@@ -61,3 +61,18 @@ export interface ContactInfo {
     email?: string;
     email2?: string;
 }
+
+export interface CustomerStatistics {
+    total: number;
+    verified: number;
+    unverified: number;
+    active: number;
+    inactive: number;
+}
+
+export interface CustomerPagedResponse {
+    items: Customer[];
+    totalCount: number;
+    currentPage: number;
+    pageSize: number;
+}

@@ -4,6 +4,7 @@ using CRM_Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CRM_Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260408141934_AutoFix")]
+    partial class AutoFix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -670,61 +673,61 @@ namespace CRM_Api.Migrations
                         {
                             Id = 1,
                             CustomerTypeNM = "Individual",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 51, 36, 504, DateTimeKind.Local).AddTicks(4589)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 49, 33, 89, DateTimeKind.Local).AddTicks(9678)
                         },
                         new
                         {
                             Id = 2,
                             CustomerTypeNM = "Company",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 51, 36, 506, DateTimeKind.Local).AddTicks(3569)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 49, 33, 91, DateTimeKind.Local).AddTicks(3834)
                         },
                         new
                         {
                             Id = 3,
                             CustomerTypeNM = "Sole Proprietor",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 51, 36, 506, DateTimeKind.Local).AddTicks(3594)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 49, 33, 91, DateTimeKind.Local).AddTicks(3848)
                         },
                         new
                         {
                             Id = 4,
                             CustomerTypeNM = "Trust",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 51, 36, 506, DateTimeKind.Local).AddTicks(3596)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 49, 33, 91, DateTimeKind.Local).AddTicks(3849)
                         },
                         new
                         {
                             Id = 5,
                             CustomerTypeNM = "AKA",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 51, 36, 506, DateTimeKind.Local).AddTicks(3597)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 49, 33, 91, DateTimeKind.Local).AddTicks(3850)
                         },
                         new
                         {
                             Id = 6,
                             CustomerTypeNM = "Partnership",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 51, 36, 506, DateTimeKind.Local).AddTicks(3598)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 49, 33, 91, DateTimeKind.Local).AddTicks(3851)
                         },
                         new
                         {
                             Id = 7,
                             CustomerTypeNM = "SMSF",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 51, 36, 506, DateTimeKind.Local).AddTicks(3636)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 49, 33, 91, DateTimeKind.Local).AddTicks(3852)
                         },
                         new
                         {
                             Id = 8,
                             CustomerTypeNM = "Staff",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 51, 36, 506, DateTimeKind.Local).AddTicks(3637)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 49, 33, 91, DateTimeKind.Local).AddTicks(3853)
                         },
                         new
                         {
                             Id = 9,
                             CustomerTypeNM = "Supplier",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 51, 36, 506, DateTimeKind.Local).AddTicks(3639)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 49, 33, 91, DateTimeKind.Local).AddTicks(3854)
                         },
                         new
                         {
                             Id = 10,
                             CustomerTypeNM = "Other",
-                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 51, 36, 506, DateTimeKind.Local).AddTicks(3640)
+                            UpdateDateTime = new DateTime(2026, 4, 8, 19, 49, 33, 91, DateTimeKind.Local).AddTicks(3855)
                         });
                 });
 

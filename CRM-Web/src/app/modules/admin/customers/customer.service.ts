@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { API_BASE_URL } from 'app/app.config';
 import { toCamelCase } from 'app/core/utils/case-utils';
 import { Observable, map } from 'rxjs';
-import { Customer, CustomerListFilter } from './customer.types';
+import { Customer, CustomerListFilter, CustomerPagedResponse, CustomerStatistics } from './customer.types';
 
 @Injectable({ providedIn: 'root' })
 export class CustomerService {
@@ -14,7 +14,7 @@ export class CustomerService {
     /**
      * Get customers with filters and pagination
      */
-    getCustomers(filter: CustomerListFilter): Observable<Customer[]> {
+    getCustomers(filter: CustomerListFilter): Observable<CustomerPagedResponse> {
         let params = new HttpParams();
         
         if (filter.searchString) params = params.set('SearchString', filter.searchString);
@@ -29,7 +29,14 @@ export class CustomerService {
         
         if (filter.orderBy) params = params.set('OrderBy', filter.orderBy);
 
-        return this._httpClient.get<Customer[]>(this._baseUrl, { params });
+        return this._httpClient.get<CustomerPagedResponse>(this._baseUrl, { params });
+    }
+
+    /**
+     * Get customer statistics for dashboard metrics
+     */
+    getStatistics(): Observable<CustomerStatistics> {
+        return this._httpClient.get<CustomerStatistics>(`${this._baseUrl}/statistics`);
     }
 
     /**

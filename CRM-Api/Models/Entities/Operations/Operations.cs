@@ -22,26 +22,26 @@ namespace CRM_Api.Models.Entities.Operations
         public string CompanyName { get; set; }
         public int? Purpose { get; set; }
         public int? Status { get; set; }
-        public string Remark { get; set; }
+        public string Remark { get; set; } = string.Empty;
         public bool? IsClosed { get; set; }
         public bool? IsChecked { get; set; }
-        public string OtherPurpose { get; set; }
-        public string NatureOfBusiness { get; set; }
-        public string OtherNatureOfBusiness { get; set; }
-        public string HearAboutUs { get; set; }
-        public string OtherHearAboutUs { get; set; }
+        public string OtherPurpose { get; set; } = string.Empty;
+        public string NatureOfBusiness { get; set; } = string.Empty;
+        public string OtherNatureOfBusiness { get; set; } = string.Empty;
+        public string HearAboutUs { get; set; } = string.Empty;
+        public string OtherHearAboutUs { get; set; } = string.Empty;
 
         [ForeignKey("Purpose")]
-        public virtual Purpose PurposeNavigation { get; set; }
+        public virtual Purpose PurposeNavigation { get; set; } = null!;
     }
 
     [Table("Purpose")]
     public class Purpose
     {
         public int ID { get; set; }
-        public string PurposeName { get; set; }
+        public string PurposeName { get; set; } = string.Empty;
         public bool IsActive { get; set; }
-        public virtual ICollection<CallLogs> CallLogsPurposeNavigation { get; set; }
+        public virtual ICollection<CallLogs> CallLogsPurposeNavigation { get; set; } = new List<CallLogs>();
     }
 
     [Table("Job", Schema = "task")]
@@ -54,7 +54,7 @@ namespace CRM_Api.Models.Entities.Operations
         
         [Required]
         [StringLength(250)]
-        public string Caption { get; set; }
+        public string Caption { get; set; } = string.Empty;
         
         public string? Description { get; set; }
         
@@ -70,6 +70,10 @@ namespace CRM_Api.Models.Entities.Operations
         
         public int? ResponsibleId { get; set; }
         
+        public int? OriginalResponsibleId { get; set; }
+        public DateTime? TemporaryAssignmentUntil { get; set; }
+        public string? TemporaryAssignmentNote { get; set; }
+        
         public bool IsActive { get; set; } = true;
         
         public bool IsRecurring { get; set; } = false;
@@ -77,6 +81,8 @@ namespace CRM_Api.Models.Entities.Operations
         public bool IsInternal { get; set; } = false;
 
         public int? Period { get; set; }
+        public string? RecurringMode { get; set; } // Weekly, Monthly, Quarterly, Yearly
+        public int? ParentJobId { get; set; }
         public DateTime? TargetEndDate { get; set; }
         public int? DueDateDays { get; set; }
         public string? DueDateBasis { get; set; }
@@ -90,11 +96,11 @@ namespace CRM_Api.Models.Entities.Operations
         public virtual Customer.TypeMaster JobType { get; set; }
 
         [ForeignKey("CurrentStage")]
-        public virtual Customer.JobStatusMaster Status { get; set; }
+        public virtual Customer.JobStatusMaster? Status { get; set; }
 
-        public virtual ICollection<JobTask> Tasks { get; set; }
-        public virtual ICollection<JobComment> Comments { get; set; }
-        public virtual ICollection<JobHistory> History { get; set; }
+        public virtual ICollection<JobTask> Tasks { get; set; } = new List<JobTask>();
+        public virtual ICollection<JobComment> Comments { get; set; } = new List<JobComment>();
+        public virtual ICollection<JobHistory> History { get; set; } = new List<JobHistory>();
     }
 
     [Table("JobTask", Schema = "task")]

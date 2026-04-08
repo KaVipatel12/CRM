@@ -110,12 +110,56 @@ export class JobService {
     }
 
     /**
+     * Delete a comment
+     */
+    deleteComment(commentId: number): Observable<void> {
+        return this._httpClient.delete<void>(`${this._baseUrl}/comments/${commentId}`);
+    }
+
+    /**
      * Get dashboard statistics
      */
     getStatistics(): Observable<JobStatistics> {
         return this._httpClient.get<JobStatistics>(`${this._baseUrl}/stats`).pipe(
             map(data => toCamelCase(data))
         );
+    }
+
+    /**
+     * Mark multiple jobs with a new status
+     */
+    bulkUpdateStatus(jobIds: number[], statusId: number): Observable<any> {
+        return this._httpClient.put<any>(`${this._baseUrl}/bulk/status`, { jobIds, statusId });
+    }
+
+    /**
+     * Temporarily assign multiple jobs to a staff member until a specific date
+     */
+    bulkTemporaryAssign(payload: { jobIds: number[], staffId: number, untilDate: string, note: string }): Observable<any> {
+        return this._httpClient.put<any>(`${this._baseUrl}/bulk/temporary-assign`, payload);
+    }
+
+    /**
+     * Export filtered jobs to Excel
+     */
+    exportJobs(filter: JobFilter): Observable<Blob> {
+        let params = new HttpParams();
+        
+        if (filter.searchString) params = params.set('SearchString', filter.searchString);
+        if (filter.statusId !== undefined) params = params.set('StatusID', filter.statusId.toString());
+        if (filter.priority !== undefined) params = params.set('Priority', filter.priority.toString());
+        if (filter.jobTypeId !== undefined) params = params.set('JobTypeID', filter.jobTypeId.toString());
+        if (filter.ownerId !== undefined) params = params.set('OwnerID', filter.ownerId.toString());
+        if (filter.responsibleId !== undefined) params = params.set('ResponsibleID', filter.responsibleId.toString());
+        if (filter.customerId !== undefined) params = params.set('CustomerID', filter.customerId.toString());
+        if (filter.isActive !== undefined) params = params.set('IsActive', filter.isActive.toString());
+        if (filter.isRecurring !== undefined) params = params.set('IsRecurring', filter.isRecurring.toString());
+        if (filter.isInternal !== undefined) params = params.set('IsInternal', filter.isInternal.toString());
+
+        return this._httpClient.get(`${this._baseUrl}/export`, { 
+            params,
+            responseType: 'blob' 
+        });
     }
 
     /**

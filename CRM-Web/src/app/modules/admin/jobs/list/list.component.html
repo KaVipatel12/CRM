@@ -16,8 +16,8 @@
                 class="relative flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b">
                 <!-- Title -->
                 <div class="text-4xl font-extrabold tracking-tight">Jobs Dashboard</div>
-                <!-- Actions -->
-                <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4">
+                <!-- Search + Export (aligned right) -->
+                <div class="flex items-center mt-6 sm:mt-0 sm:ml-4 gap-3">
                     <!-- Search -->
                     <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript fuse-mat-rounded min-w-64">
                         <mat-icon class="icon-size-5" matPrefix
@@ -25,6 +25,41 @@
                         <input matInput [formControl]="searchInputControl" [autocomplete]="'off'"
                             [placeholder]="'Search jobs by caption or customer...'">
                     </mat-form-field>
+
+                    <!-- Export Button -->
+                    <button
+                        mat-flat-button
+                        class="bg-emerald-600 text-white"
+                        (click)="exportToExcel()"
+                        matTooltip="Export filtered list to Excel">
+                        <mat-icon class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:document-arrow-down'"></mat-icon>
+                        Export
+                    </button>
+
+                    <!-- Bulk Actions -->
+                    <button
+                        *ngIf="selection.hasValue()"
+                        mat-flat-button
+                        class="bg-primary text-on-primary transition-all animate-in fade-in zoom-in duration-300"
+                        [matMenuTriggerFor]="bulkStatusMenu">
+                        <span class="flex items-center">
+                            Options ({{selection.selected.length}})
+                            <mat-icon class="icon-size-5 ml-2" [svgIcon]="'heroicons_outline:chevron-down'"></mat-icon>
+                        </span>
+                    </button>
+                    <mat-menu #bulkStatusMenu="matMenu">
+                        <div class="px-4 py-2 text-sm font-semibold text-secondary uppercase tracking-wider">Change Status</div>
+                        <button mat-menu-item *ngFor="let status of statusMasters" (click)="bulkUpdateStatus(status.id)">
+                            <mat-icon class="icon-size-4 text-primary" [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
+                            <span>Mark as {{status.statusName}}</span>
+                        </button>
+                        <mat-divider class="my-2"></mat-divider>
+                        <div class="px-4 py-2 text-sm font-semibold text-secondary uppercase tracking-wider">Assignments</div>
+                        <button mat-menu-item (click)="openTemporaryAssignmentDialog()">
+                            <mat-icon class="icon-size-4 text-amber-500" [svgIcon]="'heroicons_outline:clock'"></mat-icon>
+                            <span>Assign Temporarily</span>
+                        </button>
+                    </mat-menu>
                 </div>
             </div>
 
@@ -137,6 +172,17 @@
                             </mat-select>
                         </mat-form-field>
 
+                        <!-- Assignee / Responsible Filter -->
+                        <mat-form-field *ngIf="isGlobalAdmin" class="fuse-mat-dense fuse-mat-no-subscript w-40"
+                            appearance="outline">
+                            <mat-select [(ngModel)]="filter.responsibleId" (selectionChange)="onFilterChange()"
+                                placeholder="Assignee">
+                                <mat-option [value]="undefined">All Assignees</mat-option>
+                                <mat-option *ngFor="let s of staff" [value]="s.id">{{s.firstName}}
+                                    {{s.lastName}}</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
                         <!-- Job Type Filter -->
                         <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-40" appearance="outline">
                             <mat-select [(ngModel)]="filter.jobTypeId" (selectionChange)="onFilterChange()"
@@ -180,13 +226,39 @@
 
                 <!-- Jobs Table -->
                 <div class="flex flex-col flex-auto overflow-y-auto px-6 md:px-8">
-                    <table mat-table [dataSource]="jobs" class="w-full bg-transparent overflow-hidden" matSort>
+                    <table mat-table [dataSource]="jobs" class="w-full bg-transparent">
+
+                    <!-- Checkbox Column -->
+                    <ng-container matColumnDef="select">
+                        <th mat-header-cell *matHeaderCellDef class="w-12 px-4">
+                            <mat-checkbox (change)="$event ? toggleAllRows() : null"
+                                        [checked]="selection.hasValue() && isAllSelected()"
+                                        [indeterminate]="selection.hasValue() && !isAllSelected()"
+                                        [color]="'primary'">
+                            </mat-checkbox>
+                        </th>
+                        <td mat-cell *matCellDef="let row" class="px-4">
+                            <mat-checkbox (click)="$event.stopPropagation()"
+                                        (change)="$event ? selection.toggle(row) : null"
+                                        [checked]="selection.isSelected(row)"
+                                        [color]="'primary'">
+                            </mat-checkbox>
+                        </td>
+                    </ng-container>
 
                         <!-- Customer Column -->
                         <ng-container matColumnDef="customer">
                             <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Customer</th>
                             <td mat-cell *matCellDef="let job" class="font-semibold text-primary">
                                 {{job.customerName}}
+                            </td>
+                        </ng-container>
+
+                        <!-- Customer Code Column -->
+                        <ng-container matColumnDef="customerCode">
+                            <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Code</th>
+                            <td mat-cell *matCellDef="let job">
+                                <span class="text-sm font-bold text-gray-900 dark:text-white">{{job.customerCode || '-'}}</span>
                             </td>
                         </ng-container>
 
@@ -225,6 +297,22 @@
                             </td>
                         </ng-container>
 
+                        <!-- Period Column -->
+                        <ng-container matColumnDef="period">
+                            <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Period</th>
+                            <td mat-cell *matCellDef="let job">
+                                <span class="text-sm text-secondary">{{job.period || '-'}}</span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Assign Date Column -->
+                        <ng-container matColumnDef="assignDate">
+                            <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Assign Date</th>
+                            <td mat-cell *matCellDef="let job">
+                                <span class="text-[13px] text-gray-500">{{job.assignDate ? (job.assignDate | date:'dd MMM yyyy') : '-'}}</span>
+                            </td>
+                        </ng-container>
+
                         <!-- Status Column -->
                         <ng-container matColumnDef="status">
                             <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Status</th>
@@ -259,6 +347,23 @@
                             </td>
                         </ng-container>
 
+                        <!-- Days Left Column -->
+                        <ng-container matColumnDef="daysLeft">
+                            <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Days Left</th>
+                            <td mat-cell *matCellDef="let job">
+                                <span *ngIf="job.daysLeft !== null && job.daysLeft !== undefined"
+                                    class="px-2 py-0.5 rounded text-[11px] font-bold"
+                                    [ngClass]="{
+                                        'bg-rose-100 text-rose-600': job.daysLeft < 0,
+                                        'bg-amber-100 text-amber-600': job.daysLeft >= 0 && job.daysLeft <= 7,
+                                        'bg-emerald-100 text-emerald-600': job.daysLeft > 7
+                                    }">
+                                    {{job.daysLeft < 0 ? (job.daysLeft * -1) + ' overdue' : job.daysLeft + 'd'}}
+                                </span>
+                                <span *ngIf="job.daysLeft === null || job.daysLeft === undefined" class="text-sm text-secondary">-</span>
+                            </td>
+                        </ng-container>
+
                         <!-- Actions Column -->
                         <ng-container matColumnDef="actions">
                             <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800 w-24"></th>
@@ -289,7 +394,10 @@
                                         class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-[11px] font-bold uppercase transition-transform hover:scale-110">
                                         {{job.responsibleName.substring(0, 1)}}
                                     </div>
-                                    <span class="text-sm font-medium">{{job.responsibleName}}</span>
+                                    <span class="text-sm font-medium flex flex-col justify-center">
+                                        <span>{{job.responsibleName}}</span>
+                                        <span *ngIf="job.originalResponsibleId" class="text-[10px] text-amber-600 font-bold bg-amber-50 px-1 py-0.5 rounded inline-block mt-0.5 max-w-fit" [matTooltip]="'Temporary until ' + (job.temporaryAssignmentUntil | date:'dd MMM yyyy')">(Temp)</span>
+                                    </span>
                                 </div>
                                 <span class="text-sm text-secondary font-bold" *ngIf="!job.responsibleName">-</span>
                             </td>

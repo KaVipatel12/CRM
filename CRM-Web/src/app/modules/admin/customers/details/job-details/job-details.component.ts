@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { Job, JobTask, JobComment } from '../../../jobs/job.types';
 import { JobService } from '../../../jobs/job.service';
+import { UserService } from 'app/core/user/user.service';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -47,10 +48,21 @@ export class JobDetailsComponent implements OnInit, OnDestroy
     commentForm: FormGroup;
     taskForm: FormGroup;
     isLoading: boolean = true;
+    currentUserId: number | null = null;
+    isGlobalAdmin: boolean = false;
+    
+    recurringModes = [
+        { id: 'Weekly', name: 'Weekly' },
+        { id: 'Fortnightly', name: 'Fortnightly' },
+        { id: 'Monthly', name: 'Monthly' },
+        { id: 'Quarterly', name: 'Quarterly' },
+        { id: 'Yearly', name: 'Yearly' }
+    ];
 
     private _changeDetectorRef = inject(ChangeDetectorRef);
     private _formBuilder = inject(FormBuilder);
     private _jobService = inject(JobService);
+    private _userService = inject(UserService);
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     /**
@@ -77,6 +89,16 @@ export class JobDetailsComponent implements OnInit, OnDestroy
      */
     ngOnInit(): void
     {
+        // Get current user
+        this._userService.user$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((user) => {
+                if (user) {
+                    this.currentUserId = Number(user.id);
+                    this.isGlobalAdmin = user.isSuperAdmin === true || user.isAdmin === true;
+                }
+            });
+
         if (this.jobId)
         {
             this.loadJob();
@@ -140,6 +162,26 @@ export class JobDetailsComponent implements OnInit, OnDestroy
                     this.job.currentStage = oldStage;
                     this.job.statusName = oldStatusName;
                     this._changeDetectorRef.markForCheck();
+                }
+            });
+    }
+    
+    /**
+     * Update recurring mode
+     */
+    updateRecurringMode(mode: string): void
+    {
+        if (!this.job || this.job.recurringMode === mode) return;
+
+        this.job.recurringMode = mode;
+        this._jobService.updateJob(this.job.id, this.job)
+            .subscribe({
+                next: () => {
+                    this.jobUpdated.emit();
+                    this.loadJob();
+                },
+                error: () => {
+                    this.loadJob(); // Reset UI
                 }
             });
     }
@@ -208,5 +250,24 @@ export class JobDetailsComponent implements OnInit, OnDestroy
                 this.commentForm.reset();
                 this._changeDetectorRef.markForCheck();
             });
+    }
+
+    /**
+     * Delete comment (only owner or admin)
+     */
+    deleteComment(commentId: number): void
+    {
+        this._jobService.deleteComment(commentId)
+            .subscribe(() => {
+                this.job.comments = this.job.comments.filter(c => c.id !== commentId);
+                this._changeDetectorRef.markForCheck();
+            });
+    }
+
+    /**
+     * Check if the current user can delete a comment
+     */
+    canDeleteComment(comment: any): boolean {
+        return this.isGlobalAdmin || comment.userId === this.currentUserId;
     }
 }

@@ -8,6 +8,7 @@ using System.Text;
 using OfficeOpenXml;
 using CRM_Api.Models;
 using Microsoft.AspNetCore.Identity;
+using CRM_Api.Workers;
 
 OfficeOpenXml.ExcelPackage.License.SetNonCommercialOrganization("SSP CRM");
 
@@ -35,9 +36,13 @@ builder.Services.AddControllers()
 // Configure EF Core with SQL Server
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-    options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+           .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 });
+
+// Register background workers
+builder.Services.AddHostedService<TemporaryAssignmentRevertWorker>();
+builder.Services.AddHostedService<JobRecurringWorker>();
 
 // Configure Identity
 builder.Services.AddIdentity<User, IdentityRole<int>>(options =>

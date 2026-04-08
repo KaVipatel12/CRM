@@ -70,6 +70,22 @@
                 <mat-tab label="Tasks">
                     <div class="p-6 md:p-8 space-y-6">
                         
+                        <!-- Recurring Settings -->
+                        <div *ngIf="job.isRecurring" class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 rounded-xl p-4 mb-6">
+                            <div class="flex items-center gap-2 mb-3 text-indigo-700 dark:text-indigo-400">
+                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
+                                <span class="text-sm font-bold uppercase tracking-wider">Recurring Job Settings</span>
+                            </div>
+                            
+                            <mat-form-field class="fuse-mat-no-subscript w-full" appearance="outline">
+                                <mat-label>Auto-Creation Mode</mat-label>
+                                <mat-select [value]="job.recurringMode" (selectionChange)="updateRecurringMode($event.value)">
+                                    <mat-option *ngFor="let m of recurringModes" [value]="m.id">{{m.name}}</mat-option>
+                                </mat-select>
+                                <mat-hint class="text-[10px] mt-1">Next period created ~7 days before end date.</mat-hint>
+                            </mat-form-field>
+                        </div>
+
                         <!-- Add Task Input -->
                         <div class="bg-gray-50 dark:bg-transparent border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm">
                             <form [formGroup]="taskForm" (ngSubmit)="addTask()" class="flex items-start gap-2">
@@ -129,7 +145,7 @@
                                 Be the first to add a comment!
                             </div>
 
-                            <div *ngFor="let comment of job.comments" class="flex gap-4">
+                            <div *ngFor="let comment of job.comments" class="flex gap-4 group">
                                 <div class="flex flex-col flex-0 items-center h-full">
                                     <div class="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold uppercase text-xs">
                                         {{ comment.userName?.substring(0, 1) || 'U' }}
@@ -137,9 +153,18 @@
                                     <div class="w-px flex-1 bg-gray-200 dark:bg-gray-800 mt-2"></div>
                                 </div>
                                 <div class="flex flex-col flex-auto pb-4">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="text-sm font-bold">{{ comment.userName || 'Unknown User' }}</span>
-                                        <span class="text-[10px] text-secondary">{{ comment.createdAt | date:'MMM dd, yyyy HH:mm' }}</span>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm font-bold">{{ comment.userName || 'Unknown User' }}</span>
+                                            <span class="text-[10px] text-secondary">{{ comment.createdAt | date:'MMM dd, yyyy HH:mm' }}</span>
+                                        </div>
+                                        <button *ngIf="canDeleteComment(comment)" 
+                                            mat-icon-button 
+                                            class="h-7 w-7 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            (click)="deleteComment(comment.id)"
+                                            matTooltip="Delete comment">
+                                            <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                                        </button>
                                     </div>
                                     <div class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-3 rounded-lg rounded-tl-none whitespace-pre-wrap leading-relaxed">
                                         {{ comment.text }}

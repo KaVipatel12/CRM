@@ -83,6 +83,7 @@ export class ListComponent implements OnInit, OnDestroy {
         inactive: 0
     };
     
+    totalCount: number = 0;
     searchInputControl: FormControl = new FormControl();
     private _changeDetectorRef = inject(ChangeDetectorRef);
     private _unsubscribeAll: Subject<any> = new Subject<any>();
@@ -98,6 +99,7 @@ export class ListComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.loadLookups();
+        this.loadStatistics();
         this.loadCustomers();
         
         // Check if user is a checker
@@ -144,20 +146,11 @@ export class ListComponent implements OnInit, OnDestroy {
         this._customerService.getCustomers(this.filters)
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe({
-                next: (data) => {
-                    this.customers = data;
-                    this.dataSource.data = data;
+                next: (response) => {
+                    this.customers = response.items;
+                    this.totalCount = response.totalCount;
+                    this.dataSource.data = response.items;
                     this.isLoading = false;
-                    
-                    // Update stats (Local calculation for now)
-                    if (data && data.length > 0) {
-                        this.stats.total = data.length; // This is just the page count, will be totalCount later
-                        this.stats.verified = data.filter(c => c.lastVarifiedDate).length;
-                        this.stats.unverified = data.filter(c => !c.lastVarifiedDate).length;
-                        this.stats.active = data.filter(c => c.isActive && !c.isDeleted).length;
-                        this.stats.inactive = data.filter(c => !c.isActive || c.isDeleted).length;
-                    }
-                    
                     this._changeDetectorRef.markForCheck();
                 },
                 error: () => {
@@ -165,6 +158,21 @@ export class ListComponent implements OnInit, OnDestroy {
                     this._changeDetectorRef.markForCheck();
                 }
             });
+    }
+
+    loadStatistics(): void {
+        this._customerService.getStatistics()
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(stats => {
+                this.stats = stats;
+                this._changeDetectorRef.markForCheck();
+            });
+    }
+
+    onPageChange(event: any): void {
+        this.filters.currentPage = event.pageIndex + 1;
+        this.filters.pageSize = event.pageSize;
+        this.loadCustomers();
     }
 
     onFilterChange(): void {

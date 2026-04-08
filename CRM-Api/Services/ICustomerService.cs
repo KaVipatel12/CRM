@@ -6,7 +6,8 @@ namespace CRM_Api.Services
 {
     public interface ICustomerService
     {
-        Task<IEnumerable<CustomerListDto>> GetHistoryListAsync(CustomerListFilter filter);
+        Task<CustomerPagedResponseDto> GetHistoryListAsync(CustomerListFilter filter);
+        Task<CustomerStatisticsDto> GetStatisticsAsync();
         Task<CustomerDetailsDto?> GetCustomerByIdAsync(int id);
         Task<int> CreateCustomerAsync(CustomerSaveDto dto);
         Task<bool> UpdateCustomerAsync(int id, CustomerSaveDto dto);

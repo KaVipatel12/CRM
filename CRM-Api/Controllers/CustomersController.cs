@@ -23,10 +23,17 @@ namespace CRM_Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CustomerListDto>>> GetCustomers([FromQuery] CustomerListFilter filter)
+        public async Task<ActionResult<CustomerPagedResponseDto>> GetCustomers([FromQuery] CustomerListFilter filter)
         {
-            var customers = await _customerService.GetHistoryListAsync(filter);
-            return Ok(customers);
+            var pagedResult = await _customerService.GetHistoryListAsync(filter);
+            return Ok(pagedResult);
+        }
+
+        [HttpGet("statistics")]
+        public async Task<ActionResult<CustomerStatisticsDto>> GetStatistics()
+        {
+            var stats = await _customerService.GetStatisticsAsync();
+            return Ok(stats);
         }
 
         [HttpGet("{id:int}")]

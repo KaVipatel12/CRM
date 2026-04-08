@@ -7,6 +7,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using System.IO;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace CRM_Api.Controllers
 {
@@ -70,6 +75,7 @@ namespace CRM_Api.Controllers
                     Id = j.Id,
                     CustomerId = j.CustomerId,
                     CustomerName = j.CustomerId.HasValue ? j.Customer.Name : "Internal Operation",
+                    CustomerCode = j.CustomerId.HasValue ? j.Customer.Code : null,
                     IsInternal = j.IsInternal,
                     JobTypeId = j.JobTypeId,
                     JobTypeName = j.JobType.Type,
@@ -78,11 +84,16 @@ namespace CRM_Api.Controllers
                     Priority = j.Priority,
                     CurrentStage = j.CurrentStage,
                     StatusName = j.Status != null ? j.Status.StatusName : "Pending",
+                    AssignDate = j.StartDate ?? j.CreatedDate,
                     StartDate = j.StartDate,
                     Deadline = j.Deadline,
+                    DaysLeft = j.Deadline.HasValue ? (j.Deadline.Value - DateTime.Now).Days : null,
                     OwnerId = j.OwnerId,
                     ResponsibleId = j.ResponsibleId,
+                    OriginalResponsibleId = j.OriginalResponsibleId,
+                    TemporaryAssignmentUntil = j.TemporaryAssignmentUntil,
                     Period = j.Period,
+                    RecurringMode = j.RecurringMode,
                     TargetEndDate = j.TargetEndDate,
                     DueDateDays = j.DueDateDays,
                     DueDateBasis = j.DueDateBasis,
@@ -119,6 +130,152 @@ namespace CRM_Api.Controllers
             return stats;
         }
 
+        [HttpPut("bulk/status")]
+        public async Task<IActionResult> BulkUpdateStatus([FromBody] BulkJobStatusUpdateDto request)
+        {
+            if (request == null || !request.JobIds.Any()) return BadRequest("No job IDs provided.");
+
+            var status = await _context.JobStatusMasters.FindAsync(request.StatusId);
+            if (status == null) return BadRequest("Invalid status ID.");
+
+            var jobs = await _context.Jobs
+                .Where(j => request.JobIds.Contains(j.Id) && j.CurrentStage != request.StatusId)
+                .ToListAsync();
+
+            foreach (var job in jobs)
+            {
+                job.CurrentStage = request.StatusId;
+                job.UpdateDateTime = DateTime.Now;
+
+                _context.JobHistories.Add(new JobHistory
+                {
+                    JobId = job.Id,
+                    Event = $"Job status updated to {status.StatusName} via Bulk Action",
+                    Timestamp = DateTime.Now,
+                    UserId = 0 // Placeholder
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { Count = jobs.Count });
+        }
+
+        [HttpPut("bulk/temporary-assign")]
+        public async Task<IActionResult> BulkUpdateTemporaryAssignment([FromBody] BulkTemporaryAssignmentDto request)
+        {
+            if (request == null || !request.JobIds.Any()) return BadRequest("No job IDs provided.");
+
+            var jobs = await _context.Jobs
+                .Where(j => request.JobIds.Contains(j.Id))
+                .ToListAsync();
+
+            foreach (var job in jobs)
+            {
+                if (job.OriginalResponsibleId == null)
+                {
+                    job.OriginalResponsibleId = job.ResponsibleId;
+                }
+                job.ResponsibleId = request.StaffId;
+                job.TemporaryAssignmentUntil = request.UntilDate.Date.AddDays(1).AddSeconds(-1); // End of the day
+                job.TemporaryAssignmentNote = request.Note;
+                job.UpdateDateTime = DateTime.Now;
+
+                _context.JobHistories.Add(new JobHistory
+                {
+                    JobId = job.Id,
+                    Event = $"Temporarily assigned to Staff ID {request.StaffId} until {request.UntilDate:yyyy-MM-dd}. Reason: {request.Note}",
+                    Timestamp = DateTime.Now,
+                    UserId = 0 // Placeholder
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { Count = jobs.Count });
+        }
+
+
+        [HttpGet("export")]
+        public async Task<IActionResult> Export([FromQuery] JobFilterDto filter)
+        {
+            var query = _context.Jobs
+                .Include(j => j.Customer)
+                .Include(j => j.JobType)
+                .Include(j => j.Status)
+                .AsQueryable();
+
+            // Apply same filters as GetJobs but NO Paging
+            if (!string.IsNullOrWhiteSpace(filter.SearchString))
+            {
+                var search = filter.SearchString.ToLower();
+                query = query.Where(j => j.Caption.ToLower().Contains(search) || 
+                                         (j.Description != null && j.Description.ToLower().Contains(search)) ||
+                                         (j.CustomerId.HasValue && j.Customer.Name.ToLower().Contains(search)));
+            }
+
+            if (filter.StatusId.HasValue) query = query.Where(j => j.CurrentStage == filter.StatusId);
+            if (filter.Priority.HasValue) query = query.Where(j => j.Priority == filter.Priority);
+            if (filter.JobTypeId.HasValue) query = query.Where(j => j.JobTypeId == filter.JobTypeId);
+            if (filter.OwnerId.HasValue) query = query.Where(j => j.OwnerId == filter.OwnerId);
+            if (filter.ResponsibleId.HasValue) query = query.Where(j => j.ResponsibleId == filter.ResponsibleId);
+            if (filter.CustomerId.HasValue) query = query.Where(j => j.CustomerId == filter.CustomerId);
+            if (filter.IsActive.HasValue) query = query.Where(j => j.IsActive == filter.IsActive);
+            if (filter.IsRecurring.HasValue) query = query.Where(j => j.IsRecurring == filter.IsRecurring);
+            if (filter.IsInternal.HasValue) query = query.Where(j => j.IsInternal == filter.IsInternal);
+
+            var jobs = await query
+                .OrderByDescending(j => j.UpdateDateTime)
+                .Select(j => new
+                {
+                    j.Id,
+                    Customer = j.CustomerId.HasValue ? j.Customer.Name : "Internal",
+                    Type = j.JobType.Type,
+                    j.Caption,
+                    Priority = j.Priority == 1 ? "Low" : (j.Priority == 2 ? "Medium" : (j.Priority == 3 ? "High" : "Urgent")),
+                    Status = j.Status != null ? j.Status.StatusName : "Pending",
+                    Deadline = j.Deadline,
+                    CreatedDate = j.CreatedDate
+                })
+                .ToListAsync();
+
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("Jobs");
+
+                // Headers
+                var headers = new[] { "ID", "Customer", "Job Type", "Caption", "Priority", "Status", "Deadline", "Created Date" };
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    worksheet.Cells[1, i + 1].Value = headers[i];
+                    worksheet.Cells[1, i + 1].Style.Font.Bold = true;
+                    worksheet.Cells[1, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    worksheet.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                }
+
+                // Data
+                for (int i = 0; i < jobs.Count; i++)
+                {
+                    var job = jobs[i];
+                    worksheet.Cells[i + 2, 1].Value = job.Id;
+                    worksheet.Cells[i + 2, 2].Value = job.Customer;
+                    worksheet.Cells[i + 2, 3].Value = job.Type;
+                    worksheet.Cells[i + 2, 4].Value = job.Caption;
+                    worksheet.Cells[i + 2, 5].Value = job.Priority;
+                    worksheet.Cells[i + 2, 6].Value = job.Status;
+                    worksheet.Cells[i + 2, 7].Value = job.Deadline?.ToString("yyyy-MM-dd");
+                    worksheet.Cells[i + 2, 8].Value = job.CreatedDate.ToString("yyyy-MM-dd");
+                }
+
+                worksheet.Cells.AutoFitColumns();
+
+                var stream = new MemoryStream();
+                package.SaveAs(stream);
+                stream.Position = 0;
+
+                string excelName = $"JobsList-{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excelName);
+            }
+        }
+
         [HttpGet("customer/{customerId}")]
         public async Task<ActionResult<IEnumerable<JobDto>>> GetJobsByCustomer(int customerId)
         {
@@ -133,6 +290,7 @@ namespace CRM_Api.Controllers
                     Id = j.Id,
                     CustomerId = j.CustomerId,
                     CustomerName = j.CustomerId.HasValue ? j.Customer.Name : "Internal Operation",
+                    CustomerCode = j.CustomerId.HasValue ? j.Customer.Code : null,
                     IsInternal = j.IsInternal,
                     JobTypeId = j.JobTypeId,
                     JobTypeName = j.JobType.Type,
@@ -141,10 +299,14 @@ namespace CRM_Api.Controllers
                     Priority = j.Priority,
                     CurrentStage = j.CurrentStage,
                     StatusName = j.Status != null ? j.Status.StatusName : "Pending",
+                    AssignDate = j.StartDate ?? j.CreatedDate,
                     StartDate = j.StartDate,
                     Deadline = j.Deadline,
+                    DaysLeft = j.Deadline.HasValue ? (j.Deadline.Value - DateTime.Now).Days : null,
                     OwnerId = j.OwnerId,
                     ResponsibleId = j.ResponsibleId,
+                    OriginalResponsibleId = j.OriginalResponsibleId,
+                    TemporaryAssignmentUntil = j.TemporaryAssignmentUntil,
                     Period = j.Period,
                     TargetEndDate = j.TargetEndDate,
                     DueDateDays = j.DueDateDays,
@@ -176,6 +338,7 @@ namespace CRM_Api.Controllers
                 Id = job.Id,
                 CustomerId = job.CustomerId,
                 CustomerName = job.CustomerId.HasValue ? job.Customer.Name : "Office Schedule",
+                CustomerCode = job.CustomerId.HasValue ? job.Customer.Code : null,
                 IsInternal = job.IsInternal,
                 JobTypeId = job.JobTypeId,
                 JobTypeName = job.JobType.Type,
@@ -184,11 +347,16 @@ namespace CRM_Api.Controllers
                 Priority = job.Priority,
                 CurrentStage = job.CurrentStage,
                 StatusName = job.Status != null ? job.Status.StatusName : "Pending",
+                AssignDate = job.StartDate ?? job.CreatedDate,
                 StartDate = job.StartDate,
                 Deadline = job.Deadline,
+                DaysLeft = job.Deadline.HasValue ? (job.Deadline.Value - DateTime.Now).Days : null,
                 OwnerId = job.OwnerId,
                 ResponsibleId = job.ResponsibleId,
+                OriginalResponsibleId = job.OriginalResponsibleId,
+                TemporaryAssignmentUntil = job.TemporaryAssignmentUntil,
                 Period = job.Period,
+                RecurringMode = job.RecurringMode,
                 TargetEndDate = job.TargetEndDate,
                 DueDateDays = job.DueDateDays,
                 DueDateBasis = job.DueDateBasis,
@@ -233,7 +401,7 @@ namespace CRM_Api.Controllers
             {
                 CustomerId = dto.CustomerId,
                 JobTypeId = dto.JobTypeId,
-                Caption = dto.Caption,
+                Caption = dto.Caption!,
                 Description = dto.Description,
                 Priority = dto.Priority,
                 CurrentStage = dto.CurrentStage ?? 1, // Default to first stage
@@ -242,6 +410,7 @@ namespace CRM_Api.Controllers
                 OwnerId = dto.OwnerId,
                 ResponsibleId = dto.ResponsibleId,
                 Period = dto.Period,
+                RecurringMode = dto.RecurringMode,
                 TargetEndDate = dto.TargetEndDate,
                 DueDateDays = dto.DueDateDays,
                 DueDateBasis = dto.DueDateBasis,
@@ -293,15 +462,24 @@ namespace CRM_Api.Controllers
             int? oldStage = job.CurrentStage;
 
             job.JobTypeId = dto.JobTypeId;
-            job.Caption = dto.Caption;
+            job.Caption = dto.Caption!;
             job.Description = dto.Description;
             job.Priority = dto.Priority;
             job.CurrentStage = dto.CurrentStage;
             job.StartDate = dto.StartDate;
             job.Deadline = dto.Deadline;
             job.OwnerId = dto.OwnerId;
-            job.ResponsibleId = dto.ResponsibleId;
+            
+            // If the assignee is manually changed from the Edit form, abort any active temporary assignment
+            if (job.ResponsibleId != dto.ResponsibleId)
+            {
+                job.ResponsibleId = dto.ResponsibleId;
+                job.OriginalResponsibleId = null;
+                job.TemporaryAssignmentUntil = null;
+                job.TemporaryAssignmentNote = null;
+            }
             job.Period = dto.Period;
+            job.RecurringMode = dto.RecurringMode;
             job.TargetEndDate = dto.TargetEndDate;
             job.DueDateDays = dto.DueDateDays;
             job.DueDateBasis = dto.DueDateBasis;
@@ -373,9 +551,16 @@ namespace CRM_Api.Controllers
             var job = await _context.Jobs.FindAsync(id);
             if (job == null) return NotFound();
 
+            // Get the logged-in user's ID from JWT
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                               ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            int userId = 0;
+            if (!string.IsNullOrEmpty(userIdString)) int.TryParse(userIdString, out userId);
+
             var comment = new JobComment
             {
                 JobId = id,
+                UserId = userId,
                 Text = text,
                 CreatedAt = DateTime.Now
             };
@@ -383,13 +568,45 @@ namespace CRM_Api.Controllers
             _context.JobComments.Add(comment);
             await _context.SaveChangesAsync();
 
+            // Look up user name
+            var userName = await _context.Users
+                .Where(u => u.Id == userId)
+                .Select(u => u.FirstName + " " + u.LastName)
+                .FirstOrDefaultAsync() ?? "System";
+
             return Ok(new JobCommentDto
             {
                 Id = comment.Id,
                 JobId = comment.JobId,
+                UserId = comment.UserId,
+                UserName = userName,
                 Text = comment.Text,
                 CreatedAt = comment.CreatedAt
             });
+        }
+
+        [HttpDelete("comments/{commentId}")]
+        public async Task<IActionResult> DeleteComment(int commentId)
+        {
+            var comment = await _context.JobComments.FindAsync(commentId);
+            if (comment == null) return NotFound();
+
+            // Get logged-in user
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                               ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            int userId = 0;
+            if (!string.IsNullOrEmpty(userIdString)) int.TryParse(userIdString, out userId);
+
+            // Check: only comment owner or admin can delete
+            var roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+            bool isAdmin = roles.Contains("SuperAdmin") || roles.Contains("Admin");
+
+            if (comment.UserId != userId && !isAdmin)
+                return Forbid("You can only delete your own comments.");
+
+            _context.JobComments.Remove(comment);
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
         [HttpDelete("tasks/{taskId}")]
         public async Task<IActionResult> DeleteTask(int taskId)

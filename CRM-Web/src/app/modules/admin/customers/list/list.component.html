@@ -219,8 +219,11 @@
         <!-- Paginator Footer -->
         <div class="flex items-center justify-between border-t bg-gray-50 dark:bg-transparent px-6 md:px-8">
             <mat-paginator
+                [length]="totalCount"
+                [pageSize]="filters.pageSize"
                 [pageSizeOptions]="[10, 25, 50, 100]"
-                [showFirstLastButtons]="true"></mat-paginator>
+                [showFirstLastButtons]="true"
+                (page)="onPageChange($event)"></mat-paginator>
             <div class="text-sm font-medium text-secondary hidden sm:block">
                 Region: Global Listing
             </div>

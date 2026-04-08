@@ -11,7 +11,7 @@ namespace CRM_Api.Models.Entities.Customer
     {
         [Required]
         [StringLength(150)]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         [StringLength(15)]
         public string? Code { get; set; }
 
@@ -64,15 +64,14 @@ namespace CRM_Api.Models.Entities.Customer
         public DateTime? CreatedDate { get; set; }
         public bool? IsExcluded { get; set; }
         public int? StaffInCharge { get; set; }
-        public virtual ICollection<BankAccount> BankAccounts { get; set; }
-
-        public virtual ICollection<Address> Addresses { get; set; }
-        public virtual ICollection<Branch> Branches { get; set; }
-        public virtual IndividualInfo IndividualInfo { get; set; }
-        public virtual CompanyInfo CompanyInfo { get; set; }
-        public virtual TrustInfo TrustInfo { get; set; }
-        public virtual SolePropriterInfo SolePropriterInfo { get; set; }
-        public virtual ContactInfo ContactInfo { get; set; }
+        public virtual ICollection<BankAccount> BankAccounts { get; set; } = new List<BankAccount>();
+        public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
+        public virtual ICollection<Branch> Branches { get; set; } = new List<Branch>();
+        public virtual IndividualInfo? IndividualInfo { get; set; }
+        public virtual CompanyInfo? CompanyInfo { get; set; }
+        public virtual TrustInfo? TrustInfo { get; set; }
+        public virtual SolePropriterInfo? SolePropriterInfo { get; set; }
+        public virtual ContactInfo? ContactInfo { get; set; }
     }
 
     [Table("Address", Schema = "cust")]

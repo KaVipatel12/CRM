@@ -234,6 +234,15 @@
                     </mat-select>
                 </mat-form-field>
 
+                <!-- Auto-Creation Mode (Optimized) -->
+                <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+                    <mat-label>Auto-Creation Mode</mat-label>
+                    <mat-select [formControlName]="'recurringMode'">
+                        <mat-option *ngFor="let m of recurringModes" [value]="m.id">{{m.name}}</mat-option>
+                    </mat-select>
+                    <mat-hint>System will auto-create the next period based on this mode.</mat-hint>
+                </mat-form-field>
+
                 <!-- Due Time Basis -->
                 <div class="flex gap-4 mb-6">
                     <mat-form-field class="fuse-mat-no-subscript flex-1">
@@ -259,7 +268,7 @@
                 <mat-datepicker #startPicker></mat-datepicker>
             </mat-form-field>
 
-            <!-- Deadline (Only for single jobs) -->
+            <!-- Deadline (Only for single jobs — for recurring, Due Time handles this) -->
             <mat-form-field *ngIf="!jobForm.get('isRecurring').value" class="fuse-mat-no-subscript w-full mb-6">
                 <mat-label>Internal Deadline</mat-label>
                 <input matInput [matDatepicker]="deadlinePicker" [formControlName]="'deadline'">
@@ -267,12 +276,13 @@
                 <mat-datepicker #deadlinePicker></mat-datepicker>
             </mat-form-field>
 
-            <!-- Target End Date -->
+            <!-- Target End Date — for single: completion date. For recurring: stop recurring after this date -->
             <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
-                <mat-label>Target Completion Date</mat-label>
+                <mat-label>{{ jobForm.get('isRecurring').value ? 'Stop Recurring After (Optional)' : 'Target Completion Date' }}</mat-label>
                 <input matInput [matDatepicker]="targetPicker" [formControlName]="'targetEndDate'">
                 <mat-datepicker-toggle matSuffix [for]="targetPicker"></mat-datepicker-toggle>
                 <mat-datepicker #targetPicker></mat-datepicker>
+                <mat-hint *ngIf="jobForm.get('isRecurring').value">Leave empty for infinite recurrence</mat-hint>
             </mat-form-field>
         </div>
 

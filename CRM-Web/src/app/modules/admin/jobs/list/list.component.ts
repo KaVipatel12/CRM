@@ -12,12 +12,17 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialog } from '@angular/material/dialog';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { SelectionModel } from '@angular/cdk/collections';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
 import { Subject, debounceTime, takeUntil, concatMap, from, finalize } from 'rxjs';
 import { UserService } from 'app/core/user/user.service';
 import { Job, JobFilter, JobStatistics } from '../job.types';
 import { JobService } from '../job.service';
 import { JobDetailsComponent } from '../../customers/details/job-details/job-details.component';
 import { JobDialogComponent } from '../../customers/details/job-dialog/job-dialog.component';
+import { TemporaryAssignmentDialogComponent } from './temporary-assignment-dialog.component';
 
 @Component({
     selector: 'jobs-list',
@@ -38,6 +43,9 @@ import { JobDialogComponent } from '../../customers/details/job-dialog/job-dialo
         MatPaginatorModule,
         MatTableModule,
         MatTooltipModule,
+        MatCheckboxModule,
+        MatMenuModule,
+        MatDividerModule,
         MatProgressBarModule,
         JobDetailsComponent
     ]
@@ -73,8 +81,12 @@ export class JobsListComponent implements OnInit, OnDestroy {
     currentUserId: number | null = null;
     isGlobalAdmin: boolean = false;
     
+    
+    // Selection
+    selection = new SelectionModel<Job>(true, []);
+
     // Displayed columns
-    displayedColumns: string[] = ['customer', 'jobType', 'caption', 'priority', 'status', 'deadline', 'responsible', 'owner', 'actions'];
+    displayedColumns: string[] = ['select', 'customerCode', 'customer', 'jobType', 'caption', 'priority', 'status', 'period', 'assignDate', 'deadline', 'daysLeft', 'responsible', 'owner', 'actions'];
 
     private _changeDetectorRef = inject(ChangeDetectorRef);
     private _matDialog = inject(MatDialog);
@@ -144,6 +156,7 @@ export class JobsListComponent implements OnInit, OnDestroy {
             .subscribe((response) => {
                 this.jobs = response.items;
                 this.totalCount = response.totalCount;
+                this.selection.clear();
                 this.mapStaffNamesToJobs();
                 this.isLoading = false;
                 this._changeDetectorRef.markForCheck();
@@ -197,6 +210,91 @@ export class JobsListComponent implements OnInit, OnDestroy {
     isOverdue(dateStr: string | null | undefined): boolean {
         if (!dateStr) return false;
         return new Date(dateStr) < new Date();
+    }
+
+    /**
+     * Whether the number of selected elements matches the total number of rows.
+     */
+    isAllSelected(): boolean {
+        const numSelected = this.selection.selected.length;
+        const numRows = this.jobs.length;
+        return numSelected === numRows;
+    }
+
+    /**
+     * Selects all rows if they are not all selected; otherwise clear selection.
+     */
+    toggleAllRows(): void {
+        this.isAllSelected() ?
+            this.selection.clear() :
+            this.jobs.forEach(row => this.selection.select(row));
+    }
+
+    /**
+     * Bulk update status for selected jobs
+     */
+    bulkUpdateStatus(statusId: number): void {
+        const selectedIds = this.selection.selected.map(j => j.id);
+        if (!selectedIds.length) return;
+
+        this.isLoading = true;
+        this._jobService.bulkUpdateStatus(selectedIds, statusId)
+            .pipe(finalize(() => this.isLoading = false))
+            .subscribe(() => {
+                this.selection.clear();
+                this.loadJobs();
+                this.loadStats();
+            });
+    }
+
+    /**
+     * Open dialog to temporarily assign selected jobs
+     */
+    openTemporaryAssignmentDialog(): void {
+        const selectedIds = this.selection.selected.map(j => j.id);
+        if (!selectedIds.length) return;
+
+        const dialogRef = this._matDialog.open(TemporaryAssignmentDialogComponent, {
+            width: '450px',
+            data: { staffList: this.staff, jobCount: selectedIds.length }
+        });
+
+        dialogRef.afterClosed().pipe(takeUntil(this._unsubscribeAll)).subscribe(result => {
+            if (result) {
+                // Ensure date is ISO string formatting appropriately before sending
+                const payload = {
+                    jobIds: selectedIds,
+                    staffId: result.staffId,
+                    untilDate: result.untilDate.toISOString(),
+                    note: result.note
+                };
+
+                this.isLoading = true;
+                this._jobService.bulkTemporaryAssign(payload)
+                    .pipe(finalize(() => this.isLoading = false))
+                    .subscribe(() => {
+                        this.selection.clear();
+                        this.loadJobs();
+                    });
+            }
+        });
+    }
+
+    /**
+     * Export jobs to Excel
+     */
+    exportToExcel(): void {
+        this.isLoading = true;
+        this._jobService.exportJobs(this.filter)
+            .pipe(finalize(() => this.isLoading = false))
+            .subscribe((blob) => {
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `JobsReport_${new Date().getTime()}.xlsx`;
+                link.click();
+                window.URL.revokeObjectURL(url);
+            });
     }
 
     /**
