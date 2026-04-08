@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { API_BASE_URL } from 'app/app.config';
 import { toCamelCase } from 'app/core/utils/case-utils';
 import { Observable, map } from 'rxjs';
-import { Job, JobFilter } from './job.types';
+import { Job, JobFilter, JobPagedResponse } from './job.types';
 
 @Injectable({ providedIn: 'root' })
 export class JobService {
@@ -14,20 +14,24 @@ export class JobService {
     /**
      * Get jobs with filters and pagination
      */
-    getJobs(filter: JobFilter): Observable<Job[]> {
+    getJobs(filter: JobFilter): Observable<JobPagedResponse> {
         let params = new HttpParams();
         
         if (filter.searchString) params = params.set('SearchString', filter.searchString);
         if (filter.statusId !== undefined) params = params.set('StatusID', filter.statusId.toString());
         if (filter.priority !== undefined) params = params.set('Priority', filter.priority.toString());
         if (filter.jobTypeId !== undefined) params = params.set('JobTypeID', filter.jobTypeId.toString());
-        if (filter.staffId !== undefined) params = params.set('StaffID', filter.staffId.toString());
+        if (filter.ownerId !== undefined) params = params.set('OwnerID', filter.ownerId.toString());
         if (filter.customerId !== undefined) params = params.set('CustomerID', filter.customerId.toString());
+        if (filter.isActive !== undefined) params = params.set('IsActive', filter.isActive.toString());
+        if (filter.isRecurring !== undefined) params = params.set('IsRecurring', filter.isRecurring.toString());
         
-        params = params.set('CurrentPage', filter.currentPage.toString());
+        params = params.set('PageNumber', filter.pageNumber.toString());
         params = params.set('PageSize', filter.pageSize.toString());
+        
+        if (filter.orderBy) params = params.set('OrderBy', filter.orderBy);
  
-        return this._httpClient.get<Job[]>(this._baseUrl, { params }).pipe(
+        return this._httpClient.get<JobPagedResponse>(this._baseUrl, { params }).pipe(
             map(data => toCamelCase(data))
         );
     }
@@ -101,5 +105,14 @@ export class JobService {
         return this._httpClient.post<any>(`${this._baseUrl}/${jobId}/comments`, JSON.stringify(text), {
             headers: { 'Content-Type': 'application/json' }
         });
+    }
+
+    /**
+     * Get lookup data for filters
+     */
+    getLookups(): Observable<any> {
+        return this._httpClient.get<any>(`${this._baseApiUrl}/api/Lookups`).pipe(
+            map(data => toCamelCase(data))
+        );
     }
 }

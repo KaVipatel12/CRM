@@ -54,8 +54,18 @@ export interface JobFilter {
     statusId?: number;
     priority?: number;
     jobTypeId?: number;
-    staffId?: number;
+    ownerId?: number;
     customerId?: number;
-    currentPage: number;
+    isActive?: boolean;
+    isRecurring?: boolean;
+    pageNumber: number;
+    pageSize: number;
+    orderBy?: string;
+}
+
+export interface JobPagedResponse {
+    items: Job[];
+    totalCount: number;
+    pageNumber: number;
     pageSize: number;
 }

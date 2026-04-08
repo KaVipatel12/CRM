@@ -22,13 +22,39 @@ namespace CRM_Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<JobDto>>> GetJobs()
+        public async Task<ActionResult<JobPagedResponseDto>> GetJobs([FromQuery] JobFilterDto filter)
         {
-            var jobs = await _context.Jobs
+            var query = _context.Jobs
                 .Include(j => j.Customer)
                 .Include(j => j.JobType)
                 .Include(j => j.Status)
+                .AsQueryable();
+
+            // Filtering
+            if (!string.IsNullOrWhiteSpace(filter.SearchString))
+            {
+                var search = filter.SearchString.ToLower();
+                query = query.Where(j => j.Caption.ToLower().Contains(search) || 
+                                         (j.Description != null && j.Description.ToLower().Contains(search)) ||
+                                         j.Customer.Name.ToLower().Contains(search));
+            }
+
+            if (filter.StatusId.HasValue) query = query.Where(j => j.CurrentStage == filter.StatusId);
+            if (filter.Priority.HasValue) query = query.Where(j => j.Priority == filter.Priority);
+            if (filter.JobTypeId.HasValue) query = query.Where(j => j.JobTypeId == filter.JobTypeId);
+            if (filter.OwnerId.HasValue) query = query.Where(j => j.OwnerId == filter.OwnerId);
+            if (filter.CustomerId.HasValue) query = query.Where(j => j.CustomerId == filter.CustomerId);
+            if (filter.IsActive.HasValue) query = query.Where(j => j.IsActive == filter.IsActive);
+            if (filter.IsRecurring.HasValue) query = query.Where(j => j.IsRecurring == filter.IsRecurring);
+
+            // Total Count before paging
+            var totalCount = await query.CountAsync();
+
+            // Paging
+            var items = await query
                 .OrderByDescending(j => j.UpdateDateTime)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
                 .Select(j => new JobDto
                 {
                     Id = j.Id,
@@ -53,7 +79,13 @@ namespace CRM_Api.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(jobs);
+            return Ok(new JobPagedResponseDto
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = filter.PageNumber,
+                PageSize = filter.PageSize
+            });
         }
 
         [HttpGet("customer/{customerId}")]

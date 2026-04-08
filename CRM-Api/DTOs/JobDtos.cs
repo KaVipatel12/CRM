@@ -77,4 +77,27 @@ namespace CRM_Api.DTOs
         public string UserName { get; set; }
         public DateTime Timestamp { get; set; }
     }
+
+    public class JobFilterDto
+    {
+        public string? SearchString { get; set; }
+        public int? StatusId { get; set; }
+        public int? Priority { get; set; }
+        public int? JobTypeId { get; set; }
+        public int? OwnerId { get; set; }
+        public int? CustomerId { get; set; }
+        public bool? IsActive { get; set; }
+        public bool? IsRecurring { get; set; }
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+        public string? OrderBy { get; set; }
+    }
+
+    public class JobPagedResponseDto
+    {
+        public List<JobDto> Items { get; set; } = new();
+        public int TotalCount { get; set; }
+        public int PageNumber { get; set; }
+        public int PageSize { get; set; }
+    }
 }
