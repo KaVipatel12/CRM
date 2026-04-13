@@ -1,6 +1,7 @@
 using CRM_Api.Data;
 using CRM_Api.DTOs;
 using CRM_Api.Models.Entities.Operations;
+using CRM_Api.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -24,6 +25,16 @@ namespace CRM_Api.Controllers
         public JobsController(AppDbContext context)
         {
             _context = context;
+        }
+
+        private int? GetCurrentUserId()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("id");
+            if (int.TryParse(userIdStr, out int userId))
+            {
+                return userId;
+            }
+            return null;
         }
 
         [HttpGet]
@@ -58,7 +69,13 @@ namespace CRM_Api.Controllers
             if (filter.OwnerId.HasValue) query = query.Where(j => j.OwnerId == filter.OwnerId);
             if (filter.ResponsibleId.HasValue) query = query.Where(j => j.ResponsibleId == filter.ResponsibleId);
             if (filter.CustomerId.HasValue) query = query.Where(j => j.CustomerId == filter.CustomerId);
-            if (filter.IsActive.HasValue) query = query.Where(j => j.IsActive == filter.IsActive);
+            
+            // Default to only showing Active jobs unless specifically requested
+            if (filter.IsActive.HasValue) 
+                query = query.Where(j => j.IsActive == filter.IsActive.Value);
+            else
+                query = query.Where(j => j.IsActive);
+                
             if (filter.IsRecurring.HasValue) query = query.Where(j => j.IsRecurring == filter.IsRecurring);
             if (filter.IsInternal.HasValue) query = query.Where(j => j.IsInternal == filter.IsInternal);
 
@@ -115,7 +132,8 @@ namespace CRM_Api.Controllers
         public async Task<ActionResult<JobStatisticsDto>> GetStatistics()
         {
             var now = DateTime.Now;
-            var query = _context.Jobs.AsQueryable();
+            // Only count active (non-archived) jobs in the statistics
+            var query = _context.Jobs.Where(j => j.IsActive).AsQueryable();
 
             var stats = new JobStatisticsDto
             {
@@ -404,7 +422,7 @@ namespace CRM_Api.Controllers
                 Caption = dto.Caption!,
                 Description = dto.Description,
                 Priority = dto.Priority,
-                CurrentStage = dto.CurrentStage ?? 1, // Default to first stage
+                CurrentStage = dto.CurrentStage ?? 1, 
                 StartDate = dto.StartDate,
                 Deadline = dto.Deadline,
                 OwnerId = dto.OwnerId,
@@ -419,6 +437,21 @@ namespace CRM_Api.Controllers
                 IsInternal = dto.IsInternal,
                 CreatedDate = DateTime.Now
             };
+
+            // Calculate initial deadline for recurring jobs if not provided
+            if (job.IsRecurring && !job.Deadline.HasValue && job.StartDate.HasValue)
+            {
+                job.Deadline = JobScheduleHelper.CalculateDeadline(job.StartDate.Value, job.DueDateDays, job.DueDateBasis);
+            }
+
+            // Calculate initial NextAutoCreateDate for recurring jobs
+            if (job.IsRecurring && job.StartDate.HasValue && !string.IsNullOrEmpty(job.RecurringMode))
+            {
+                job.NextAutoCreateDate = JobScheduleHelper.CalculateNextCreationDate(job.StartDate.Value, job.RecurringMode);
+            }
+
+            var currentUserId = GetCurrentUserId();
+            job.UpdateUserId = currentUserId;
 
             _context.Jobs.Add(job);
             await _context.SaveChangesAsync();
@@ -445,7 +478,7 @@ namespace CRM_Api.Controllers
                 JobId = job.Id,
                 Event = "Job Created",
                 Timestamp = DateTime.Now,
-                UserId = 0 // Placeholder for User context
+                UserId = currentUserId ?? 0
             });
             await _context.SaveChangesAsync();
 
@@ -469,6 +502,29 @@ namespace CRM_Api.Controllers
             job.StartDate = dto.StartDate;
             job.Deadline = dto.Deadline;
             job.OwnerId = dto.OwnerId;
+            job.UpdateUserId = GetCurrentUserId();
+            job.IsRecurring = dto.IsRecurring;
+            job.IsInternal = dto.IsInternal;
+            job.Period = dto.Period;
+            job.RecurringMode = dto.RecurringMode;
+            job.TargetEndDate = dto.TargetEndDate;
+            job.DueDateDays = dto.DueDateDays;
+            job.DueDateBasis = dto.DueDateBasis;
+
+            // Recalculate NextAutoCreateDate if recurring settings changed
+            // Only set if this job doesn't already have children (is the latest in chain)
+            if (job.IsRecurring && job.StartDate.HasValue && !string.IsNullOrEmpty(job.RecurringMode))
+            {
+                bool hasChild = await _context.Jobs.AnyAsync(child => child.ParentJobId == job.Id);
+                if (!hasChild)
+                {
+                    job.NextAutoCreateDate = JobScheduleHelper.CalculateNextCreationDate(job.StartDate.Value, job.RecurringMode);
+                }
+            }
+            else
+            {
+                job.NextAutoCreateDate = null;
+            }
             
             // If the assignee is manually changed from the Edit form, abort any active temporary assignment
             if (job.ResponsibleId != dto.ResponsibleId)
@@ -478,13 +534,6 @@ namespace CRM_Api.Controllers
                 job.TemporaryAssignmentUntil = null;
                 job.TemporaryAssignmentNote = null;
             }
-            job.Period = dto.Period;
-            job.RecurringMode = dto.RecurringMode;
-            job.TargetEndDate = dto.TargetEndDate;
-            job.DueDateDays = dto.DueDateDays;
-            job.DueDateBasis = dto.DueDateBasis;
-            job.IsRecurring = dto.IsRecurring;
-            job.IsInternal = dto.IsInternal;
             job.UpdateDateTime = DateTime.Now;
 
             if (stageChanged)
@@ -629,6 +678,55 @@ namespace CRM_Api.Controllers
 
             await _context.SaveChangesAsync();
             return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> ArchiveJob(int id)
+        {
+            var job = await _context.Jobs.FindAsync(id);
+            if (job == null) return NotFound();
+
+            job.IsActive = false;
+            job.UpdateUserId = GetCurrentUserId();
+            job.UpdateDateTime = DateTime.Now;
+
+            _context.JobHistories.Add(new JobHistory
+            {
+                JobId = job.Id,
+                Event = "Job Archived (Soft Delete)",
+                Timestamp = DateTime.Now,
+                UserId = job.UpdateUserId ?? 0
+            });
+
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        [HttpPost("bulk/archive")]
+        public async Task<IActionResult> BulkArchive([FromBody] List<int> jobIds)
+        {
+            if (jobIds == null || !jobIds.Any()) return BadRequest("No job IDs provided.");
+
+            var jobs = await _context.Jobs.Where(j => jobIds.Contains(j.Id)).ToListAsync();
+            var currentUserId = GetCurrentUserId();
+
+            foreach (var job in jobs)
+            {
+                job.IsActive = false;
+                job.UpdateUserId = currentUserId;
+                job.UpdateDateTime = DateTime.Now;
+
+                _context.JobHistories.Add(new JobHistory
+                {
+                    JobId = job.Id,
+                    Event = "Job Archived (Bulk Action)",
+                    Timestamp = DateTime.Now,
+                    UserId = currentUserId ?? 0
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { success = true, count = jobs.Count });
         }
     }
 }

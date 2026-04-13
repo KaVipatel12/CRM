@@ -18,6 +18,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { Subject, debounceTime, takeUntil, concatMap, from, finalize } from 'rxjs';
 import { UserService } from 'app/core/user/user.service';
+import { FuseConfirmationService } from '@fuse/services/confirmation';
 import { Job, JobFilter, JobStatistics } from '../job.types';
 import { JobService } from '../job.service';
 import { JobDetailsComponent } from '../../customers/details/job-details/job-details.component';
@@ -72,8 +73,9 @@ export class JobsListComponent implements OnInit, OnDestroy {
         statusId: undefined,
         priority: undefined,
         jobTypeId: undefined,
-        ownerId: undefined,
-        isInternal: false
+        responsibleId: undefined,
+        isInternal: false,
+        isActive: true
     };
 
     searchInputControl: FormControl = new FormControl();
@@ -92,6 +94,7 @@ export class JobsListComponent implements OnInit, OnDestroy {
     private _matDialog = inject(MatDialog);
     private _jobService = inject(JobService);
     private _userService = inject(UserService);
+    private _fuseConfirmationService = inject(FuseConfirmationService);
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     constructor() {}
@@ -517,5 +520,87 @@ export class JobsListComponent implements OnInit, OnDestroy {
         this.filter.isInternal = false;
         this.filter.pageNumber = 1;
         this.loadJobs();
+    }
+
+    /**
+     * Archive a single job (Soft Delete)
+     */
+    archiveJob(job: Job): void {
+        const dialogRef = this._fuseConfirmationService.open({
+            title: 'Archive Job',
+            message: `Are you sure you want to archive this job: "${job.caption}"?<br><br>It will be hidden from the dashboard but kept in the database for audit.`,
+            icon: {
+                show: true,
+                name: 'heroicons_outline:trash',
+                color: 'error'
+            },
+            actions: {
+                confirm: {
+                    show: true,
+                    label: 'Archive',
+                    color: 'warn'
+                },
+                cancel: {
+                    show: true,
+                    label: 'Cancel'
+                }
+            },
+            dismissible: true
+        });
+
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result === 'confirmed') {
+                this.isLoading = true;
+                this._jobService.deleteJob(job.id)
+                    .pipe(finalize(() => this.isLoading = false))
+                    .subscribe(() => {
+                        this.loadJobs();
+                        this.loadStats();
+                    });
+            }
+        });
+    }
+
+    /**
+     * Archive multiple selected jobs (Bulk Action)
+     */
+    bulkArchive(): void {
+        const selectedIds = this.selection.selected.map(j => j.id);
+        if (!selectedIds.length) return;
+
+        const dialogRef = this._fuseConfirmationService.open({
+            title: 'Bulk Archive',
+            message: `Are you sure you want to archive <b>${selectedIds.length}</b> selected jobs?`,
+            icon: {
+                show: true,
+                name: 'heroicons_outline:trash',
+                color: 'error'
+            },
+            actions: {
+                confirm: {
+                    show: true,
+                    label: 'Archive All',
+                    color: 'warn'
+                },
+                cancel: {
+                    show: true,
+                    label: 'Cancel'
+                }
+            },
+            dismissible: true
+        });
+
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result === 'confirmed') {
+                this.isLoading = true;
+                this._jobService.bulkArchiveJobs(selectedIds)
+                    .pipe(finalize(() => this.isLoading = false))
+                    .subscribe(() => {
+                        this.selection.clear();
+                        this.loadJobs();
+                        this.loadStats();
+                    });
+            }
+        });
     }
 }

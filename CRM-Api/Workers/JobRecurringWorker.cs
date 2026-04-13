@@ -1,4 +1,5 @@
 using CRM_Api.Data;
+using CRM_Api.Helpers;
 using CRM_Api.Models.Entities.Operations;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,8 +13,7 @@ namespace CRM_Api.Workers
     /// 2. If TargetEndDate is NULL → job recurs forever.
     ///    If TargetEndDate has a value → job stops recurring after that date.
     /// 3. Calculate the current period's end based on StartDate + RecurringMode.
-    /// 4. If the period end is within the next 7 days, create the next period.
-    /// 5. The new period's Deadline is calculated from DueDateDays + DueDateBasis
+    /// 4. The new period's Deadline is calculated from DueDateDays + DueDateBasis
     ///    (matching the old system's DueMode + DueDuration logic).
     /// </summary>
     public class JobRecurringWorker : BackgroundService
@@ -34,7 +34,7 @@ namespace CRM_Api.Workers
             _logger.LogInformation("Job Recurring Auto-Creation Worker running.");
 
             // Poll every 30 seconds for TESTING (change to 24 hours in production)
-            using PeriodicTimer timer = new(TimeSpan.FromSeconds(30));
+            using PeriodicTimer timer = new(TimeSpan.FromHours(24));
 
             try
             {
@@ -58,111 +58,109 @@ namespace CRM_Api.Workers
 
                 var now = DateTime.Now;
 
-                // Find all active recurring jobs with a mode set
+                // Optimized Filter: Only pull jobs that are actually due for auto-creation TODAY and are still ACTIVE
                 var recurringJobs = await dbContext.Jobs
                     .Include(j => j.Tasks)
-                    .Where(j => j.IsRecurring
-                             && j.RecurringMode != null
-                             && j.StartDate.HasValue)
+                    .Where(j => j.IsActive
+                             && j.IsRecurring 
+                             && j.RecurringMode != null 
+                             && j.NextAutoCreateDate != null 
+                             && j.NextAutoCreateDate <= now)
                     .ToListAsync(cancellationToken);
 
                 int createdCount = 0;
 
-                foreach (var job in recurringJobs)
+                foreach (var triggerJob in recurringJobs)
                 {
-                    // 1. Calculate when this period ends based on StartDate + RecurringMode
-                    DateTime periodEnd = CalculatePeriodEnd(job.StartDate!.Value, job.RecurringMode!);
+                    var currentSourceJob = triggerJob;
+                    var baseJob = triggerJob; 
 
-                    // 2. Only process if the period end is within the next 7 days
-                    if (periodEnd > now.AddDays(7)) continue;
-
-                    // 3. Check: has TargetEndDate been set? If yes, has it passed?
-                    //    TargetEndDate = "Stop Recurring After" date
-                    //    NULL means recur forever (like old system: WHERE EndDate IS NULL)
-                    DateTime nextPeriodStart = periodEnd.AddDays(1);
-                    if (job.TargetEndDate.HasValue && nextPeriodStart > job.TargetEndDate.Value)
+                    while (true)
                     {
-                        // Past the stop date, skip
-                        continue;
-                    }
+                        // 1. Calculate when the CURRENT period ends
+                        DateTime periodEnd = JobScheduleHelper.CalculatePeriodEnd(currentSourceJob.StartDate!.Value, currentSourceJob.RecurringMode!);
 
-                    // 4. Check if the next period already exists (prevent duplicates)
-                    bool nextExists = await dbContext.Jobs.AnyAsync(
-                        j => j.ParentJobId == job.Id, cancellationToken);
-                    if (nextExists) continue;
+                        // 2. Only process if the period end is within the next 2 days (or in the past)
+                        if (periodEnd > now.AddDays(2)) break;
 
-                    _logger.LogInformation($"Creating next period for Job ID {job.Id}: '{job.Caption}' (Period {job.Period ?? 1})");
+                        // 3. Check for TargetEndDate
+                        DateTime nextPeriodStart = periodEnd.AddDays(1);
+                        if (baseJob.TargetEndDate.HasValue && nextPeriodStart > baseJob.TargetEndDate.Value) break;
 
-                    // 5. Calculate next period's end date
-                    DateTime nextPeriodEnd = CalculatePeriodEnd(nextPeriodStart, job.RecurringMode!);
+                        // 4. Check if the next period already exists in the chain
+                        var nextInChain = await dbContext.Jobs
+                            .FirstOrDefaultAsync(j => j.ParentJobId == currentSourceJob.Id, cancellationToken);
 
-                    // 6. Calculate Deadline using DueDateDays + DueDateBasis
-                    //    (matches old system: DueMode='d'→ days, 'w'→ weeks, else→ months)
-                    DateTime? nextDeadline = CalculateDeadline(
-                        nextPeriodStart, job.DueDateDays, job.DueDateBasis);
+                        if (nextInChain != null)
+                        {
+                            currentSourceJob = nextInChain;
+                            continue;
+                        }
 
-                    // 7. Create the next period as a new Job
-                    var newJob = new Job
-                    {
-                        CustomerId = job.CustomerId,
-                        JobTypeId = job.JobTypeId,
-                        Caption = job.Caption,
-                        Description = job.Description,
-                        Priority = job.Priority,
-                        CurrentStage = 1, // Reset to Active/New
-                        StartDate = nextPeriodStart,
-                        Deadline = nextDeadline,
-                        OwnerId = job.OwnerId,
-                        ResponsibleId = job.ResponsibleId,
-                        IsActive = true,
-                        IsRecurring = true,
-                        IsInternal = job.IsInternal,
-                        RecurringMode = job.RecurringMode,
-                        Period = (job.Period ?? 1) + 1,
-                        TargetEndDate = job.TargetEndDate, // Carry forward the stop date
-                        DueDateDays = job.DueDateDays,     // Carry forward the due rule
-                        DueDateBasis = job.DueDateBasis,   // Carry forward the due rule
-                        ParentJobId = job.Id,
-                        CreatedDate = DateTime.Now,
-                        UpdateDateTime = DateTime.Now
-                    };
+                        _logger.LogInformation($"Creating next period for Job ID {currentSourceJob.Id}: '{baseJob.Caption}'");
 
-                    dbContext.Jobs.Add(newJob);
-                    await dbContext.SaveChangesAsync(cancellationToken);
+                        DateTime nextPeriodEnd = JobScheduleHelper.CalculatePeriodEnd(nextPeriodStart, baseJob.RecurringMode!);
+                        DateTime? nextDeadline = JobScheduleHelper.CalculateDeadline(nextPeriodStart, baseJob.DueDateDays, baseJob.DueDateBasis);
 
-                    // 8. Clone Tasks (Checklist) with reset status
-                    if (job.Tasks.Any())
-                    {
-                        var newTasks = job.Tasks.Select(t => new JobTask
+                        var newJob = new Job
+                        {
+                            CustomerId = baseJob.CustomerId,
+                            JobTypeId = baseJob.JobTypeId,
+                            Caption = baseJob.Caption,
+                            Description = baseJob.Description,
+                            Priority = baseJob.Priority,
+                            CurrentStage = 10, // Not Yet In
+                            StartDate = nextPeriodStart,
+                            Deadline = nextDeadline,
+                            OwnerId = baseJob.OwnerId,
+                            ResponsibleId = baseJob.OriginalResponsibleId ?? baseJob.ResponsibleId,
+                            IsActive = true,
+                            IsRecurring = true,
+                            RecurringMode = baseJob.RecurringMode,
+                            Period = (currentSourceJob.Period ?? 1) + 1,
+                            ParentJobId = currentSourceJob.Id,
+                            DueDateDays = baseJob.DueDateDays,
+                            DueDateBasis = baseJob.DueDateBasis,
+                            CreatedDate = DateTime.Now,
+                            UpdateDateTime = DateTime.Now,
+                            NextAutoCreateDate = JobScheduleHelper.CalculateNextCreationDate(nextPeriodStart, baseJob.RecurringMode!)
+                        };
+
+                        dbContext.Jobs.Add(newJob);
+                        await dbContext.SaveChangesAsync(cancellationToken);
+
+                        dbContext.JobHistories.Add(new JobHistory
                         {
                             JobId = newJob.Id,
-                            Description = t.Description,
-                            IsCompleted = false,
-                            Sequence = t.Sequence,
-                            CreatedDate = DateTime.Now
-                        }).ToList();
+                            Event = $"Auto-created from previous period (Job ID {currentSourceJob.Id}, Period {currentSourceJob.Period ?? 1})",
+                            Timestamp = DateTime.Now,
+                            UserId = 0 // System
+                        });
 
-                        dbContext.JobTasks.AddRange(newTasks);
+                        // Add warning if the previous period is still pending
+                        if (currentSourceJob.CurrentStage != 6) // 6 = Completed
+                        {
+                            dbContext.JobHistories.Add(new JobHistory
+                            {
+                                JobId = newJob.Id,
+                                Event = $"⚠️ WARNING: The previous period (Job ID {currentSourceJob.Id}) is still pending and has not been marked as 'Completed'!",
+                                Timestamp = DateTime.Now,
+                                UserId = 0 // System
+                            });
+                        }
+
+                        // IMPORTANT: Clear the trigger date from the PREVIOUS job
+                        // (triggerJob is the master, but currentSourceJob is the link we just processed)
+                        currentSourceJob.NextAutoCreateDate = null;
+                        
+                        createdCount++;
+                        // MOVE THE POINTER to the newly created job for the next cycle
+                        currentSourceJob = newJob;
+                        
+                        await dbContext.SaveChangesAsync(cancellationToken);
+                        
+                        if (createdCount > 50) break; 
                     }
-
-                    // 9. Log history on both old and new job
-                    dbContext.JobHistories.Add(new JobHistory
-                    {
-                        JobId = job.Id,
-                        Event = $"Next period (Period {newJob.Period}) auto-created → Job ID {newJob.Id}",
-                        Timestamp = DateTime.Now,
-                        UserId = 0 // System
-                    });
-
-                    dbContext.JobHistories.Add(new JobHistory
-                    {
-                        JobId = newJob.Id,
-                        Event = $"Auto-created from previous period (Job ID {job.Id}, Period {job.Period ?? 1})",
-                        Timestamp = DateTime.Now,
-                        UserId = 0 // System
-                    });
-
-                    createdCount++;
                 }
 
                 if (createdCount > 0)
@@ -175,44 +173,6 @@ namespace CRM_Api.Workers
             {
                 _logger.LogError(ex, "Error occurred during recurring job auto-creation.");
             }
-        }
-
-        /// <summary>
-        /// Calculate when the current period ends based on the recurring mode.
-        /// Matches old system logic (lines 963-977 of TaskService.cs).
-        /// </summary>
-        private DateTime CalculatePeriodEnd(DateTime periodStart, string mode)
-        {
-            return mode.ToLower() switch
-            {
-                "weekly" => periodStart.AddDays(6),
-                "fortnightly" => periodStart.AddDays(13),
-                "monthly" => periodStart.AddMonths(1).AddDays(-1),
-                "quarterly" => periodStart.AddMonths(3).AddDays(-1),
-                "yearly" => periodStart.AddYears(1).AddDays(-1),
-                _ => periodStart.AddMonths(1).AddDays(-1) // Default monthly
-            };
-        }
-
-        /// <summary>
-        /// Calculate deadline from DueDateDays + DueDateBasis.
-        /// Matches old system logic (lines 1500-1515 of TaskService.cs):
-        ///   'd' → StartDate + (Duration - 1) days
-        ///   'w' → StartDate + (Duration * 7 - 1) days
-        ///   'm' → StartDate + Duration months - 1 day
-        /// </summary>
-        private DateTime? CalculateDeadline(DateTime periodStart, int? dueDays, string? dueBasis)
-        {
-            if (!dueDays.HasValue || dueDays.Value == 0 || string.IsNullOrEmpty(dueBasis))
-                return null;
-
-            return dueBasis.ToLower() switch
-            {
-                "days" => periodStart.AddDays(dueDays.Value - 1),
-                "weeks" => periodStart.AddDays((dueDays.Value * 7) - 1),
-                "months" => periodStart.AddMonths(dueDays.Value).AddDays(-1),
-                _ => null
-            };
         }
     }
 }

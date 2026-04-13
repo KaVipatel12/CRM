@@ -83,6 +83,10 @@ namespace CRM_Api.Models.Entities.Operations
         public int? Period { get; set; }
         public string? RecurringMode { get; set; } // Weekly, Monthly, Quarterly, Yearly
         public int? ParentJobId { get; set; }
+        public Job? ParentJob { get; set; }
+
+        public DateTime? NextAutoCreateDate { get; set; }
+
         public DateTime? TargetEndDate { get; set; }
         public int? DueDateDays { get; set; }
         public string? DueDateBasis { get; set; }

@@ -140,6 +140,13 @@ export class JobService {
     }
 
     /**
+     * Archive multiple jobs at once (Soft Delete)
+     */
+    bulkArchiveJobs(jobIds: number[]): Observable<any> {
+        return this._httpClient.post<any>(`${this._baseUrl}/bulk/archive`, jobIds);
+    }
+
+    /**
      * Export filtered jobs to Excel
      */
     exportJobs(filter: JobFilter): Observable<Blob> {

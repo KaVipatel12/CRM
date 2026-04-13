@@ -54,16 +54,6 @@ export class JobDialogComponent implements OnInit
         { id: 3, name: 'Overdue' }
     ];
 
-    periods = [
-        { id: 1, name: 'General / One-off' },
-        { id: 2, name: 'Daily' },
-        { id: 3, name: 'Weekly' },
-        { id: 4, name: 'Fortnightly' },
-        { id: 5, name: 'Monthly' },
-        { id: 6, name: 'Quarterly' },
-        { id: 7, name: 'Yearly' }
-    ];
-
     recurringModes = [
         { id: 'Weekly', name: 'Weekly' },
         { id: 'Fortnightly', name: 'Fortnightly' },
@@ -106,7 +96,7 @@ export class JobDialogComponent implements OnInit
             startDate   : [this.data.job ? new Date(this.data.job.startDate) : new Date()],
             targetEndDate: [this.data.job && this.data.job.targetEndDate ? new Date(this.data.job.targetEndDate) : null],
             deadline    : [this.data.job && this.data.job.deadline ? new Date(this.data.job.deadline) : null],
-            dueDateDays : [this.data.job ? this.data.job.dueDateDays : 0],
+            dueDateDays : [this.data.job ? this.data.job.dueDateDays : 0, [Validators.min(0)]],
             dueDateBasis: [this.data.job ? this.data.job.dueDateBasis : 'Days'],             ownerId     : [this.data.job ? this.data.job.ownerId : (this.data.currentUserId || null)],
             responsibleId: [this.data.job ? this.data.job.responsibleId : null],
             isRecurring : [this.data.job ? this.data.job.isRecurring : false],
@@ -154,7 +144,7 @@ export class JobDialogComponent implements OnInit
         this.jobForm.get('isRecurring').setValue(isRecurring);
         if (isRecurring)
         {
-            this.jobForm.get('period').setValue(3); // Default to Weekly for recurring
+            this.jobForm.get('period').setValue(1); // New recurring jobs always start at Period 1
             this.tasksArray.clear(); // Clear tasks for recurring jobs
         }
         else

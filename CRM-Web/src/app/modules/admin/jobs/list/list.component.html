@@ -59,6 +59,13 @@
                             <mat-icon class="icon-size-4 text-amber-500" [svgIcon]="'heroicons_outline:clock'"></mat-icon>
                             <span>Assign Temporarily</span>
                         </button>
+
+                        <mat-divider class="my-2"></mat-divider>
+                        <div class="px-4 py-2 text-sm font-semibold text-secondary uppercase tracking-wider text-rose-600 font-bold">Danger Zone</div>
+                        <button mat-menu-item (click)="bulkArchive()">
+                            <mat-icon class="icon-size-4 text-rose-600 font-bold" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                            <span class="text-rose-600 font-bold uppercase tracking-tight text-[11px]">Archive / Delete Selected</span>
+                        </button>
                     </mat-menu>
                 </div>
             </div>
@@ -191,6 +198,16 @@
                                 <mat-option *ngFor="let type of jobTypes" [value]="type.id">{{type.type}}</mat-option>
                             </mat-select>
                         </mat-form-field>
+
+                        <!-- Archive Filter -->
+                        <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-32" appearance="outline">
+                            <mat-select [(ngModel)]="filter.isActive" (selectionChange)="onFilterChange()"
+                                placeholder="Status">
+                                <mat-option [value]="undefined">All (Incl. Archived)</mat-option>
+                                <mat-option [value]="true">Only Active</mat-option>
+                                <mat-option [value]="false">Only Archived</mat-option>
+                            </mat-select>
+                        </mat-form-field>
                     </div>
 
                     <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 gap-3">
@@ -320,18 +337,20 @@
                                 <div class="flex items-center gap-2">
                                     <div class="w-1.5 h-1.5 rounded-full"
                                         [ngClass]="{
-                                            'bg-gray-400': job.currentStage === 1,
-                                            'bg-blue-400': job.currentStage === 2,
-                                            'bg-amber-400': job.currentStage === 3,
-                                            'bg-cyan-400': job.currentStage === 4,
-                                            'bg-indigo-400': job.currentStage === 5,
-                                            'bg-emerald-500': job.currentStage === 6
+                                            'bg-gray-400': job.currentStage === 1 && job.isActive,
+                                            'bg-blue-400': job.currentStage === 2 && job.isActive,
+                                            'bg-amber-400': job.currentStage === 3 && job.isActive,
+                                            'bg-cyan-400': job.currentStage === 4 && job.isActive,
+                                            'bg-indigo-400': job.currentStage === 5 && job.isActive,
+                                            'bg-emerald-500': job.currentStage === 6 && job.isActive,
+                                            'bg-gray-500': !job.isActive
                                         }"></div>
                                     <span class="text-sm font-semibold" [ngClass]="{
-                                        'text-amber-600': job.currentStage === 3,
-                                        'text-cyan-600': job.currentStage === 4,
-                                        'text-emerald-600': job.currentStage === 6
-                                    }">{{job.statusName}}</span>
+                                        'text-amber-600': job.currentStage === 3 && job.isActive,
+                                        'text-cyan-600': job.currentStage === 4 && job.isActive,
+                                        'text-emerald-600': job.currentStage === 6 && job.isActive,
+                                        'text-gray-500': !job.isActive
+                                    }">{{ job.isActive ? job.statusName : 'Archived' }}</span>
                                 </div>
                             </td>
                         </ng-container>
@@ -368,7 +387,7 @@
                         <ng-container matColumnDef="actions">
                             <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800 w-24"></th>
                             <td mat-cell *matCellDef="let job">
-                                <div class="flex items-center justify-end">
+                                <div class="flex items-center justify-end" *ngIf="job.isActive">
                                     <!-- Quick Close -->
                                     <button *ngIf="job.currentStage !== 6 && (isGlobalAdmin || job.ownerId == currentUserId || job.responsibleId == currentUserId)"
                                         mat-icon-button (click)="$event.stopPropagation(); quickClose(job)"
@@ -381,6 +400,15 @@
                                         matTooltip="Edit Job">
                                         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:pencil-square'"></mat-icon>
                                     </button>
+                                    <!-- Archive (Soft Delete) -->
+                                    <button *ngIf="isGlobalAdmin || job.ownerId == currentUserId || job.responsibleId == currentUserId" 
+                                        mat-icon-button (click)="$event.stopPropagation(); archiveJob(job)" 
+                                        matTooltip="Archive Job">
+                                        <mat-icon class="icon-size-5 text-rose-500" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                                    </button>
+                                </div>
+                                <div class="flex items-center justify-end px-4 py-2" *ngIf="!job.isActive">
+                                    <span class="text-[10px] font-bold text-gray-400 italic uppercase">Locked</span>
                                 </div>
                             </td>
                         </ng-container>

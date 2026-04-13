@@ -223,31 +223,23 @@
             </mat-form-field>
         </div>
 
-        <!-- Recurring Specific Fields -->
-        <div *ngIf="jobForm.get('isRecurring').value" class="animate-in fade-in slide-in-from-top-4 duration-300">
+        <!-- Recurring Specific Fields: ONLY visible in CREATE mode -->
+        <div *ngIf="jobForm.get('isRecurring').value && !isEditMode" class="animate-in fade-in slide-in-from-top-4 duration-300">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                <!-- Frequency -->
-                <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
-                    <mat-label>Frequency Period</mat-label>
-                    <mat-select [formControlName]="'period'">
-                        <mat-option *ngFor="let p of periods" [value]="p.id">{{p.name}}</mat-option>
-                    </mat-select>
-                </mat-form-field>
-
-                <!-- Auto-Creation Mode (Optimized) -->
-                <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
-                    <mat-label>Auto-Creation Mode</mat-label>
+                <!-- Auto-Creation Mode (Frequency) -->
+                <mat-form-field class="fuse-mat-no-subscript w-full mb-6 col-span-2">
+                    <mat-label>Auto-Creation Frequency</mat-label>
                     <mat-select [formControlName]="'recurringMode'">
                         <mat-option *ngFor="let m of recurringModes" [value]="m.id">{{m.name}}</mat-option>
                     </mat-select>
-                    <mat-hint>System will auto-create the next period based on this mode.</mat-hint>
+                    <mat-hint>System will auto-create the next period based on this cycle.</mat-hint>
                 </mat-form-field>
 
                 <!-- Due Time Basis -->
                 <div class="flex gap-4 mb-6">
                     <mat-form-field class="fuse-mat-no-subscript flex-1">
                         <mat-label>Due Time (After Start)</mat-label>
-                        <input matInput type="number" [formControlName]="'dueDateDays'">
+                        <input matInput type="number" min="0" [formControlName]="'dueDateDays'">
                     </mat-form-field>
                     <mat-form-field class="fuse-mat-no-subscript flex-1">
                         <mat-label>Basis</mat-label>
@@ -260,8 +252,8 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6">
-            <!-- Start Date -->
-            <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+            <!-- Start Date: Fixed for existing jobs to prevent period overlap issues -->
+            <mat-form-field *ngIf="!isEditMode" class="fuse-mat-no-subscript w-full mb-6">
                 <mat-label>Start Date</mat-label>
                 <input matInput [matDatepicker]="startPicker" [formControlName]="'startDate'">
                 <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
@@ -276,8 +268,8 @@
                 <mat-datepicker #deadlinePicker></mat-datepicker>
             </mat-form-field>
 
-            <!-- Target End Date — for single: completion date. For recurring: stop recurring after this date -->
-            <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+            <!-- Target End Date / Stop Recurring After: Only editable in CREATE mode for recurring, or for completion date of single jobs -->
+            <mat-form-field *ngIf="!isEditMode" class="fuse-mat-no-subscript w-full mb-6">
                 <mat-label>{{ jobForm.get('isRecurring').value ? 'Stop Recurring After (Optional)' : 'Target Completion Date' }}</mat-label>
                 <input matInput [matDatepicker]="targetPicker" [formControlName]="'targetEndDate'">
                 <mat-datepicker-toggle matSuffix [for]="targetPicker"></mat-datepicker-toggle>
