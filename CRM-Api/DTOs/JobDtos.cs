@@ -32,6 +32,9 @@ namespace CRM_Api.DTOs
         public string? DueDateBasis { get; set; }
         public bool IsActive { get; set; }
         public bool IsRecurring { get; set; }
+        public int? CreatedUserId { get; set; }
+        public string? CreatedUserName { get; set; }
+        public DateTime CreatedDateTime { get; set; }
         public List<JobTaskDto> Tasks { get; set; } = new();
         public List<JobCommentDto> Comments { get; set; } = new();
         public List<JobHistoryDto> History { get; set; } = new();
@@ -76,7 +79,7 @@ namespace CRM_Api.DTOs
         public int UserId { get; set; }
         public string UserName { get; set; } = string.Empty;
         public string Text { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedDateTime { get; set; }
     }
 
     public class JobHistoryDto
@@ -97,6 +100,7 @@ namespace CRM_Api.DTOs
         public int? JobTypeId { get; set; }
         public int? OwnerId { get; set; }
         public int? ResponsibleId { get; set; }
+        public int? CreatedUserId { get; set; }
         public int? CustomerId { get; set; }
         public bool? IsActive { get; set; }
         public bool? IsRecurring { get; set; }
@@ -114,14 +118,26 @@ namespace CRM_Api.DTOs
         public int PageSize { get; set; }
     }
 
+    public class ChartDataPoint
+    {
+        public string Label { get; set; } = string.Empty;
+        public int Value { get; set; }
+    }
+
     public class JobStatisticsDto
     {
         public int TotalActive { get; set; }
         public int Active { get; set; }
         public int OnHold { get; set; }
         public int Overdue { get; set; }
+        public int CreatedByMe { get; set; }
+        public int OwnedByMe { get; set; }
+        public int HighPriority { get; set; }
+        public int TemporaryTasks { get; set; }
         public int TodoLater { get; set; }
         public int Completed { get; set; }
+        public List<ChartDataPoint> JobsByStage { get; set; } = new();
+        public List<ChartDataPoint> JobsByType { get; set; } = new();
     }
 
     public class BulkJobStatusUpdateDto

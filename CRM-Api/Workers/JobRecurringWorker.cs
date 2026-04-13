@@ -121,8 +121,6 @@ namespace CRM_Api.Workers
                             ParentJobId = currentSourceJob.Id,
                             DueDateDays = baseJob.DueDateDays,
                             DueDateBasis = baseJob.DueDateBasis,
-                            CreatedDate = DateTime.Now,
-                            UpdateDateTime = DateTime.Now,
                             NextAutoCreateDate = JobScheduleHelper.CalculateNextCreationDate(nextPeriodStart, baseJob.RecurringMode!)
                         };
 
@@ -132,9 +130,7 @@ namespace CRM_Api.Workers
                         dbContext.JobHistories.Add(new JobHistory
                         {
                             JobId = newJob.Id,
-                            Event = $"Auto-created from previous period (Job ID {currentSourceJob.Id}, Period {currentSourceJob.Period ?? 1})",
-                            Timestamp = DateTime.Now,
-                            UserId = 0 // System
+                            Event = $"Auto-created from previous period (Job ID {currentSourceJob.Id}, Period {currentSourceJob.Period ?? 1})"
                         });
 
                         // Add warning if the previous period is still pending

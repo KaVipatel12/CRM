@@ -27,6 +27,9 @@ export interface Job {
     targetEndDate?: string;
     dueDateDays?: number;
     dueDateBasis?: string;
+    createdUserId?: number;
+    createdUserName?: string;
+    createdDateTime?: string;
     tasks?: JobTask[];
     comments?: JobComment[];
     history?: JobHistory[];
@@ -73,6 +76,7 @@ export interface JobFilter {
     jobTypeId?: number;
     ownerId?: number;
     responsibleId?: number;
+    createdUserId?: number;
     customerId?: number;
     isActive?: boolean;
     isRecurring?: boolean;
@@ -89,11 +93,22 @@ export interface JobPagedResponse {
     pageSize: number;
 }
 
+export interface ChartDataPoint {
+    label: string;
+    value: number;
+}
+
 export interface JobStatistics {
     totalActive: number;
     active: number;
     onHold: number;
     overdue: number;
+    createdByMe: number;
+    ownedByMe: number;
+    highPriority: number;
+    temporaryTasks: number;
     todoLater: number;
     completed: number;
+    jobsByStage: ChartDataPoint[];
+    jobsByType: ChartDataPoint[];
 }

@@ -17,6 +17,14 @@ namespace CRM_Api.Models.Base
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
+        [Column("CreatedUserID")]
+        [JsonIgnore]
+        public int? CreatedUserId { get; set; }
+
+        [Column("CreatedDT", TypeName = "datetime")]
+        [JsonIgnore]
+        public DateTime CreatedDateTime { get; set; } = DateTime.Now;
+
         [Column("UpdUserID")]
         [JsonIgnore]
         public int? UpdateUserId { get; set; }

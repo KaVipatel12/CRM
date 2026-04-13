@@ -68,6 +68,7 @@ namespace CRM_Api.Controllers
             if (filter.JobTypeId.HasValue) query = query.Where(j => j.JobTypeId == filter.JobTypeId);
             if (filter.OwnerId.HasValue) query = query.Where(j => j.OwnerId == filter.OwnerId);
             if (filter.ResponsibleId.HasValue) query = query.Where(j => j.ResponsibleId == filter.ResponsibleId);
+            if (filter.CreatedUserId.HasValue) query = query.Where(j => j.CreatedUserId == filter.CreatedUserId);
             if (filter.CustomerId.HasValue) query = query.Where(j => j.CustomerId == filter.CustomerId);
             
             // Default to only showing Active jobs unless specifically requested
@@ -101,7 +102,7 @@ namespace CRM_Api.Controllers
                     Priority = j.Priority,
                     CurrentStage = j.CurrentStage,
                     StatusName = j.Status != null ? j.Status.StatusName : "Pending",
-                    AssignDate = j.StartDate ?? j.CreatedDate,
+                    AssignDate = j.StartDate ?? j.CreatedDateTime,
                     StartDate = j.StartDate,
                     Deadline = j.Deadline,
                     DaysLeft = j.Deadline.HasValue ? (j.Deadline.Value - DateTime.Now).Days : null,
@@ -115,7 +116,10 @@ namespace CRM_Api.Controllers
                     DueDateDays = j.DueDateDays,
                     DueDateBasis = j.DueDateBasis,
                     IsActive = j.IsActive,
-                    IsRecurring = j.IsRecurring
+                    IsRecurring = j.IsRecurring,
+                    CreatedUserId = j.CreatedUserId,
+                    CreatedUserName = _context.Users.Where(u => u.Id == j.CreatedUserId).Select(u => u.FirstName + " " + u.LastName).FirstOrDefault(),
+                    CreatedDateTime = j.CreatedDateTime
                 })
                 .ToListAsync();
 
@@ -129,23 +133,48 @@ namespace CRM_Api.Controllers
         }
 
         [HttpGet("stats")]
-        public async Task<ActionResult<JobStatisticsDto>> GetStatistics()
+        public async Task<ActionResult<JobStatisticsDto>> GetStatistics([FromQuery] bool global = false)
         {
             var now = DateTime.Now;
-            // Only count active (non-archived) jobs in the statistics
+            var currentUserId = GetCurrentUserId();
+            
+            // Base query: Only active (non-archived) jobs
             var query = _context.Jobs.Where(j => j.IsActive).AsQueryable();
+
+            // Filter by user unless 'global' view is requested (Admin only)
+            if (!global && currentUserId.HasValue)
+            {
+                query = query.Where(j => j.OwnerId == currentUserId || j.ResponsibleId == currentUserId);
+            }
 
             var stats = new JobStatisticsDto
             {
                 TotalActive = await query.CountAsync(j => j.CurrentStage != 4 && j.CurrentStage != 6),
-                Active = await query.CountAsync(j => j.CurrentStage == 1 || j.CurrentStage == 2),
+                Active = await query.CountAsync(j => j.CurrentStage == 2 || j.CurrentStage == 5),
                 OnHold = await query.CountAsync(j => j.CurrentStage == 3),
-                Overdue = await query.CountAsync(j => j.CurrentStage != 6 && j.CurrentStage != 4 && j.Deadline < now),
+                Overdue = await query.CountAsync(j => j.Deadline != null && j.Deadline < now && j.CurrentStage != 6),
+                CreatedByMe = await _context.Jobs.CountAsync(j => j.IsActive && j.CreatedUserId == currentUserId && j.CurrentStage != 6),
+                OwnedByMe = await _context.Jobs.CountAsync(j => j.IsActive && j.OwnerId == currentUserId && j.CurrentStage != 6),
+                HighPriority = await query.CountAsync(j => j.Priority >= 2 && j.CurrentStage != 6),
+                TemporaryTasks = await query.CountAsync(j => j.TemporaryAssignmentUntil != null && j.TemporaryAssignmentUntil > now),
                 TodoLater = await query.CountAsync(j => j.CurrentStage == 4),
                 Completed = await query.CountAsync(j => j.CurrentStage == 6)
             };
 
-            return stats;
+            // Aggregations for Charts
+            stats.JobsByStage = await query
+                .Include(j => j.Status)
+                .GroupBy(j => j.Status.StatusName ?? "Unknown")
+                .Select(g => new ChartDataPoint { Label = g.Key, Value = g.Count() })
+                .ToListAsync();
+
+            stats.JobsByType = await query
+                .Include(j => j.JobType)
+                .GroupBy(j => j.JobType.Type ?? "Unknown")
+                .Select(g => new ChartDataPoint { Label = g.Key, Value = g.Count() })
+                .ToListAsync();
+
+            return Ok(stats);
         }
 
         [HttpPut("bulk/status")]
@@ -163,14 +192,11 @@ namespace CRM_Api.Controllers
             foreach (var job in jobs)
             {
                 job.CurrentStage = request.StatusId;
-                job.UpdateDateTime = DateTime.Now;
 
                 _context.JobHistories.Add(new JobHistory
                 {
                     JobId = job.Id,
-                    Event = $"Job status updated to {status.StatusName} via Bulk Action",
-                    Timestamp = DateTime.Now,
-                    UserId = 0 // Placeholder
+                    Event = $"Job status updated to {status.StatusName} via Bulk Action"
                 });
             }
 
@@ -196,14 +222,11 @@ namespace CRM_Api.Controllers
                 job.ResponsibleId = request.StaffId;
                 job.TemporaryAssignmentUntil = request.UntilDate.Date.AddDays(1).AddSeconds(-1); // End of the day
                 job.TemporaryAssignmentNote = request.Note;
-                job.UpdateDateTime = DateTime.Now;
 
                 _context.JobHistories.Add(new JobHistory
                 {
                     JobId = job.Id,
-                    Event = $"Temporarily assigned to Staff ID {request.StaffId} until {request.UntilDate:yyyy-MM-dd}. Reason: {request.Note}",
-                    Timestamp = DateTime.Now,
-                    UserId = 0 // Placeholder
+                    Event = $"Temporarily assigned to Staff ID {request.StaffId} until {request.UntilDate:yyyy-MM-dd}. Reason: {request.Note}"
                 });
             }
 
@@ -251,7 +274,7 @@ namespace CRM_Api.Controllers
                     Priority = j.Priority == 1 ? "Low" : (j.Priority == 2 ? "Medium" : (j.Priority == 3 ? "High" : "Urgent")),
                     Status = j.Status != null ? j.Status.StatusName : "Pending",
                     Deadline = j.Deadline,
-                    CreatedDate = j.CreatedDate
+                    CreatedDate = j.CreatedDateTime
                 })
                 .ToListAsync();
 
@@ -317,7 +340,7 @@ namespace CRM_Api.Controllers
                     Priority = j.Priority,
                     CurrentStage = j.CurrentStage,
                     StatusName = j.Status != null ? j.Status.StatusName : "Pending",
-                    AssignDate = j.StartDate ?? j.CreatedDate,
+                    AssignDate = j.StartDate ?? j.CreatedDateTime,
                     StartDate = j.StartDate,
                     Deadline = j.Deadline,
                     DaysLeft = j.Deadline.HasValue ? (j.Deadline.Value - DateTime.Now).Days : null,
@@ -330,7 +353,10 @@ namespace CRM_Api.Controllers
                     DueDateDays = j.DueDateDays,
                     DueDateBasis = j.DueDateBasis,
                     IsActive = j.IsActive,
-                    IsRecurring = j.IsRecurring
+                    IsRecurring = j.IsRecurring,
+                    CreatedUserId = j.CreatedUserId,
+                    CreatedUserName = _context.Users.Where(u => u.Id == j.CreatedUserId).Select(u => u.FirstName + " " + u.LastName).FirstOrDefault(),
+                    CreatedDateTime = j.CreatedDateTime
                 })
                 .ToListAsync();
 
@@ -345,8 +371,8 @@ namespace CRM_Api.Controllers
                 .Include(j => j.JobType)
                 .Include(j => j.Status)
                 .Include(j => j.Tasks.OrderBy(t => t.Sequence))
-                .Include(j => j.Comments.OrderByDescending(c => c.CreatedAt))
-                .Include(j => j.History.OrderByDescending(h => h.Timestamp))
+                .Include(j => j.Comments.OrderByDescending(c => c.CreatedDateTime))
+                .Include(j => j.History.OrderByDescending(h => h.CreatedDateTime))
                 .FirstOrDefaultAsync(j => j.Id == id);
 
             if (job == null) return NotFound();
@@ -365,7 +391,7 @@ namespace CRM_Api.Controllers
                 Priority = job.Priority,
                 CurrentStage = job.CurrentStage,
                 StatusName = job.Status != null ? job.Status.StatusName : "Pending",
-                AssignDate = job.StartDate ?? job.CreatedDate,
+                AssignDate = job.StartDate ?? job.CreatedDateTime,
                 StartDate = job.StartDate,
                 Deadline = job.Deadline,
                 DaysLeft = job.Deadline.HasValue ? (job.Deadline.Value - DateTime.Now).Days : null,
@@ -380,6 +406,9 @@ namespace CRM_Api.Controllers
                 DueDateBasis = job.DueDateBasis,
                 IsActive = job.IsActive,
                 IsRecurring = job.IsRecurring,
+                CreatedUserId = job.CreatedUserId,
+                CreatedUserName = _context.Users.Where(u => u.Id == job.CreatedUserId).Select(u => u.FirstName + " " + u.LastName).FirstOrDefault(),
+                CreatedDateTime = job.CreatedDateTime,
                 Tasks = job.Tasks.Select(t => new JobTaskDto
                 {
                     Id = t.Id,
@@ -393,19 +422,19 @@ namespace CRM_Api.Controllers
                 {
                     Id = c.Id,
                     JobId = c.JobId,
-                    UserId = c.UserId,
-                    UserName = _context.Users.Where(u => u.Id == c.UserId).Select(u => u.FirstName + " " + u.LastName).FirstOrDefault() ?? "Unknown",
+                    UserId = c.CreatedUserId ?? 0,
+                    UserName = _context.Users.Where(u => u.Id == c.CreatedUserId).Select(u => u.FirstName + " " + u.LastName).FirstOrDefault() ?? "Unknown",
                     Text = c.Text,
-                    CreatedAt = c.CreatedAt
+                    CreatedDateTime = c.CreatedDateTime
                 }).ToList(),
                 History = job.History.Select(h => new JobHistoryDto
                 {
                     Id = h.Id,
                     JobId = h.JobId,
                     Event = h.Event,
-                    UserId = h.UserId,
-                    UserName = _context.Users.Where(u => u.Id == h.UserId).Select(u => u.FirstName + " " + u.LastName).FirstOrDefault() ?? "System",
-                    Timestamp = h.Timestamp
+                    UserId = h.CreatedUserId ?? 0,
+                    UserName = _context.Users.Where(u => u.Id == h.CreatedUserId).Select(u => u.FirstName + " " + u.LastName).FirstOrDefault() ?? "System",
+                    Timestamp = h.CreatedDateTime
                 }).ToList()
             };
 
@@ -432,26 +461,10 @@ namespace CRM_Api.Controllers
                 TargetEndDate = dto.TargetEndDate,
                 DueDateDays = dto.DueDateDays,
                 DueDateBasis = dto.DueDateBasis,
-                IsActive = true,
-                IsRecurring = dto.IsRecurring,
                 IsInternal = dto.IsInternal,
-                CreatedDate = DateTime.Now
+                IsRecurring = dto.IsRecurring,
+                CreatedUserId = GetCurrentUserId()
             };
-
-            // Calculate initial deadline for recurring jobs if not provided
-            if (job.IsRecurring && !job.Deadline.HasValue && job.StartDate.HasValue)
-            {
-                job.Deadline = JobScheduleHelper.CalculateDeadline(job.StartDate.Value, job.DueDateDays, job.DueDateBasis);
-            }
-
-            // Calculate initial NextAutoCreateDate for recurring jobs
-            if (job.IsRecurring && job.StartDate.HasValue && !string.IsNullOrEmpty(job.RecurringMode))
-            {
-                job.NextAutoCreateDate = JobScheduleHelper.CalculateNextCreationDate(job.StartDate.Value, job.RecurringMode);
-            }
-
-            var currentUserId = GetCurrentUserId();
-            job.UpdateUserId = currentUserId;
 
             _context.Jobs.Add(job);
             await _context.SaveChangesAsync();
@@ -464,21 +477,17 @@ namespace CRM_Api.Controllers
                     JobId = job.Id,
                     Description = t.Description,
                     IsCompleted = t.IsCompleted,
-                    Sequence = t.Sequence,
-                    CreatedDate = DateTime.Now
+                    Sequence = t.Sequence
                 }).ToList();
                 
                 _context.JobTasks.AddRange(tasks);
                 await _context.SaveChangesAsync();
             }
 
-            // Log Initial History
-            _context.JobHistories.Add(new JobHistory
+                _context.JobHistories.Add(new JobHistory
             {
                 JobId = job.Id,
-                Event = "Job Created",
-                Timestamp = DateTime.Now,
-                UserId = currentUserId ?? 0
+                Event = "Job Created"
             });
             await _context.SaveChangesAsync();
 
@@ -502,7 +511,6 @@ namespace CRM_Api.Controllers
             job.StartDate = dto.StartDate;
             job.Deadline = dto.Deadline;
             job.OwnerId = dto.OwnerId;
-            job.UpdateUserId = GetCurrentUserId();
             job.IsRecurring = dto.IsRecurring;
             job.IsInternal = dto.IsInternal;
             job.Period = dto.Period;
@@ -542,8 +550,7 @@ namespace CRM_Api.Controllers
                 _context.JobHistories.Add(new JobHistory
                 {
                     JobId = job.Id,
-                    Event = $"Status changed to {newStatus?.StatusName ?? "Unknown"}",
-                    Timestamp = DateTime.Now
+                    Event = $"Status changed to {newStatus?.StatusName ?? "Unknown"}"
                 });
             }
 
@@ -563,8 +570,7 @@ namespace CRM_Api.Controllers
                 JobId = id,
                 Description = description,
                 IsCompleted = false,
-                Sequence = taskCount + 1,
-                CreatedDate = DateTime.Now
+                Sequence = taskCount + 1
             };
 
             _context.JobTasks.Add(task);
@@ -610,8 +616,7 @@ namespace CRM_Api.Controllers
             {
                 JobId = id,
                 UserId = userId,
-                Text = text,
-                CreatedAt = DateTime.Now
+                Text = text
             };
 
             _context.JobComments.Add(comment);
@@ -630,7 +635,7 @@ namespace CRM_Api.Controllers
                 UserId = comment.UserId,
                 UserName = userName,
                 Text = comment.Text,
-                CreatedAt = comment.CreatedAt
+                CreatedDateTime = comment.CreatedDateTime
             });
         }
 

@@ -5,13 +5,18 @@ using CRM_Api.Models.Entities.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using CRM_Api.Models.Base;
 
 namespace CRM_Api.Data
 {
     public class AppDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        
+        public AppDbContext(DbContextOptions<AppDbContext> options, IHttpContextAccessor httpContextAccessor) : base(options)
         {
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public DbSet<ContactType> ContactTypes { get; set; } = null!;
@@ -163,6 +168,40 @@ namespace CRM_Api.Data
                 new IdentityRole<int> { Id = 2, Name = "Checker", NormalizedName = "CHECKER" },
                 new IdentityRole<int> { Id = 3, Name = "SuperAdmin", NormalizedName = "SUPERADMIN" }
             );
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            var userIdStr = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier) 
+                          ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue("id");
+            
+            int? currentUserId = null;
+            if (int.TryParse(userIdStr, out int userId))
+            {
+                currentUserId = userId;
+            }
+
+            var now = DateTime.Now;
+
+            foreach (var entry in ChangeTracker.Entries<EntityBase>())
+            {
+                switch (entry.State)
+                {
+                    case EntityState.Added:
+                        entry.Entity.CreatedUserId = currentUserId;
+                        entry.Entity.CreatedDateTime = now;
+                        entry.Entity.UpdateUserId = currentUserId;
+                        entry.Entity.UpdateDateTime = now;
+                        break;
+
+                    case EntityState.Modified:
+                        entry.Entity.UpdateUserId = currentUserId;
+                        entry.Entity.UpdateDateTime = now;
+                        break;
+                }
+            }
+
+            return await base.SaveChangesAsync(cancellationToken);
         }
     }
 }

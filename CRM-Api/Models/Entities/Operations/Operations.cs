@@ -91,7 +91,8 @@ namespace CRM_Api.Models.Entities.Operations
         public int? DueDateDays { get; set; }
         public string? DueDateBasis { get; set; }
 
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        // CreatedDate was removed as it is now inherited from EntityBase as CreatedDateTime
+
 
         [ForeignKey("CustomerId")]
         public virtual Customer.Customer Customer { get; set; }
@@ -122,7 +123,8 @@ namespace CRM_Api.Models.Entities.Operations
         
         public int Sequence { get; set; }
 
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        // CreatedDate was removed as it is now inherited from EntityBase as CreatedDateTime
+
 
         [ForeignKey("JobId")]
         public virtual Job Job { get; set; }
@@ -139,7 +141,8 @@ namespace CRM_Api.Models.Entities.Operations
         [Required]
         public string Text { get; set; }
         
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        // CreatedAt was removed as it is now inherited from EntityBase as CreatedDateTime
+
 
         [ForeignKey("JobId")]
         public virtual Job Job { get; set; }

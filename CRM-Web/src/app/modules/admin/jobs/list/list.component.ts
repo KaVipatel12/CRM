@@ -24,6 +24,7 @@ import { JobService } from '../job.service';
 import { JobDetailsComponent } from '../../customers/details/job-details/job-details.component';
 import { JobDialogComponent } from '../../customers/details/job-dialog/job-dialog.component';
 import { TemporaryAssignmentDialogComponent } from './temporary-assignment-dialog.component';
+import { Input, OnChanges, SimpleChanges } from '@angular/core';
 
 @Component({
     selector: 'jobs-list',
@@ -51,7 +52,9 @@ import { TemporaryAssignmentDialogComponent } from './temporary-assignment-dialo
         JobDetailsComponent
     ]
 })
-export class JobsListComponent implements OnInit, OnDestroy {
+export class JobsListComponent implements OnInit, OnChanges, OnDestroy {
+    @Input() dashboardMode: boolean = false;
+    @Input() externalFilter: Partial<JobFilter> | null = null;
     @ViewChild('drawer') drawer: MatDrawer;
 
     jobs: Job[] = [];
@@ -139,7 +142,16 @@ export class JobsListComponent implements OnInit, OnDestroy {
 
         // Load initial data
         this.loadJobs();
-        this.loadStats();
+        if (!this.dashboardMode) {
+            this.loadStats();
+        }
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['externalFilter'] && this.externalFilter) {
+            this.filter = { ...this.filter, ...this.externalFilter };
+            this.loadJobs();
+        }
     }
 
     ngOnDestroy(): void {

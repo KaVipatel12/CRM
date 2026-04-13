@@ -270,4 +270,15 @@ export class JobDetailsComponent implements OnInit, OnDestroy
     canDeleteComment(comment: any): boolean {
         return this.isGlobalAdmin || comment.userId === this.currentUserId;
     }
+
+    /**
+     * Check if the current user can change the job status
+     */
+    canChangeStatus(): boolean {
+        if (!this.job) return false;
+        if (this.isGlobalAdmin) return true;
+        
+        // Owner or Responsible user can change status
+        return this.job.ownerId === this.currentUserId || this.job.responsibleId === this.currentUserId;
+    }
 }

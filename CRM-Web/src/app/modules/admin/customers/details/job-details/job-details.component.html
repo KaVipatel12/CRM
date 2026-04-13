@@ -13,13 +13,17 @@
                     <div *ngIf="job" class="w-1 h-1 rounded-full bg-gray-300"></div>
                     <div *ngIf="job" class="text-[10px] font-bold text-primary uppercase tracking-widest truncate max-w-40">{{ job?.caption }}</div>
                 </div>
+                <div *ngIf="job" class="flex items-center gap-1.5 mt-2 text-[10px] text-gray-500 font-medium tracking-wide">
+                    <mat-icon class="icon-size-3" [svgIcon]="'heroicons_outline:pencil-square'"></mat-icon>
+                    <span>Created by <span class="font-bold text-gray-700 dark:text-gray-300">{{ job.createdUserName || 'System' }}</span> on {{ job.createdDateTime | date:'MMM dd, yyyy' }}</span>
+                </div>
             </div>
         </div>
         <div class="flex items-center gap-4">
             <!-- Status Selector -->
             <div *ngIf="job" class="flex items-center">
                 <mat-form-field class="fuse-mat-no-subscript fuse-mat-dense w-32 md:w-40" appearance="outline">
-                    <mat-select [value]="job.currentStage" (selectionChange)="updateStatus($event.value)">
+                    <mat-select [value]="job.currentStage" (selectionChange)="updateStatus($event.value)" [disabled]="!canChangeStatus()">
                         <mat-select-trigger>
                             <div class="flex items-center gap-2">
                                 <div class="w-2 h-2 rounded-full" [ngClass]="job.currentStage === 1 ? 'bg-gray-400' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'"></div>
@@ -70,21 +74,7 @@
                 <mat-tab label="Tasks">
                     <div class="p-6 md:p-8 space-y-6">
                         
-                        <!-- Recurring Settings -->
-                        <div *ngIf="job.isRecurring" class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 rounded-xl p-4 mb-6">
-                            <div class="flex items-center gap-2 mb-3 text-indigo-700 dark:text-indigo-400">
-                                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
-                                <span class="text-sm font-bold uppercase tracking-wider">Recurring Job Settings</span>
-                            </div>
-                            
-                            <mat-form-field class="fuse-mat-no-subscript w-full" appearance="outline">
-                                <mat-label>Auto-Creation Mode</mat-label>
-                                <mat-select [value]="job.recurringMode" (selectionChange)="updateRecurringMode($event.value)">
-                                    <mat-option *ngFor="let m of recurringModes" [value]="m.id">{{m.name}}</mat-option>
-                                </mat-select>
-                                <mat-hint class="text-[10px] mt-1">Next period created ~7 days before end date.</mat-hint>
-                            </mat-form-field>
-                        </div>
+                        <!-- Recurring settings removed as per request -->
 
                         <!-- Add Task Input -->
                         <div class="bg-gray-50 dark:bg-transparent border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm">

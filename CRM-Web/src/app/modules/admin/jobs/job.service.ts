@@ -23,6 +23,7 @@ export class JobService {
         if (filter.jobTypeId !== undefined) params = params.set('JobTypeID', filter.jobTypeId.toString());
         if (filter.ownerId !== undefined) params = params.set('OwnerID', filter.ownerId.toString());
         if (filter.responsibleId !== undefined) params = params.set('ResponsibleID', filter.responsibleId.toString());
+        if (filter.createdUserId !== undefined) params = params.set('CreatedUserId', filter.createdUserId.toString());
         if (filter.customerId !== undefined) params = params.set('CustomerID', filter.customerId.toString());
         if (filter.isActive !== undefined) params = params.set('IsActive', filter.isActive.toString());
         if (filter.isRecurring !== undefined) params = params.set('IsRecurring', filter.isRecurring.toString());
@@ -33,6 +34,7 @@ export class JobService {
         
         if (filter.orderBy) params = params.set('OrderBy', filter.orderBy);
  
+        console.log('Fetching Jobs with Filter:', filter);
         return this._httpClient.get<JobPagedResponse>(this._baseUrl, { params }).pipe(
             map(data => toCamelCase(data))
         );
@@ -119,8 +121,11 @@ export class JobService {
     /**
      * Get dashboard statistics
      */
-    getStatistics(): Observable<JobStatistics> {
-        return this._httpClient.get<JobStatistics>(`${this._baseUrl}/stats`).pipe(
+    getStatistics(global: boolean = false): Observable<JobStatistics> {
+        let params = new HttpParams();
+        if (global) params = params.set('global', 'true');
+        
+        return this._httpClient.get<JobStatistics>(`${this._baseUrl}/stats`, { params }).pipe(
             map(data => toCamelCase(data))
         );
     }
