@@ -41,6 +41,8 @@ namespace CRM_Api.Data
         public DbSet<Address> Addresses { get; set; } = null!;
         public DbSet<FileUploadInfo> FileUploadInfos { get; set; } = null!;
         public DbSet<BankAccount> BankAccounts { get; set; } = null!;
+        public DbSet<UserTodo> UserTodos { get; set; } = null!;
+        public DbSet<UserNote> UserNotes { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

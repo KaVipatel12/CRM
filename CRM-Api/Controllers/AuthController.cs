@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
+using CRM_Api.Services.Interfaces;
+
 namespace CRM_Api.Controllers
 {
     [Route("api/[controller]")]
@@ -12,10 +14,12 @@ namespace CRM_Api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IUserContext _userContext;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, IUserContext userContext)
         {
             _authService = authService;
+            _userContext = userContext;
         }
 
         [HttpPost("register")]
@@ -65,12 +69,10 @@ namespace CRM_Api.Controllers
         [HttpGet("/api/common/user")]
         public async Task<IActionResult> GetUserInfo()
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null) return Unauthorized();
+            var userId = _userContext.UserId;
+            if (userId == null) return Unauthorized();
 
-            if (!int.TryParse(userIdClaim.Value, out int userId)) return BadRequest("Invalid user ID in token.");
-
-            var userProfile = await _authService.GetUserInfoAsync(userId);
+            var userProfile = await _authService.GetUserInfoAsync(userId.Value);
             if (userProfile == null) return NotFound();
 
             return Ok(userProfile);

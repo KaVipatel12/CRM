@@ -95,8 +95,8 @@ export class AuthSignUpComponent implements OnInit {
         // Sign up
         this._authService.signUp(this.signUpForm.value).subscribe(
             (response) => {
-                // Navigate to the confirmation required page
-                this._router.navigateByUrl('/confirmation-required');
+                // Navigate to the dashboard (user is now auto-logged in)
+                this._router.navigateByUrl('/dashboard');
             },
             (response) => {
                 // Re-enable the form

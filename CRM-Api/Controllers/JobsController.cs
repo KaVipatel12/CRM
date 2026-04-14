@@ -13,6 +13,7 @@ using OfficeOpenXml.Style;
 using System.IO;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
+using CRM_Api.Services.Interfaces;
 
 namespace CRM_Api.Controllers
 {
@@ -21,20 +22,17 @@ namespace CRM_Api.Controllers
     public class JobsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IUserContext _userContext;
 
-        public JobsController(AppDbContext context)
+        public JobsController(AppDbContext context, IUserContext userContext)
         {
             _context = context;
+            _userContext = userContext;
         }
 
         private int? GetCurrentUserId()
         {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("id");
-            if (int.TryParse(userIdStr, out int userId))
-            {
-                return userId;
-            }
-            return null;
+            return _userContext.UserId;
         }
 
         [HttpGet]

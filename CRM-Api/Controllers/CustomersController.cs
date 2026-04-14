@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
 using System.Linq;
+using CRM_Api.Services.Interfaces;
 
 namespace CRM_Api.Controllers
 {
@@ -16,10 +17,12 @@ namespace CRM_Api.Controllers
     public class CustomersController : ControllerBase
     {
         private readonly ICustomerService _customerService;
+        private readonly IUserContext _userContext;
 
-        public CustomersController(ICustomerService customerService)
+        public CustomersController(ICustomerService customerService, IUserContext userContext)
         {
             _customerService = customerService;
+            _userContext = userContext;
         }
 
         [HttpGet]
@@ -101,15 +104,14 @@ namespace CRM_Api.Controllers
         [Authorize(Roles = "Checker")]
         public async Task<IActionResult> VerifyCustomer(int id)
         {
-            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
-                               ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            var userId = _userContext.UserId;
             
-            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
+            if (userId == null)
             {
                 return Unauthorized();
             }
 
-            var result = await _customerService.VerifyCustomerAsync(id, userId);
+            var result = await _customerService.VerifyCustomerAsync(id, userId.Value);
             if (!result)
             {
                 return NotFound();

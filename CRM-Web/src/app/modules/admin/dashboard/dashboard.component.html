@@ -130,6 +130,21 @@
                 </div>
             </div>
 
+            <!-- Personal Reminders (NEW) -->
+            <div class="flex flex-col flex-auto p-6 bg-indigo-50 dark:bg-indigo-900 shadow rounded-2xl overflow-hidden border-l-4 border-indigo-600 cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors"
+                [ngClass]="{'ring-2 ring-indigo-600 ring-inset': selectedCategory === 'personalTodo'}" (click)="setCategory('personalTodo')">
+                <div class="flex items-start justify-between">
+                    <div class="flex flex-col">
+                        <div class="text-lg font-semibold leading-tight tracking-tight text-indigo-700 dark:text-indigo-300">Personal</div>
+                        <div class="mt-0.5 text-secondary">To-Do Reminders</div>
+                    </div>
+                    <mat-icon class="icon-size-10 text-indigo-600 opacity-40" [svgIcon]="'heroicons_outline:clipboard-document-check'"></mat-icon>
+                </div>
+                <div class="flex flex-col items-center mt-4 text-indigo-700 dark:text-indigo-300">
+                    <div class="text-5xl font-bold tracking-tighter leading-tight">{{personalTodoCount}}</div>
+                </div>
+            </div>
+
         </div>
 
         <!-- Skeleton Loader Stats -->
@@ -201,22 +216,10 @@
                 <div class="text-2xl font-bold tracking-tight">{{ isGlobalView ? 'Office Work Items' : 'My Work Items' }}</div>
                 
                 <!-- Category Tabs -->
-                <div class="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+                <div class="flex items-center p-0.5 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-x-auto max-w-full">
                     <button mat-button class="px-4 py-1 rounded-md transition-shadow shrink-0"
-                        [ngClass]="{'bg-white dark:bg-gray-700 shadow': selectedCategory === 'current'}"
-                        (click)="setCategory('current')">Current</button>
-                    <button mat-button class="px-4 py-1 rounded-md transition-shadow shrink-0"
-                        [ngClass]="{'bg-white dark:bg-gray-700 shadow': selectedCategory === 'overdue'}"
-                        (click)="setCategory('overdue')">Overdue</button>
-                    <button mat-button class="px-4 py-1 rounded-md transition-shadow shrink-0"
-                        [ngClass]="{'bg-white dark:bg-gray-700 shadow': selectedCategory === 'highPriority'}"
-                        (click)="setCategory('highPriority')">High Priority</button>
-                    <button mat-button class="px-4 py-1 rounded-md transition-shadow shrink-0"
-                        [ngClass]="{'bg-white dark:bg-gray-700 shadow': selectedCategory === 'temporary'}"
-                        (click)="setCategory('temporary')">Temporary</button>
-                    <button mat-button class="px-4 py-1 rounded-md transition-shadow shrink-0"
-                        [ngClass]="{'bg-white dark:bg-gray-700 shadow': selectedCategory === 'todo'}"
-                        (click)="setCategory('todo')">Todo List</button>
+                        [ngClass]="{'bg-white dark:bg-gray-700 shadow': selectedCategory === 'myJobs'}"
+                        (click)="setCategory('myJobs')">My Jobs</button>
                     <button mat-button class="px-4 py-1 rounded-md transition-shadow shrink-0"
                         [ngClass]="{'bg-white dark:bg-gray-700 shadow': selectedCategory === 'createdByMe'}"
                         (click)="setCategory('createdByMe')">Created By Me</button>

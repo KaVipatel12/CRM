@@ -20,6 +20,8 @@ import { QuickChatComponent } from 'app/layout/common/quick-chat/quick-chat.comp
 import { SearchComponent } from 'app/layout/common/search/search.component';
 import { ShortcutsComponent } from 'app/layout/common/shortcuts/shortcuts.component';
 import { UserComponent } from 'app/layout/common/user/user.component';
+import { TodoHeaderComponent } from 'app/layout/common/todo/todo.component';
+import { StickyNotesHeaderComponent } from 'app/layout/common/notes/notes-header.component';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -38,6 +40,8 @@ import { Subject, takeUntil } from 'rxjs';
         SearchComponent,
         ShortcutsComponent,
         MessagesComponent,
+        TodoHeaderComponent,
+        StickyNotesHeaderComponent,
         RouterOutlet,
     ],
 })

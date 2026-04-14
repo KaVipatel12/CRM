@@ -5,15 +5,18 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, delay, takeUntil } from 'rxjs';
 import { JobService } from '../jobs/job.service';
-import { ChartDataPoint, Job, JobStatistics } from '../jobs/job.types';
+import { JobStatistics } from '../jobs/job.types';
 import { UserService } from 'app/core/user/user.service';
 import { FuseConfirmationService } from '@fuse/services/confirmation';
 import { JobsListComponent } from '../jobs/list/list.component';
 import { JobFilter } from '../jobs/job.types';
+import { TodoService } from './todo.service';
+import { TodoManagerComponent } from './todo-manager/todo-manager.component';
 
 @Component({
     selector: 'dashboard',
@@ -28,6 +31,7 @@ import { JobFilter } from '../jobs/job.types';
         MatTooltipModule,
         MatTableModule,
         MatSlideToggleModule,
+        MatDialogModule,
         RouterModule,
         NgApexchartsModule,
         JobsListComponent
@@ -35,10 +39,11 @@ import { JobFilter } from '../jobs/job.types';
 })
 export class DashboardComponent implements OnInit, OnDestroy {
     stats: JobStatistics | null = null;
-    selectedCategory: string = 'current';
+    selectedCategory: string = 'myJobs';
     currentUserId: number | null = null;
     isAdmin: boolean = false;
     isGlobalView: boolean = false;
+    personalTodoCount: number = 0;
     
     // Filter to pass down to JobsList
     jobsFilter: Partial<JobFilter> = {};
@@ -49,8 +54,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     private _changeDetectorRef = inject(ChangeDetectorRef);
     private _jobService = inject(JobService);
+    private _todoService = inject(TodoService);
     private _userService = inject(UserService);
-    private _fuseConfirmationService = inject(FuseConfirmationService);
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     constructor() {}
@@ -65,8 +70,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     this.isAdmin = user.isAdmin ?? false;
                     this.updateJobsFilter();
                     this.loadStats();
+                    this.loadPersonalTodoCount();
                 }
             });
+    }
+
+    loadPersonalTodoCount(): void {
+        this._todoService.getTodos().subscribe(todos => {
+            this.personalTodoCount = todos.filter(t => !t.isCompleted).length;
+            this._changeDetectorRef.markForCheck();
+        });
     }
 
     ngOnDestroy(): void {
@@ -88,9 +101,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
      */
     updateJobsFilter(): void {
         this.jobsFilter = {
-            responsibleId: (this.selectedCategory === 'createdByMe' || this.selectedCategory === 'ownedByMe') ? undefined : (this.isGlobalView ? undefined : this.currentUserId),
-            priority: this.selectedCategory === 'highPriority' ? 2 : undefined,
-            statusId: this.selectedCategory === 'todo' ? 4 : undefined,
+            responsibleId: this.selectedCategory === 'myJobs' ? (this.isGlobalView ? undefined : this.currentUserId) : undefined,
             createdUserId: this.selectedCategory === 'createdByMe' ? this.currentUserId : undefined,
             ownerId: this.selectedCategory === 'ownedByMe' ? this.currentUserId : undefined,
             isActive: true
@@ -111,7 +122,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
      */
     loadStats(): void {
         this._jobService.getStatistics(this.isGlobalView)
-            .pipe(takeUntil(this._unsubscribeAll))
+            .pipe(
+                delay(0),
+                takeUntil(this._unsubscribeAll)
+            )
             .subscribe((stats) => {
                 this.stats = stats;
                 this.prepareCharts(stats);

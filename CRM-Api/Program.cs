@@ -1,5 +1,6 @@
 using CRM_Api.Data;
 using CRM_Api.Services;
+using CRM_Api.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -83,8 +84,12 @@ builder.Services.AddAuthentication(options =>
     });
 
 // Register custom services
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IUserTodoService, UserTodoService>();
+builder.Services.AddScoped<IUserNoteService, UserNoteService>();
+builder.Services.AddScoped<IUserContext, UserContext>();
 
 // Configure OpenAPI and Swagger
 builder.Services.AddOpenApi();

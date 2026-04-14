@@ -4,6 +4,7 @@ using CRM_Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CRM_Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260414053032_AddUserTodos")]
+    partial class AddUserTodos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -725,72 +728,72 @@ namespace CRM_Api.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 584, DateTimeKind.Local).AddTicks(9422),
+                            CreatedDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 916, DateTimeKind.Local).AddTicks(2724),
                             CustomerTypeNM = "Individual",
-                            UpdateDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(2375)
+                            UpdateDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(5945)
                         },
                         new
                         {
                             Id = 2,
-                            CreatedDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3562),
+                            CreatedDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6942),
                             CustomerTypeNM = "Company",
-                            UpdateDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3566)
+                            UpdateDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6944)
                         },
                         new
                         {
                             Id = 3,
-                            CreatedDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3567),
+                            CreatedDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6947),
                             CustomerTypeNM = "Sole Proprietor",
-                            UpdateDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3568)
+                            UpdateDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6947)
                         },
                         new
                         {
                             Id = 4,
-                            CreatedDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3569),
+                            CreatedDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6949),
                             CustomerTypeNM = "Trust",
-                            UpdateDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3569)
+                            UpdateDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6949)
                         },
                         new
                         {
                             Id = 5,
-                            CreatedDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3570),
+                            CreatedDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6950),
                             CustomerTypeNM = "AKA",
-                            UpdateDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3571)
+                            UpdateDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6951)
                         },
                         new
                         {
                             Id = 6,
-                            CreatedDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3572),
+                            CreatedDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6957),
                             CustomerTypeNM = "Partnership",
-                            UpdateDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3572)
+                            UpdateDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6958)
                         },
                         new
                         {
                             Id = 7,
-                            CreatedDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3573),
+                            CreatedDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6959),
                             CustomerTypeNM = "SMSF",
-                            UpdateDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3574)
+                            UpdateDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6959)
                         },
                         new
                         {
                             Id = 8,
-                            CreatedDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3575),
+                            CreatedDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6960),
                             CustomerTypeNM = "Staff",
-                            UpdateDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3576)
+                            UpdateDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6961)
                         },
                         new
                         {
                             Id = 9,
-                            CreatedDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3576),
+                            CreatedDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6962),
                             CustomerTypeNM = "Supplier",
-                            UpdateDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3577)
+                            UpdateDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6962)
                         },
                         new
                         {
                             Id = 10,
-                            CreatedDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3578),
+                            CreatedDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6963),
                             CustomerTypeNM = "Other",
-                            UpdateDateTime = new DateTime(2026, 4, 14, 13, 56, 3, 586, DateTimeKind.Local).AddTicks(3578)
+                            UpdateDateTime = new DateTime(2026, 4, 14, 11, 0, 29, 917, DateTimeKind.Local).AddTicks(6964)
                         });
                 });
 
@@ -1736,53 +1739,6 @@ namespace CRM_Api.Migrations
                     b.ToTable("FileUploadInfo", "file");
                 });
 
-            modelBuilder.Entity("CRM_Api.Models.Entities.Utilities.UserNote", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedDateTime")
-                        .HasColumnType("datetime")
-                        .HasColumnName("CreatedDT");
-
-                    b.Property<int?>("CreatedUserId")
-                        .HasColumnType("int")
-                        .HasColumnName("CreatedUserID");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsPinned")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("UpdateDateTime")
-                        .HasColumnType("datetime")
-                        .HasColumnName("UpdDT");
-
-                    b.Property<int?>("UpdateUserId")
-                        .HasColumnType("int")
-                        .HasColumnName("UpdUserID");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserNotes", "user");
-                });
-
             modelBuilder.Entity("CRM_Api.Models.Entities.Utilities.UserTodo", b =>
                 {
                     b.Property<int>("Id")
@@ -2202,17 +2158,6 @@ namespace CRM_Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Job");
-                });
-
-            modelBuilder.Entity("CRM_Api.Models.Entities.Utilities.UserNote", b =>
-                {
-                    b.HasOne("CRM_Api.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CRM_Api.Models.Entities.Utilities.UserTodo", b =>

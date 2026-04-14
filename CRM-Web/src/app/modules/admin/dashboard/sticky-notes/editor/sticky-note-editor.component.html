@@ -1,0 +1,50 @@
+<div class="flex flex-col w-full h-full max-h-screen">
+    <!-- Header -->
+    <div class="flex flex-row items-center justify-between px-6 py-4 border-b">
+        <div class="text-xl font-semibold leading-none">{{ data.note ? 'Edit Note' : 'Add Note' }}</div>
+        <button mat-icon-button (click)="close()" [title]="'Close'">
+            <mat-icon [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+        </button>
+    </div>
+
+    <!-- Content -->
+    <div class="flex flex-col flex-auto p-6 overflow-hidden bg-card">
+        <form [formGroup]="noteForm" class="flex flex-col flex-auto h-full min-h-0">
+            <mat-form-field class="w-full fuse-mat-no-subscript mb-4">
+                <mat-label>Title</mat-label>
+                <input matInput formControlName="title" placeholder="Note title (optional)" />
+            </mat-form-field>
+
+            <!-- Quill Editor Container -->
+            <div class="flex flex-col flex-auto min-h-64 sm:min-h-80 overflow-hidden relative">
+                <!-- We apply a wrapper class to properly style the quill editor with tailwind utility classes -->
+                <quill-editor
+                    class="flex flex-col h-full bg-white dark:bg-transparent"
+                    [modules]="quillModules"
+                    format="html"
+                    formControlName="content"
+                    placeholder="Insert text here..."
+                ></quill-editor>
+            </div>
+
+            <div class="mt-4 flex items-center justify-between">
+                <mat-checkbox formControlName="isPinned" color="primary">
+                    Pin note to top
+                </mat-checkbox>
+            </div>
+        </form>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center justify-end px-6 py-4 border-t bg-gray-50 dark:bg-transparent">
+        <button mat-button (click)="close()" class="mr-2">Cancel</button>
+        <button
+            mat-flat-button
+            [color]="'primary'"
+            (click)="save()"
+            [disabled]="noteForm.invalid"
+        >
+            Save
+        </button>
+    </div>
+</div>

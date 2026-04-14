@@ -63,7 +63,19 @@ export class AuthService {
             switchMap((response: any) => {
                 this.accessToken = response.token || response.accessToken;
                 this._authenticated = true;
-                this._userService.user = response.user;
+                
+                // Map backend properties to frontend User interface
+                const user: any = {
+                    id: response.userId?.toString(),
+                    name: `${response.firstName} ${response.lastName}`.trim(),
+                    email: response.email,
+                    isAdmin: response.isAdmin,
+                    isChecker: response.isChecker,
+                    isSuperAdmin: response.isSuperAdmin,
+                    status: 'online'
+                };
+                
+                this._userService.user = user;
                 return of(response);
             })
         );
@@ -110,7 +122,29 @@ export class AuthService {
         password: string;
         company: string;
     }): Observable<any> {
-        return this._httpClient.post('api/auth/sign-up', user);
+        return this._httpClient.post(`${this._baseUrl}/api/Auth/register`, user).pipe(
+            switchMap((response: any) => {
+                // If the response has data (token + user)
+                if (response.succeeded && response.data) {
+                    this.accessToken = response.data.token;
+                    this._authenticated = true;
+                    
+                    // Map backend properties to frontend User interface
+                    const user: any = {
+                        id: response.data.userId?.toString(),
+                        name: `${response.data.firstName} ${response.data.lastName}`.trim(),
+                        email: response.data.email,
+                        isAdmin: response.data.isAdmin,
+                        isChecker: response.data.isChecker,
+                        isSuperAdmin: response.data.isSuperAdmin,
+                        status: 'online'
+                    };
+                    
+                    this._userService.user = user;
+                }
+                return of(response);
+            })
+        );
     }
 
     /**

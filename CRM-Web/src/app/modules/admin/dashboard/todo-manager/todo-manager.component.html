@@ -1,0 +1,64 @@
+<div class="flex flex-col flex-auto min-w-0 bg-card rounded-2xl shadow overflow-hidden border">
+    
+    <!-- Header/Quick Add -->
+    <div class="p-4 border-b bg-gray-50 dark:bg-gray-800">
+        <form [formGroup]="todoForm" #todoNGForm="ngForm" (ngSubmit)="addTodo()" class="flex items-center">
+            <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript flex-auto" [appearance]="'outline'">
+                <mat-icon matPrefix class="icon-size-5" [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+                <input matInput [formControlName]="'note'" placeholder="I need to..." autocomplete="off">
+            </mat-form-field>
+            <div class="flex items-center ml-2 h-10">
+                <button mat-mini-fab color="primary" [disabled]="todoForm.invalid" [type]="'submit'">
+                    <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- List -->
+    <div class="flex flex-col flex-auto overflow-y-auto max-h-120 min-h-60" [ngClass]="{'max-h-80': mode === 'mini'}">
+        <ng-container *ngIf="todos.length > 0; else noTodos">
+            <div *ngFor="let todo of todos" 
+                 class="group flex items-center px-4 py-3 border-b last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                
+                <mat-checkbox [checked]="todo.isCompleted" 
+                             (change)="toggleTodo(todo)"
+                             color="primary" class="mr-3">
+                </mat-checkbox>
+
+                <div class="flex flex-col flex-auto min-w-0">
+                    <div class="text-md font-medium leading-tight truncate" 
+                         [ngClass]="{'line-through text-secondary': todo.isCompleted}">
+                        {{todo.note}}
+                    </div>
+                    <div class="text-xs text-secondary mt-0.5" *ngIf="mode === 'full'">
+                        {{todo.createdDateTime | date:'MMM dd, HH:mm'}}
+                    </div>
+                </div>
+
+                <button mat-icon-button class="hidden group-hover:flex" 
+                        [matTooltip]="'Delete'"
+                        (click)="deleteTodo(todo.id)">
+                    <mat-icon class="icon-size-5 text-rose-500" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                </button>
+            </div>
+        </ng-container>
+
+        <!-- No Todos Placeholder -->
+        <ng-template #noTodos>
+            <div class="flex flex-col items-center justify-center p-8 opacity-50 flex-auto">
+                <mat-icon class="icon-size-16" [svgIcon]="'heroicons_outline:clipboard-document-check'"></mat-icon>
+                <p class="mt-4 font-semibold">All caught up!</p>
+                <p class="text-sm">Enjoy your clean slate.</p>
+            </div>
+        </ng-template>
+    </div>
+
+    <!-- Footer for Mini Mode -->
+    <div class="p-2 border-t text-center" *ngIf="mode === 'mini'">
+        <button mat-button color="primary" class="w-full" (click)="loadTodos()">
+            <mat-icon class="icon-size-4 mr-2" [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
+            Refresh
+        </button>
+    </div>
+</div>
