@@ -1,0 +1,630 @@
+<style>
+    /* Make sort arrows permanently visible */
+    .mat-sort-header-arrow {
+        opacity: 0.3 !important;
+        transform: translateY(0) !important;
+    }
+    .mat-sort-header-sorted .mat-sort-header-arrow {
+        opacity: 1 !important;
+        color: #3b82f6 !important; /* Primary blue for active sort */
+    }
+</style>
+<div class="flex flex-col min-w-0 overflow-hidden"
+    [ngClass]="{'absolute inset-0': !dashboardMode, 'relative h-full transition-all': dashboardMode}">
+
+    <div class="flex-auto h-full bg-card dark:bg-transparent">
+        
+        <div class="flex flex-col h-full">
+
+            <!-- Main Scrollable Area -->
+            <div class="flex flex-col flex-auto overflow-y-auto">
+
+            <!-- Header (Hidden in dashboard mode) - scrolls away with stats -->
+            <div *ngIf="!dashboardMode"
+                class="relative flex flex-col sm:flex-row flex-shrink-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b bg-card dark:bg-transparent">
+                <div class="flex flex-col">
+                    <!-- Breadcrumbs -->
+                    <div class="flex items-center text-sm font-medium text-secondary whitespace-nowrap">
+                        <a class="text-primary cursor-pointer hover:underline" [routerLink]="['/dashboard']">Home</a>
+                        <mat-icon class="icon-size-4 mx-1" [svgIcon]="'heroicons_mini:chevron-right'"></mat-icon>
+                        <span>Jobs Portfolio</span>
+                    </div>
+                    <!-- Title -->
+                    <div class="mt-2 text-4xl font-extrabold tracking-tight leading-none text-slate-900 dark:text-white">Jobs Dashboard</div>
+                </div>
+                <!-- Search + Export (aligned right) -->
+                <div class="flex items-center mt-6 sm:mt-0 sm:ml-auto gap-3">
+                    <!-- Search -->
+                    <div class="flex items-center h-9 px-3 border border-gray-300 rounded-full bg-white min-w-64 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
+                        <mat-icon class="icon-size-5 text-hint mr-2" [svgIcon]="'heroicons_solid:magnifying-glass'"></mat-icon>
+                        <input class="border-none outline-none bg-transparent w-full text-sm placeholder:text-hint"
+                            [formControl]="searchInputControl" autocomplete="off"
+                            placeholder="Search jobs by caption or customer...">
+                    </div>
+
+                    <!-- Export Button -->
+                    <button mat-flat-button class="bg-emerald-600 text-white !h-9 !rounded-full !px-5" (click)="exportToExcel()"
+                        matTooltip="Export filtered list to Excel">
+                        <mat-icon class="icon-size-5 mr-2"
+                            [svgIcon]="'heroicons_outline:document-arrow-down'"></mat-icon>
+                        Export
+                    </button>
+                </div>
+            </div>
+
+            <!-- Statistics Header (Hidden in dashboard mode) -->
+            <div *ngIf="!dashboardMode && stats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-6 px-6 md:px-8 py-6 bg-gray-50 dark:bg-transparent border-b flex-shrink-0">
+                
+                <!-- Total Active -->
+                <div class="flex flex-col flex-auto p-6 bg-card rounded-2xl shadow overflow-hidden border-l-4 border-primary">
+                    <div class="flex items-start justify-between">
+                        <div class="flex flex-col">
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-secondary">Total Jobs</div>
+                            <div class="mt-0.5 text-secondary text-xs">Active Work</div>
+                        </div>
+                        <mat-icon class="icon-size-8 text-primary opacity-20" [svgIcon]="'heroicons_outline:briefcase'"></mat-icon>
+                    </div>
+                    <div class="flex flex-col items-center mt-4 text-primary">
+                        <div class="text-4xl font-bold tracking-tighter leading-tight">{{stats.totalActive}}</div>
+                    </div>
+                </div>
+
+                <!-- Overdue -->
+                <div class="flex flex-col flex-auto p-6 bg-card rounded-2xl shadow overflow-hidden border-l-4 border-rose-500">
+                    <div class="flex items-start justify-between">
+                        <div class="flex flex-col">
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-rose-600">Overdue</div>
+                            <div class="mt-0.5 text-secondary text-xs text-rose-500/60">Past deadline</div>
+                        </div>
+                        <mat-icon class="icon-size-8 text-rose-500 opacity-20" [svgIcon]="'heroicons_outline:clock'"></mat-icon>
+                    </div>
+                    <div class="flex flex-col items-center mt-4 text-rose-600">
+                        <div class="text-4xl font-bold tracking-tighter leading-tight">{{stats.overdue}}</div>
+                    </div>
+                </div>
+
+                <!-- High Priority -->
+                <div class="flex flex-col flex-auto p-6 bg-card rounded-2xl shadow overflow-hidden border-l-4 border-amber-500">
+                    <div class="flex items-start justify-between">
+                        <div class="flex flex-col">
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-amber-600">Urgent</div>
+                            <div class="mt-0.5 text-secondary text-xs text-amber-500/60">High Priority</div>
+                        </div>
+                        <mat-icon class="icon-size-8 text-amber-500 opacity-20" [svgIcon]="'heroicons_outline:exclamation-triangle'"></mat-icon>
+                    </div>
+                    <div class="flex flex-col items-center mt-4 text-amber-600">
+                        <div class="text-4xl font-bold tracking-tighter leading-tight">{{stats.highPriority}}</div>
+                    </div>
+                </div>
+
+                <!-- Todo List -->
+                <div class="flex flex-col flex-auto p-6 bg-card rounded-2xl shadow overflow-hidden border-l-4 border-slate-500">
+                    <div class="flex items-start justify-between">
+                        <div class="flex flex-col">
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-secondary">Planned</div>
+                            <div class="mt-0.5 text-secondary text-xs">Todo Later</div>
+                        </div>
+                        <mat-icon class="icon-size-8 text-slate-500 opacity-20" [svgIcon]="'heroicons_outline:list-bullet'"></mat-icon>
+                    </div>
+                    <div class="flex flex-col items-center mt-4 text-slate-600">
+                        <div class="text-4xl font-bold tracking-tighter leading-tight">{{stats.todoLater}}</div>
+                    </div>
+                </div>
+
+                <!-- Initiated -->
+                <div class="flex flex-col flex-auto p-6 bg-card rounded-2xl shadow overflow-hidden border-l-4 border-emerald-500">
+                    <div class="flex items-start justify-between">
+                        <div class="flex flex-col">
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-600">Initiated</div>
+                            <div class="mt-0.5 text-secondary text-xs text-emerald-500/60">Created By Me</div>
+                        </div>
+                        <mat-icon class="icon-size-8 text-emerald-500 opacity-20" [svgIcon]="'heroicons_outline:pencil-square'"></mat-icon>
+                    </div>
+                    <div class="flex flex-col items-center mt-4 text-emerald-600">
+                        <div class="text-4xl font-bold tracking-tighter leading-tight">{{stats.createdByMe}}</div>
+                    </div>
+                </div>
+
+                <!-- Managed -->
+                <div class="flex flex-col flex-auto p-6 bg-card rounded-2xl shadow overflow-hidden border-l-4 border-cyan-500">
+                    <div class="flex items-start justify-between">
+                        <div class="flex flex-col">
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-cyan-600">Managed</div>
+                            <div class="mt-0.5 text-secondary text-xs text-cyan-500/60">Owned By Me</div>
+                        </div>
+                        <mat-icon class="icon-size-8 text-cyan-500 opacity-20" [svgIcon]="'heroicons_outline:shield-check'"></mat-icon>
+                    </div>
+                    <div class="flex flex-col items-center mt-4 text-cyan-600">
+                        <div class="text-4xl font-bold tracking-tighter leading-tight">{{stats.ownedByMe}}</div>
+                    </div>
+                </div>
+
+                <!-- On Hold -->
+                <div class="flex flex-col flex-auto p-6 bg-card rounded-2xl shadow overflow-hidden border-l-4 border-indigo-500">
+                    <div class="flex items-start justify-between">
+                        <div class="flex flex-col">
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-indigo-600">On Hold</div>
+                            <div class="mt-0.5 text-secondary text-xs text-indigo-500/60">Waiting info</div>
+                        </div>
+                        <mat-icon class="icon-size-8 text-indigo-500 opacity-20" [svgIcon]="'heroicons_outline:pause-circle'"></mat-icon>
+                    </div>
+                    <div class="flex flex-col items-center mt-4 text-indigo-600">
+                        <div class="text-4xl font-bold tracking-tighter leading-tight">{{stats.onHold}}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sticky App Shell: Filters + Table + Paginator -->
+            <div class="sticky top-0 z-20 flex flex-col bg-card dark:bg-transparent" style="height: calc(100vh - 64px);">
+
+                <!-- Filters Bar -->
+                <div
+                    class="flex flex-col sm:flex-row items-center justify-between py-4 px-6 md:px-8 border-b bg-gray-50 dark:bg-transparent flex-shrink-0">
+                    <div class="flex flex-wrap items-center gap-4">
+
+                        <!-- Deadline Date Range Filter -->
+                        <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-52" appearance="outline">
+                            <mat-date-range-input [rangePicker]="deadlinePicker" (click)="deadlinePicker.open()">
+                                <input matStartDate [(ngModel)]="filter.deadlineFrom" (dateChange)="onFilterChange()" placeholder="Deadline From">
+                                <input matEndDate [(ngModel)]="filter.deadlineTo" (dateChange)="onFilterChange()" placeholder="Deadline To">
+                            </mat-date-range-input>
+                            <mat-datepicker-toggle matIconSuffix [for]="deadlinePicker"></mat-datepicker-toggle>
+                            <mat-date-range-picker #deadlinePicker></mat-date-range-picker>
+                        </mat-form-field>
+
+                        <!-- Archive Filter -->
+                        <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-32" appearance="outline">
+                            <mat-select [(ngModel)]="filter.isActive" (selectionChange)="onFilterChange()"
+                                placeholder="Status">
+                                <mat-option [value]="undefined">All (Incl. Archived)</mat-option>
+                                <mat-option [value]="true">Only Active</mat-option>
+                                <mat-option [value]="false">Only Archived</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <!-- Dashboard Search (Only visible in dashboard mode) -->
+                        <mat-form-field *ngIf="dashboardMode"
+                            class="fuse-mat-dense fuse-mat-no-subscript fuse-mat-rounded min-w-64" appearance="outline">
+                            <mat-icon class="icon-size-5" matPrefix
+                                [svgIcon]="'heroicons_solid:magnifying-glass'"></mat-icon>
+                            <input matInput [formControl]="searchInputControl" [autocomplete]="'off'"
+                                [placeholder]="'Quick search items...'">
+                        </mat-form-field>
+                    </div>
+
+                    <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 gap-3">
+                        <!-- Switch Views -->
+                        <div class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1 mr-2">
+                            <button mat-button class="px-4 py-2 rounded-md" [class.bg-white]="!filter.isInternal"
+                                [class.shadow-sm]="!filter.isInternal" [class.text-primary]="!filter.isInternal"
+                                (click)="viewClientJobs()">
+                                External Assignments
+                            </button>
+                            <button mat-button class="px-4 py-2 rounded-md" [class.bg-white]="filter.isInternal"
+                                [class.shadow-sm]="filter.isInternal" [class.text-primary]="filter.isInternal"
+                                (click)="viewScheduleJobs()">
+                                Internal Operations
+                            </button>
+                        </div>
+
+                        <!-- Bulk Actions (Dashboard + main fallback) -->
+                        <button *ngIf="selection.hasValue()" mat-flat-button
+                            class="bg-amber-500 text-white transition-all animate-in fade-in zoom-in duration-300"
+                            [matMenuTriggerFor]="bulkStatusMenu">
+                            <span class="flex items-center">
+                                Bulk Options ({{selection.selected.length}})
+                                <mat-icon class="icon-size-5 ml-2"
+                                    [svgIcon]="'heroicons_outline:chevron-down'"></mat-icon>
+                            </span>
+                        </button>
+
+                        <!-- Add Multi Job (Only for clients) -->
+                        <button *ngIf="!filter.isInternal" mat-flat-button [color]="'accent'"
+                            (click)="openAddMultiJobDialog()">
+                            <mat-icon [svgIcon]="'heroicons_outline:user-group'" class="icon-size-5"></mat-icon>
+                            <span class="ml-2">Add Multi Job</span>
+                        </button>
+
+                        <!-- Add Job Button -->
+                        <button mat-flat-button [color]="'primary'"
+                            (click)="filter.isInternal ? openAddScheduleJobDialog() : openAddJobDialog()">
+                            <mat-icon [svgIcon]="'heroicons_outline:plus'" class="icon-size-5"></mat-icon>
+                            <span class="ml-2">Add {{filter.isInternal ? 'Operation' : 'Job'}}</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bulk Actions Menu (Global) -->
+                <mat-menu #bulkStatusMenu="matMenu">
+                    <div class="px-4 py-2 text-sm font-semibold text-secondary uppercase tracking-wider">Change Status
+                    </div>
+                    <button mat-menu-item *ngFor="let status of statusMasters" (click)="bulkUpdateStatus(status.id)">
+                        <mat-icon class="icon-size-4 text-primary"
+                            [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
+                        <span>Mark as {{status.statusName}}</span>
+                    </button>
+                    <mat-divider class="my-2"></mat-divider>
+                    <div class="px-4 py-2 text-sm font-semibold text-secondary uppercase tracking-wider">Assignments
+                    </div>
+                    <button mat-menu-item (click)="openTemporaryAssignmentDialog()">
+                        <mat-icon class="icon-size-4 text-amber-500" [svgIcon]="'heroicons_outline:clock'"></mat-icon>
+                        <span>Assign Temporarily</span>
+                    </button>
+
+                    <mat-divider class="my-2"></mat-divider>
+                    <div
+                        class="px-4 py-2 text-sm font-semibold text-secondary uppercase tracking-wider text-rose-600 font-bold">
+                        Danger Zone</div>
+                    <button mat-menu-item (click)="bulkArchive()">
+                        <mat-icon class="icon-size-4 text-rose-600 font-bold"
+                            [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                        <span class="text-rose-600 font-bold uppercase tracking-tight text-[11px]">Archive / Delete
+                            Selected</span>
+                    </button>
+                </mat-menu>
+
+                <!-- Jobs Table -->
+                <div class="flex flex-col flex-auto overflow-y-auto min-h-0 px-6 md:px-8">
+                    <table mat-table [dataSource]="jobs" matSort (matSortChange)="onSortChange($event)"
+                        class="w-full bg-transparent">
+
+                        <!-- Checkbox Column -->
+                        <ng-container matColumnDef="select">
+                            <th mat-header-cell *matHeaderCellDef class="w-12 px-4">
+                                <mat-checkbox (change)="$event ? toggleAllRows() : null"
+                                    [checked]="selection.hasValue() && isAllSelected()"
+                                    [indeterminate]="selection.hasValue() && !isAllSelected()" [color]="'primary'">
+                                </mat-checkbox>
+                            </th>
+                            <td mat-cell *matCellDef="let row" class="px-4">
+                                <mat-checkbox (click)="$event.stopPropagation()"
+                                    (change)="$event ? selection.toggle(row) : null"
+                                    [checked]="selection.isSelected(row)" [color]="'primary'">
+                                </mat-checkbox>
+                            </td>
+                        </ng-container>
+
+                        <!-- Customer Column -->
+                        <ng-container matColumnDef="customer">
+                            <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
+                                Customer</th>
+                            <td mat-cell *matCellDef="let job" class="font-semibold text-primary">
+                                {{job.customerName}}
+                            </td>
+                        </ng-container>
+
+                        <!-- Customer Code Column -->
+                        <ng-container matColumnDef="customerCode">
+                            <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
+                                Code</th>
+                            <td mat-cell *matCellDef="let job">
+                                <span class="text-sm font-bold text-gray-900 dark:text-white">{{job.customerCode ||
+                                    '-'}}</span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Type Column (with inline filter) -->
+                        <ng-container matColumnDef="jobType">
+                            <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
+                                <div class="flex items-center gap-1 cursor-pointer" [matMenuTriggerFor]="typeFilterMenu">
+                                    <span>Type</span>
+                                    <mat-icon class="icon-size-4" [ngClass]="filter.jobTypeId !== undefined ? 'text-primary' : 'text-hint'"
+                                        [svgIcon]="'heroicons_mini:funnel'"></mat-icon>
+                                </div>
+                                <mat-menu #typeFilterMenu="matMenu" class="min-w-40 max-h-72">
+                                    <button mat-menu-item (click)="filter.jobTypeId = undefined; onFilterChange()"
+                                        [class.font-bold]="filter.jobTypeId === undefined">
+                                        <span>Any Type</span>
+                                    </button>
+                                    <mat-divider></mat-divider>
+                                    <button mat-menu-item *ngFor="let type of jobTypes"
+                                        (click)="filter.jobTypeId = type.id; onFilterChange()"
+                                        [class.font-bold]="filter.jobTypeId === type.id">
+                                        {{type.type}}
+                                    </button>
+                                </mat-menu>
+                            </th>
+                            <td mat-cell *matCellDef="let job">
+                                <span
+                                    class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">
+                                    {{job.jobTypeName}}
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Caption Column -->
+                        <ng-container matColumnDef="caption">
+                            <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
+                                Caption</th>
+                            <td mat-cell *matCellDef="let job" class="max-w-64 truncate" [matTooltip]="job.caption">
+                                {{job.caption}}
+                            </td>
+                        </ng-container>
+
+                        <!-- Priority Column (with inline filter) -->
+                        <ng-container matColumnDef="priority">
+                            <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
+                                <div class="flex items-center gap-1 cursor-pointer" [matMenuTriggerFor]="priorityFilterMenu">
+                                    <span>Priority</span>
+                                    <mat-icon class="icon-size-4" [ngClass]="filter.priority !== undefined ? 'text-primary' : 'text-hint'"
+                                        [svgIcon]="'heroicons_mini:funnel'"></mat-icon>
+                                </div>
+                                <mat-menu #priorityFilterMenu="matMenu" class="min-w-36">
+                                    <button mat-menu-item (click)="filter.priority = undefined; onFilterChange()"
+                                        [class.font-bold]="filter.priority === undefined">
+                                        <span>Any Priority</span>
+                                    </button>
+                                    <mat-divider></mat-divider>
+                                    <button mat-menu-item (click)="filter.priority = 0; onFilterChange()"
+                                        [class.font-bold]="filter.priority === 0">
+                                        <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-400"></span> Low</span>
+                                    </button>
+                                    <button mat-menu-item (click)="filter.priority = 1; onFilterChange()"
+                                        [class.font-bold]="filter.priority === 1">
+                                        <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Medium</span>
+                                    </button>
+                                    <button mat-menu-item (click)="filter.priority = 2; onFilterChange()"
+                                        [class.font-bold]="filter.priority === 2">
+                                        <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber-500"></span> High</span>
+                                    </button>
+                                    <mat-divider></mat-divider>
+                                    <button mat-menu-item (click)="filter.priority = 3; onFilterChange()"
+                                        [class.font-bold]="filter.priority === 3">
+                                        <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Overdue</span>
+                                    </button>
+                                </mat-menu>
+                            </th>
+                            <td mat-cell *matCellDef="let job">
+                                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide" [ngClass]="{
+                                        'bg-gray-100 text-gray-600': job.priority === 0,
+                                        'bg-blue-100 text-blue-600': job.priority === 1,
+                                        'bg-amber-100 text-amber-600': job.priority === 2,
+                                        'bg-rose-100 text-rose-600': job.priority === 3
+                                      }">
+                                    {{ job.priority === 0 ? 'Low' : job.priority === 1 ? 'Medium' : job.priority === 2 ?
+                                    'High' : 'Overdue' }}
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Period Column -->
+                        <ng-container matColumnDef="period">
+                            <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
+                                Period</th>
+                            <td mat-cell *matCellDef="let job">
+                                <span class="text-sm text-secondary">{{job.period || '-'}}</span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="assignDate">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header="assignDate"
+                                class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
+                                Assign Date</th>
+                            <td mat-cell *matCellDef="let job">
+                                <span class="text-[13px] text-gray-500 cursor-help"
+                                    [matTooltip]="'Created by ' + (job.createdUserName || 'System') + ' on ' + (job.createdDateTime | date:'dd MMM yyyy')">
+                                    {{job.assignDate ? (job.assignDate | date:'dd MMM yyyy') : '-'}}
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Status Column (with inline filter) -->
+                        <ng-container matColumnDef="status">
+                            <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
+                                <div class="flex items-center gap-1 cursor-pointer" [matMenuTriggerFor]="statusFilterMenu">
+                                    <span>Status</span>
+                                    <mat-icon class="icon-size-4" [ngClass]="filter.statusId !== undefined ? 'text-primary' : 'text-hint'"
+                                        [svgIcon]="'heroicons_mini:funnel'"></mat-icon>
+                                </div>
+                                <mat-menu #statusFilterMenu="matMenu" class="min-w-44 max-h-72">
+                                    <button mat-menu-item (click)="filter.statusId = undefined; onFilterChange()"
+                                        [class.font-bold]="filter.statusId === undefined">
+                                        <span>All Status</span>
+                                    </button>
+                                    <mat-divider></mat-divider>
+                                    <button mat-menu-item *ngFor="let status of filteredStatusMasters"
+                                        (click)="filter.statusId = status.id; onFilterChange()"
+                                        [class.font-bold]="filter.statusId === status.id">
+                                        <span class="flex items-center gap-2">
+                                            <span class="w-2 h-2 rounded-full" [style.background-color]="status.color || '#9ca3af'"></span>
+                                            {{status.statusName}}
+                                        </span>
+                                    </button>
+                                </mat-menu>
+                            </th>
+                            <td mat-cell *matCellDef="let job">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-1.5 h-1.5 rounded-full" 
+                                         [ngClass]="job.isActive ? 'bg-' + (job.statusColor || 'gray') + '-500' : 'bg-gray-400'"></div>
+                                    <span class="text-sm font-semibold" 
+                                          [ngClass]="job.isActive ? 'text-' + (job.statusColor || 'gray') + '-600' : 'text-gray-500'">
+                                        {{ job.isActive ? job.statusName : 'Archived' }}
+                                    </span>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <!-- Deadline Column -->
+                        <ng-container matColumnDef="deadline">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header="deadline"
+                                class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
+                                Deadline</th>
+                            <td mat-cell *matCellDef="let job">
+                                <span class="font-semibold text-[13px]"
+                                    [ngClass]="isOverdue(job.deadline) ? 'text-red-600' : 'text-gray-500'">
+                                    {{job.deadline ? (job.deadline | date:'MMM dd, yyyy') : '-'}}
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Days Left Column -->
+                        <ng-container matColumnDef="daysLeft">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header="daysLeft"
+                                class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
+                                Days Left</th>
+                            <td mat-cell *matCellDef="let job">
+                                <span *ngIf="job.daysLeft !== null && job.daysLeft !== undefined"
+                                    class="px-2 py-0.5 rounded text-[11px] font-bold" [ngClass]="{
+                                        'bg-rose-100 text-rose-600': job.daysLeft < 0,
+                                        'bg-amber-100 text-amber-600': job.daysLeft >= 0 && job.daysLeft <= 7,
+                                        'bg-emerald-100 text-emerald-600': job.daysLeft > 7
+                                    }">
+                                    {{job.daysLeft < 0 ? (job.daysLeft * -1) + ' overdue' : job.daysLeft + 'd' }}
+                                        </span>
+                                        <span *ngIf="job.daysLeft === null || job.daysLeft === undefined"
+                                            class="text-sm text-secondary">-</span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Actions Column -->
+                        <ng-container matColumnDef="actions">
+                            <th mat-header-cell *matHeaderCellDef
+                                class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800 w-12"></th>
+                            <td mat-cell *matCellDef="let job">
+                                <div class="flex items-center justify-end" *ngIf="job.isActive">
+                                    <button mat-icon-button [matMenuTriggerFor]="actionMenu"
+                                        (click)="$event.stopPropagation()">
+                                        <mat-icon class="icon-size-5"
+                                            [svgIcon]="'heroicons_outline:ellipsis-vertical'"></mat-icon>
+                                    </button>
+                                    <mat-menu #actionMenu="matMenu">
+                                        <!-- Quick Close -->
+                                        <button mat-menu-item (click)="quickClose(job)" *ngIf="job.currentStage !== 6">
+                                            <mat-icon class="text-emerald-500"
+                                                [svgIcon]="'heroicons_outline:check-circle'"></mat-icon>
+                                            <span>Finish Job</span>
+                                        </button>
+                                        <!-- Edit -->
+                                        <button mat-menu-item (click)="openEditJobDialog(job)">
+                                            <mat-icon [svgIcon]="'heroicons_outline:pencil-square'"></mat-icon>
+                                            <span>Edit Details</span>
+                                        </button>
+                                        <mat-divider></mat-divider>
+                                        <!-- Archive (Soft Delete) -->
+                                        <button mat-menu-item (click)="archiveJob(job)" *ngIf="isGlobalAdmin || job.ownerId == currentUserId">
+                                            <mat-icon class="text-rose-500"
+                                                [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                                            <span class="text-rose-500">Archive/Delete</span>
+                                        </button>
+                                    </mat-menu>
+                                </div>
+                                <div class="flex items-center justify-end px-4 py-2" *ngIf="!job.isActive">
+                                    <span class="text-[10px] font-bold text-gray-400 italic uppercase">Locked</span>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <!-- Responsible Column (with inline filter) -->
+                        <ng-container matColumnDef="responsible">
+                            <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
+                                <div class="flex items-center gap-1 cursor-pointer" [matMenuTriggerFor]="responsibleFilterMenu">
+                                    <span>Responsible</span>
+                                    <mat-icon class="icon-size-4" [ngClass]="filter.responsibleId !== undefined ? 'text-primary' : 'text-hint'"
+                                        [svgIcon]="'heroicons_mini:funnel'"></mat-icon>
+                                </div>
+                                <mat-menu #responsibleFilterMenu="matMenu" class="min-w-44 max-h-72">
+                                    <button mat-menu-item (click)="filter.responsibleId = undefined; onFilterChange()"
+                                        [class.font-bold]="filter.responsibleId === undefined">
+                                        <span>All</span>
+                                    </button>
+                                    <mat-divider></mat-divider>
+                                    <button mat-menu-item *ngFor="let s of staff"
+                                        (click)="filter.responsibleId = s.id; onFilterChange()"
+                                        [class.font-bold]="filter.responsibleId === s.id">
+                                        <span class="flex items-center gap-2">
+                                            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-[9px] font-bold uppercase">{{s.firstName?.substring(0,1)}}</span>
+                                            {{s.firstName}} {{s.lastName}}
+                                        </span>
+                                    </button>
+                                </mat-menu>
+                            </th>
+                            <td mat-cell *matCellDef="let job">
+                                <div class="flex items-center gap-2" *ngIf="job.responsibleName">
+                                    <div
+                                        class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-[11px] font-bold uppercase transition-transform hover:scale-110">
+                                        {{job.responsibleName.substring(0, 1)}}
+                                    </div>
+                                    <span class="text-sm font-medium flex flex-col justify-center">
+                                        <span>{{job.responsibleName}}</span>
+                                        <span *ngIf="job.originalResponsibleId"
+                                            class="text-[10px] text-amber-600 font-bold bg-amber-50 px-1 py-0.5 rounded inline-block mt-0.5 max-w-fit"
+                                            [matTooltip]="'Temporary until ' + (job.temporaryAssignmentUntil | date:'dd MMM yyyy')">(Temp)</span>
+                                    </span>
+                                </div>
+                                <span class="text-sm text-secondary font-bold" *ngIf="!job.responsibleName">-</span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Lead Column / Owner (with inline filter) -->
+                        <ng-container matColumnDef="owner">
+                            <th mat-header-cell *matHeaderCellDef class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
+                                <div class="flex items-center gap-1 cursor-pointer" [matMenuTriggerFor]="ownerFilterMenu">
+                                    <span>Lead Person</span>
+                                    <mat-icon class="icon-size-4" [ngClass]="filter.ownerId !== undefined ? 'text-primary' : 'text-hint'"
+                                        [svgIcon]="'heroicons_mini:funnel'"></mat-icon>
+                                </div>
+                                <mat-menu #ownerFilterMenu="matMenu" class="min-w-44 max-h-72">
+                                    <button mat-menu-item (click)="filter.ownerId = undefined; onFilterChange()"
+                                        [class.font-bold]="filter.ownerId === undefined">
+                                        <span>All</span>
+                                    </button>
+                                    <mat-divider></mat-divider>
+                                    <button mat-menu-item *ngFor="let s of staff"
+                                        (click)="filter.ownerId = s.id; onFilterChange()"
+                                        [class.font-bold]="filter.ownerId === s.id">
+                                        <span class="flex items-center gap-2">
+                                            <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[9px] font-bold uppercase">{{s.firstName?.substring(0,1)}}</span>
+                                            {{s.firstName}} {{s.lastName}}
+                                        </span>
+                                    </button>
+                                </mat-menu>
+                            </th>
+                            <td mat-cell *matCellDef="let job">
+                                <div class="flex items-center gap-2" *ngIf="job.staffName">
+                                    <div
+                                        class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[11px] font-bold uppercase transition-transform hover:scale-110">
+                                        {{job.staffName.substring(0, 1)}}
+                                    </div>
+                                    <span class="text-sm font-medium">{{job.staffName}}</span>
+                                </div>
+                                <span class="text-sm text-secondary font-bold" *ngIf="!job.staffName">-</span>
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                            class="hover:bg-gray-50 dark:hover:bg-transparent cursor-pointer transition-colors"
+                            (click)="openJobDetails(row)"></tr>
+                    </table>
+
+                    <!-- Loading Indicator -->
+                    <div *ngIf="isLoading" class="absolute inset-x-0 bottom-0 pointer-events-none">
+                        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+                    </div>
+
+                    <!-- No Data Message -->
+                    <div *ngIf="!isLoading && jobs.length === 0" class="p-12 text-center text-secondary border-t">
+                        <mat-icon class="icon-size-16 mb-4 text-gray-200"
+                            [svgIcon]="'heroicons_outline:briefcase'"></mat-icon>
+                        <div class="text-xl font-semibold">No jobs found</div>
+                        <p class="text-sm">Try adjusting your filters or search term.</p>
+                    </div>
+                </div>
+
+                <!-- Paginator Footer -->
+                <div class="flex items-center justify-between border-t bg-gray-50 dark:bg-transparent px-6 md:px-8 flex-shrink-0">
+                    <mat-paginator [length]="totalCount" [pageSize]="filter.pageSize"
+                        [pageSizeOptions]="[5, 10, 25, 100]" [showFirstLastButtons]="true"
+                        (page)="onPageChange($event)"></mat-paginator>
+                    <div class="text-sm font-medium text-secondary">
+                        Total Jobs: {{totalCount}}
+                    </div>
+                </div>
+
+            </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>

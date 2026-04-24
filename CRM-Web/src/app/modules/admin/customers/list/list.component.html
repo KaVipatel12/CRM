@@ -1,0 +1,245 @@
+<div class="flex flex-col min-w-0 overflow-hidden" [ngClass]="{'absolute inset-0': true}">
+
+    <div class="flex-auto h-full bg-card dark:bg-transparent">
+        <div class="flex flex-col h-full">
+
+            <!-- Main Scrollable Area -->
+            <div class="flex flex-col flex-auto overflow-y-auto">
+
+                <!-- Header - scrolls away with stats -->
+                <div class="relative flex flex-col sm:flex-row flex-shrink-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b bg-card dark:bg-transparent">
+                    <div class="flex flex-col">
+                        <!-- Breadcrumbs -->
+                        <div class="flex items-center text-sm font-medium text-secondary whitespace-nowrap">
+                            <a class="text-primary cursor-pointer hover:underline" [routerLink]="['/dashboard']">Home</a>
+                            <mat-icon class="icon-size-4 mx-1" [svgIcon]="'heroicons_mini:chevron-right'"></mat-icon>
+                            <span>Customers</span>
+                        </div>
+                        <!-- Title -->
+                        <div class="mt-2 text-4xl font-extrabold tracking-tight leading-none text-slate-900 dark:text-white">Customers Listing</div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 gap-3">
+                        <button mat-stroked-button color="primary" [routerLink]="['./upload']" class="!rounded-full">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-up-tray'"></mat-icon>
+                            <span class="ml-2">Upload</span>
+                        </button>
+                        <button mat-flat-button color="primary" [routerLink]="['./new']" class="!rounded-full">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                            <span class="ml-2">Add Customer</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Statistics Header -->
+                <div *ngIf="stats" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 px-6 md:px-8 py-6 bg-gray-50 dark:bg-transparent border-b flex-shrink-0">
+                    <!-- Total -->
+                    <div class="flex flex-col flex-auto p-4 bg-card rounded-2xl shadow overflow-hidden border-l-4 border-primary">
+                        <div class="flex items-center justify-between">
+                            <div class="text-secondary font-bold uppercase tracking-wider text-[10px]">Total Customers</div>
+                            <mat-icon class="icon-size-5 text-primary" [svgIcon]="'heroicons_outline:users'"></mat-icon>
+                        </div>
+                        <div class="flex flex-col mt-2">
+                            <div class="text-3xl font-bold leading-tight">{{stats.total}}</div>
+                            <div class="text-xs text-secondary mt-1">Global database</div>
+                        </div>
+                    </div>
+                    <!-- Verified -->
+                    <div class="flex flex-col flex-auto p-4 bg-card rounded-2xl shadow overflow-hidden border-l-4 border-emerald-500">
+                        <div class="flex items-center justify-between">
+                            <div class="text-secondary font-bold uppercase tracking-wider text-[10px]">Verified</div>
+                            <mat-icon class="icon-size-5 text-emerald-500" [svgIcon]="'heroicons_outline:check-badge'"></mat-icon>
+                        </div>
+                        <div class="flex flex-col mt-2">
+                            <div class="text-3xl font-bold leading-tight text-emerald-600">{{stats.verified}}</div>
+                            <div class="text-xs text-secondary mt-1">Confirmed identity</div>
+                        </div>
+                    </div>
+                    <!-- Unverified -->
+                    <div class="flex flex-col flex-auto p-4 bg-card rounded-2xl shadow overflow-hidden border-l-4 border-amber-500">
+                        <div class="flex items-center justify-between">
+                            <div class="text-secondary font-bold uppercase tracking-wider text-[10px]">Unverified</div>
+                            <mat-icon class="icon-size-5 text-amber-500" [svgIcon]="'heroicons_outline:exclamation-circle'"></mat-icon>
+                        </div>
+                        <div class="flex flex-col mt-2">
+                            <div class="text-3xl font-bold leading-tight text-amber-600">{{stats.unverified}}</div>
+                            <div class="text-xs text-secondary mt-1">Needs verification</div>
+                        </div>
+                    </div>
+                    <!-- Active -->
+                    <div class="flex flex-col flex-auto p-4 bg-card rounded-2xl shadow overflow-hidden border-l-4 border-cyan-500">
+                        <div class="flex items-center justify-between">
+                            <div class="text-secondary font-bold uppercase tracking-wider text-[10px]">Active</div>
+                            <mat-icon class="icon-size-5 text-cyan-500" [svgIcon]="'heroicons_outline:bolt'"></mat-icon>
+                        </div>
+                        <div class="flex flex-col mt-2">
+                            <div class="text-3xl font-bold leading-tight text-cyan-600">{{stats.active}}</div>
+                            <div class="text-xs text-secondary mt-1">Currently engaged</div>
+                        </div>
+                    </div>
+                    <!-- Inactive -->
+                    <div class="flex flex-col flex-auto p-4 bg-card rounded-2xl shadow overflow-hidden border-l-4 border-rose-500">
+                        <div class="flex items-center justify-between">
+                            <div class="text-secondary font-bold uppercase tracking-wider text-[10px]">Inactive</div>
+                            <mat-icon class="icon-size-5 text-rose-500" [svgIcon]="'heroicons_outline:no-symbol'"></mat-icon>
+                        </div>
+                        <div class="flex flex-col mt-2">
+                            <div class="text-3xl font-bold leading-tight text-rose-600">{{stats.inactive}}</div>
+                            <div class="text-xs text-secondary mt-1">Stopped / Excluded</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sticky App Shell: Filters + Table + Paginator -->
+                <div class="sticky top-0 z-20 flex flex-col bg-card dark:bg-transparent" style="height: calc(100vh - 64px);">
+
+                    <!-- Filters Bar -->
+                    <div class="flex flex-col sm:flex-row items-center justify-between py-4 px-6 md:px-8 border-b bg-gray-50 dark:bg-transparent flex-shrink-0">
+                        <div class="flex flex-wrap items-center gap-4 w-full">
+                            <!-- Contact Type Filter -->
+                            <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-44" appearance="outline">
+                                <mat-select [(ngModel)]="filters.contactType" (selectionChange)="onFilterChange()" placeholder="All Contact Types">
+                                    <mat-option [value]="0">All Contact Types</mat-option>
+                                    <mat-option *ngFor="let type of contactTypes" [value]="type.id">{{type.name}}</mat-option>
+                                </mat-select>
+                            </mat-form-field>
+
+                            <!-- Verified Type Filter -->
+                            <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-40" appearance="outline">
+                                <mat-select [(ngModel)]="filters.varifiedType" (selectionChange)="onFilterChange()" placeholder="Verification">
+                                    <mat-option value="all">Verification: All</mat-option>
+                                    <mat-option value="verified">Verified</mat-option>
+                                    <mat-option value="not verified">Not Verified</mat-option>
+                                </mat-select>
+                            </mat-form-field>
+
+                            <!-- Checkbox Filters -->
+                            <div class="flex items-center gap-4 ml-2">
+                                <mat-checkbox class="text-secondary font-medium" color="primary" [(ngModel)]="filters.includeExcluded" (change)="onFilterChange()">
+                                    Excluded
+                                </mat-checkbox>
+                                <mat-checkbox class="text-secondary font-medium" color="primary" [(ngModel)]="filters.includeInactive" (change)="onFilterChange()">
+                                    Inactive
+                                </mat-checkbox>
+                                <mat-checkbox class="text-secondary font-medium" color="primary" [(ngModel)]="filters.includeArchived" (change)="onFilterChange()">
+                                    Archived
+                                </mat-checkbox>
+                            </div>
+
+                            <!-- Search -->
+                            <div class="flex items-center ml-auto">
+                                <div class="flex items-center h-9 px-3 border border-gray-300 rounded-full bg-white min-w-64 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
+                                    <mat-icon class="icon-size-5 text-hint mr-2" [svgIcon]="'heroicons_solid:magnifying-glass'"></mat-icon>
+                                    <input class="border-none outline-none bg-transparent w-full text-sm placeholder:text-hint"
+                                        [formControl]="searchInputControl" autocomplete="off"
+                                        placeholder="Search customers...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scrollable Table Area -->
+                    <div class="flex flex-col flex-auto overflow-y-auto min-h-0 px-6 md:px-8">
+                        <table mat-table [dataSource]="dataSource" class="w-full bg-transparent" matSort>
+                            <!-- Code Column -->
+                            <ng-container matColumnDef="code">
+                                <th mat-header-cell *matHeaderCellDef class="font-bold uppercase tracking-wider text-[11px]">Code</th>
+                                <td mat-cell *matCellDef="let customer" class="font-medium text-secondary">
+                                    {{customer.code}}
+                                </td>
+                            </ng-container>
+
+                            <!-- Name Column -->
+                            <ng-container matColumnDef="name">
+                                <th mat-header-cell *matHeaderCellDef class="font-bold uppercase tracking-wider text-[11px]">Customer Name</th>
+                                <td mat-cell *matCellDef="let customer">
+                                <span class="font-bold text-primary hover:underline cursor-pointer" [routerLink]="['./', customer.id]">
+                                    {{customer.name}}
+                                </span>
+                                </td>
+                            </ng-container>
+
+                            <!-- Type Column -->
+                            <ng-container matColumnDef="type">
+                                <th mat-header-cell *matHeaderCellDef class="font-bold uppercase tracking-wider text-[11px]">Client Group</th>
+                                <td mat-cell *matCellDef="let customer">
+                                    <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">
+                                        {{getCustomerTypeLabel(customer.clientType)}}
+                                    </span>
+                                </td>
+                            </ng-container>
+
+                            <!-- Email Column -->
+                            <ng-container matColumnDef="email">
+                                <th mat-header-cell *matHeaderCellDef class="font-bold uppercase tracking-wider text-[11px]">Email</th>
+                                <td mat-cell *matCellDef="let customer" class="text-secondary lowercase">
+                                    {{customer.email}}
+                                </td>
+                            </ng-container>
+
+                            <!-- Status Column -->
+                            <ng-container matColumnDef="status">
+                                <th mat-header-cell *matHeaderCellDef class="font-bold uppercase tracking-wider text-[11px]">Status Tags</th>
+                                <td mat-cell *matCellDef="let customer">
+                                    <div class="flex flex-wrap gap-1">
+                                        <span *ngIf="!customer.isDeleted && customer.isActive" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">ACTIVE</span>
+                                        <span *ngIf="customer.isDeleted || !customer.isActive" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">INACTIVE</span>
+                                        <span *ngIf="customer.isArchived" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">ARCHIVED</span>
+                                        <span *ngIf="customer.isExcluded" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400">EXCLUDED</span>
+                                    </div>
+                                </td>
+                            </ng-container>
+
+                            <!-- Action Column -->
+                            <ng-container matColumnDef="action">
+                                <th mat-header-cell *matHeaderCellDef class="font-bold uppercase tracking-wider text-[11px] w-32"></th>
+                                <td mat-cell *matCellDef="let customer">
+                                    <div class="flex items-center justify-end">
+                                        <button *ngIf="isChecker" mat-icon-button [disabled]="customer.lastVarifiedDate" (click)="verifyCustomer(customer)" matTooltip="Verify Identity">
+                                            <mat-icon class="icon-size-5" [ngClass]="customer.lastVarifiedDate ? 'text-emerald-500' : 'text-amber-500'" [svgIcon]="'heroicons_solid:check-badge'"></mat-icon>
+                                        </button>
+                                        <a mat-icon-button [routerLink]="['./', customer.id]" matTooltip="Edit Customer">
+                                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:pencil-square'"></mat-icon>
+                                        </a>
+                                        <button mat-icon-button (click)="deleteCustomer(customer.id)" matTooltip="Remove Record">
+                                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                                        </button>
+                                    </div>
+                                </td>
+                            </ng-container>
+
+                            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="group hover:bg-gray-50 dark:hover:bg-transparent cursor-pointer transition-colors"></tr>
+                        </table>
+
+                        <!-- Loading Indicator -->
+                        <div *ngIf="isLoading" class="absolute inset-x-0 bottom-0 pointer-events-none">
+                            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+                        </div>
+
+                        <!-- Empty State -->
+                        <div *ngIf="!isLoading && customers.length === 0" class="flex flex-col items-center justify-center p-12 text-secondary border-t">
+                            <mat-icon class="icon-size-16 mb-4 text-gray-200" [svgIcon]="'heroicons_outline:users'"></mat-icon>
+                            <div class="text-xl font-semibold">No customers found</div>
+                            <div class="mt-1">Try adjusting your search or filters</div>
+                        </div>
+                    </div>
+
+                    <!-- Paginator Footer -->
+                    <div class="flex items-center justify-between border-t bg-gray-50 dark:bg-transparent px-6 md:px-8 flex-shrink-0">
+                        <mat-paginator
+                            [length]="totalCount"
+                            [pageSize]="filters.pageSize"
+                            [pageSizeOptions]="[10, 25, 50, 100]"
+                            [showFirstLastButtons]="true"
+                            (page)="onPageChange($event)"></mat-paginator>
+                        <div class="text-sm font-medium text-secondary hidden sm:block">
+                            Region: Global Listing
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

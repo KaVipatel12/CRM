@@ -1,0 +1,51 @@
+<div class="flex flex-col max-w-md w-full">
+    <div class="flex items-center justify-between px-6 py-4 border-b">
+        <h2 class="text-lg font-semibold m-0">Assign Temporarily</h2>
+        <button mat-icon-button mat-dialog-close>
+            <span class="text-xl">&times;</span>
+        </button>
+    </div>
+
+    <form [formGroup]="form" class="flex flex-col p-6 gap-4" (ngSubmit)="submit()">
+        
+        <div class="p-4 bg-primary/10 rounded-lg text-primary-600 mb-2">
+            You are about to temporarily re-assign <strong>{{jobCount}}</strong> jobs. They will be automatically reverted to their original owners after the selected expiry date.
+        </div>
+
+        <!-- Staff Selection -->
+        <mat-form-field class="w-full" appearance="outline">
+            <mat-label>Assign To (Temporary Staff)</mat-label>
+            <mat-select formControlName="staffId" required>
+                <mat-option *ngFor="let member of staffList" [value]="member.id">
+                    {{ member.firstName }} {{ member.lastName }}
+                </mat-option>
+            </mat-select>
+            <mat-error *ngIf="form.get('staffId').hasError('required')">Please select a staff member</mat-error>
+        </mat-form-field>
+
+        <!-- Date Expiry -->
+        <mat-form-field class="w-full" appearance="outline">
+            <mat-label>Assign Until Date</mat-label>
+            <input matInput [matDatepicker]="picker" [min]="minDate" formControlName="untilDate" required>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-hint>After this date, the assignment reverts to the original owner.</mat-hint>
+            <mat-error *ngIf="form.get('untilDate').hasError('required')">Please select an expiry date</mat-error>
+        </mat-form-field>
+
+        <!-- Reason -->
+        <mat-form-field class="w-full mt-2" appearance="outline">
+            <mat-label>Reason for Temporary Assignment</mat-label>
+            <textarea matInput formControlName="note" rows="3" placeholder="e.g., Covering for Gaurav on sick leave" required></textarea>
+            <mat-error *ngIf="form.get('note').hasError('required')">Please provide a reason</mat-error>
+        </mat-form-field>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end border-t pt-4 mt-2">
+            <button mat-button type="button" mat-dialog-close class="mr-2">Cancel</button>
+            <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
+                Save Assignment
+            </button>
+        </div>
+    </form>
+</div>

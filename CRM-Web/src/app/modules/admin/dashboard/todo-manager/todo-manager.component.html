@@ -1,0 +1,142 @@
+<div class="flex flex-col flex-auto w-full max-w-[520px] bg-card rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+    
+    <!-- Filter Tabs -->
+    <div class="px-2 py-2 border-b bg-gray-50/50 dark:bg-gray-800/50 flex items-center justify-center overflow-x-auto no-scrollbar">
+        <mat-button-toggle-group [value]="filterState" (change)="setFilter($event.value)" class="border-none shadow-none bg-transparent gap-1">
+            <mat-button-toggle value="all" class="rounded-full border-none">All</mat-button-toggle>
+            <mat-button-toggle value="high" class="rounded-full border-none px-1">
+                <span class="flex items-center">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-2 animate-pulse"></span>
+                    High
+                </span>
+            </mat-button-toggle>
+            <mat-button-toggle value="overdue" class="rounded-full border-none text-rose-600 font-semibold px-1 italic">Overdue</mat-button-toggle>
+            <mat-button-toggle value="completed" class="rounded-full border-none px-1">Done</mat-button-toggle>
+        </mat-button-toggle-group>
+    </div>
+
+    <!-- Header/Quick Add -->
+    <div class="p-4 border-b bg-white dark:bg-gray-900">
+        <form [formGroup]="todoForm" #todoNGForm="ngForm" (ngSubmit)="addTodo()" class="flex flex-col space-y-4">
+            <div class="flex items-center">
+                <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript flex-auto" [appearance]="'outline'">
+                    <mat-icon matPrefix class="icon-size-5 text-primary" [svgIcon]="'heroicons_outline:pencil-square'"></mat-icon>
+                    <input matInput [formControlName]="'note'" placeholder="What needs to be done?" autocomplete="off">
+                </mat-form-field>
+                <div class="flex items-center mb-4 ml-3">
+                    <button mat-mini-fab color="primary" [disabled]="todoForm.invalid" [type]="'submit'" matTooltip="Quick Add (Enter)">
+                        <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Priority Selector -->
+                <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-36" [appearance]="'outline'">
+                    <mat-select [formControlName]="'priority'" placeholder="Priority">
+                        <mat-option [value]="0">
+                            <div class="flex items-center font-medium text-blue-600">
+                                <span class="w-2 h-2 rounded-full bg-blue-600 mr-2"></span>
+                                Low
+                            </div>
+                        </mat-option>
+                        <mat-option [value]="1">
+                            <div class="flex items-center font-medium text-amber-600">
+                                <span class="w-2 h-2 rounded-full bg-amber-600 mr-2"></span>
+                                Medium
+                            </div>
+                        </mat-option>
+                        <mat-option [value]="2">
+                            <div class="flex items-center font-medium text-rose-600">
+                                <span class="w-2 h-2 rounded-full bg-rose-600 mr-2"></span>
+                                High
+                            </div>
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <!-- Date Picker -->
+                <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript w-44" [appearance]="'outline'">
+                    <input matInput [matDatepicker]="picker" [formControlName]="'dueDate'" placeholder="Due date (optional)">
+                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-datepicker #picker></mat-datepicker>
+                </mat-form-field>
+            </div>
+        </form>
+    </div>
+
+    <!-- List -->
+    <div class="flex flex-col flex-auto overflow-y-auto max-h-[500px] min-h-[350px]" [ngClass]="{'max-h-[420px]': mode === 'mini'}">
+        <ng-container *ngIf="filteredTodos.length > 0; else noTodos">
+            <div *ngFor="let todo of filteredTodos" 
+                 class="group flex items-start px-4 py-4 border-b last:border-0 hover:bg-gray-50/80 dark:hover:bg-gray-800/80 transition-all duration-200"
+                 [ngClass]="{'bg-rose-50/40 dark:bg-rose-900/10 border-l-4 border-l-rose-500': todo.dueDate && (todo.dueDate | date:'yyyyMMdd') < (today | date:'yyyyMMdd') && !todo.isCompleted}">
+                
+                <mat-checkbox [checked]="todo.isCompleted" 
+                             (change)="toggleTodo(todo)"
+                             color="primary" class="mt-1 mr-3">
+                </mat-checkbox>
+
+                <div class="flex flex-col flex-auto min-w-0 pr-4 cursor-pointer" (click)="toggleExpand(todo.id, $event)">
+                    <!-- Note & Priority Indicator -->
+                    <div class="flex items-center mb-0.5">
+                        <span class="w-2 h-2 rounded-full mr-2" 
+                              [ngClass]="{
+                                  'bg-blue-500': todo.priority === 0,
+                                  'bg-amber-500': todo.priority === 1,
+                                  'bg-rose-500': todo.priority === 2
+                              }"
+                              [matTooltip]="todo.priority === 0 ? 'Low Priority' : (todo.priority === 1 ? 'Medium Priority' : 'High Priority')">
+                        </span>
+                        <div class="text-md font-medium leading-tight select-text" 
+                             [ngClass]="{
+                                'line-through text-secondary': todo.isCompleted,
+                                'text-rose-600': todo.dueDate && (todo.dueDate | date:'yyyyMMdd') < (today | date:'yyyyMMdd') && !todo.isCompleted,
+                                'truncate': expandedTodoId !== todo.id,
+                                'whitespace-normal break-words': expandedTodoId === todo.id
+                             }">
+                            {{todo.note}}
+                        </div>
+                    </div>
+                    
+                    <!-- Meta Info: Date & Creation -->
+                    <div class="flex items-center space-x-3 text-xs text-secondary mt-1">
+                        <div class="flex items-center font-medium"
+                             [ngClass]="{'text-rose-600': todo.dueDate && (todo.dueDate | date:'yyyyMMdd') < (today | date:'yyyyMMdd') && !todo.isCompleted}">
+                            <mat-icon class="icon-size-3 mr-1" [svgIcon]="'heroicons_outline:calendar'"></mat-icon>
+                            <span *ngIf="todo.dueDate">{{todo.dueDate | date:'MMM dd, yyyy'}}</span>
+                            <span *ngIf="!todo.dueDate" class="opacity-50">No end date</span>
+                            <span *ngIf="todo.dueDate && (todo.dueDate | date:'yyyyMMdd') < (today | date:'yyyyMMdd') && !todo.isCompleted" class="ml-1 font-bold"> - Overdue</span>
+                        </div>
+                        <div class="opacity-60" *ngIf="mode === 'full'">
+                            Created: {{todo.createdDateTime | date:'MMM dd'}}
+                        </div>
+                    </div>
+                </div>
+
+                <button mat-icon-button class="hidden group-hover:flex ml-auto" 
+                        [matTooltip]="'Delete'"
+                        (click)="deleteTodo(todo.id)">
+                    <mat-icon class="icon-size-5 text-rose-500" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                </button>
+            </div>
+        </ng-container>
+
+        <!-- No Todos Placeholder -->
+        <ng-template #noTodos>
+            <div class="flex flex-col items-center justify-center p-8 opacity-50 flex-auto">
+                <mat-icon class="icon-size-16" [svgIcon]="'heroicons_outline:clipboard-document-check'"></mat-icon>
+                <p class="mt-4 font-semibold">No tasks found here!</p>
+                <p class="text-sm">Try changing the filter or add a new reminder.</p>
+            </div>
+        </ng-template>
+    </div>
+
+    <!-- Footer for Mini Mode -->
+    <div class="p-2 border-t text-center bg-gray-50 dark:bg-gray-800" *ngIf="mode === 'mini'">
+        <button mat-button color="primary" class="w-full" (click)="loadTodos()">
+            <mat-icon class="icon-size-4 mr-2" [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
+            Sync Tasks
+        </button>
+    </div>
+</div>

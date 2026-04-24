@@ -1,0 +1,278 @@
+<div class="flex flex-col flex-auto p-6 md:p-8 space-y-8 bg-gray-50/50 dark:bg-transparent min-h-screen print:bg-white print:p-0">
+    
+    <!-- Action Bar (Hidden on Print) -->
+    <div class="flex items-center justify-between print:hidden">
+        <div class="flex flex-col">
+            <h2 class="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-none">Customer Summary</h2>
+            <div class="mt-1 text-secondary font-medium">Account overview and service portfolio dashboard</div>
+        </div>
+        <button mat-flat-button color="primary" class="rounded-xl" (click)="printSummary()">
+            <mat-icon class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:printer'"></mat-icon>
+            Print Report
+        </button>
+    </div>
+
+    <!-- MAIN REPORT CONTAINER -->
+    <div id="print-area" class="space-y-8">
+        
+        <!-- Section 1: Client Identity -->
+        <div class="bg-card shadow rounded-2xl p-8 border border-divider overflow-hidden">
+            <div class="flex items-center justify-between border-b border-divider pb-4 mb-8">
+                <div class="flex flex-col">
+                    <span class="text-xl font-extrabold tracking-tight text-primary uppercase leading-tight">Client Detail</span>
+                    <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Core Information & Identity</span>
+                </div>
+                <div class="flex flex-col items-end">
+                    <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Client ID</span>
+                    <span class="text-sm font-mono font-bold">#{{ customer?.id }}</span>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-8 gap-x-12">
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1">Full Legal Name</span>
+                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ customer?.name }}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1">System Code</span>
+                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ customer?.code }}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1">Trading Name</span>
+                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ customer?.tradingName || '-' }}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1">Registration (ABN)</span>
+                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ customer?.abnNumber || '-' }}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1">Tax File Number (TFN)</span>
+                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ customer?.tfnNumber || '-' }}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1">Account Status</span>
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full" [ngClass]="customer?.isActive ? 'bg-emerald-500' : 'bg-rose-500'"></div>
+                        <span class="text-sm font-bold uppercase" [ngClass]="customer?.isActive ? 'text-emerald-600' : 'text-rose-600'">
+                            {{ customer?.isActive ? 'Active' : 'Inactive' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Section 2: Communication -->
+            <div class="bg-card shadow rounded-2xl p-8 border border-divider overflow-hidden">
+                <div class="flex items-center justify-between border-b border-divider pb-4 mb-8">
+                    <div class="flex flex-col">
+                        <span class="text-xl font-extrabold tracking-tight text-primary uppercase leading-tight">Communication</span>
+                        <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Primary Contact Channels</span>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between border-b border-gray-50 dark:border-gray-800 pb-3">
+                        <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Contact Name</span>
+                        <span class="text-sm font-semibold">{{ customer?.contactInfo?.contactName || '-' }}</span>
+                    </div>
+                    <div class="flex items-center justify-between border-b border-gray-50 dark:border-gray-800 pb-3">
+                        <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Mobile Phone</span>
+                        <span class="text-sm font-semibold">{{ customer?.contactInfo?.cellPhone || '-' }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Email Address</span>
+                        <span class="text-sm font-semibold text-primary underline cursor-pointer">{{ customer?.contactInfo?.email || '-' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Compliance & Value -->
+            <div class="bg-card shadow rounded-2xl p-8 border border-divider overflow-hidden">
+                <div class="flex items-center justify-between border-b border-divider pb-4 mb-8">
+                    <div class="flex flex-col">
+                        <span class="text-xl font-extrabold tracking-tight text-primary uppercase leading-tight">Compliance & Value</span>
+                        <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Verification & Annual Estimates</span>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:shield-check'"></mat-icon>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Verification Info</span>
+                            <span class="text-sm font-semibold" *ngIf="customer?.lastVarifiedDate">
+                                Validated on {{ lastVarifiedDate | date:'dd-MM-yyyy HH:mm' }}
+                            </span>
+                            <span class="text-xs text-secondary mt-0.5" *ngIf="customer?.lastVarifiedDate">
+                                Verified by {{ lastVarifiedUserName }}
+                            </span>
+                            <span class="text-amber-600 font-bold text-xs italic" *ngIf="!customer?.lastVarifiedDate">Verification Awaiting Action</span>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4 border-t border-divider pt-6">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-100">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:currency-dollar'"></mat-icon>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Estimated Annual Revenue</span>
+                            <span class="text-2xl font-extrabold text-emerald-600 leading-none mt-1">{{ totalFees | currency }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Section 4: Admin Checklist -->
+            <div class="bg-card shadow rounded-2xl p-8 border border-divider overflow-hidden flex flex-col">
+                <div class="flex items-center justify-between border-b border-divider pb-4 mb-6">
+                    <div class="flex flex-col">
+                        <span class="text-xl font-extrabold tracking-tight text-primary uppercase leading-tight">Admin Checklist</span>
+                        <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Internal task tracking</span>
+                    </div>
+                    <div class="flex items-center px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-[10px] font-bold text-secondary">
+                        {{ checklistItems.length }} TASKS
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div *ngFor="let item of checklistItems" class="flex items-center justify-between p-3 rounded-xl border border-divider bg-gray-50/30 dark:bg-transparent">
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center justify-center w-5 h-5 rounded border-2" 
+                                 [ngClass]="item.isCompleted ? 'bg-primary border-primary text-white' : 'border-gray-300 dark:border-gray-600'">
+                                <mat-icon *ngIf="item.isCompleted" class="icon-size-3.5" [svgIcon]="'heroicons_solid:check'"></mat-icon>
+                            </div>
+                            <span class="text-sm font-semibold" [ngClass]="{'line-through text-secondary': item.isCompleted}">{{ item.taskName }}</span>
+                        </div>
+                        <span *ngIf="item.isCompleted" class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Done</span>
+                        <span *ngIf="!item.isCompleted" class="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Pending</span>
+                    </div>
+                    <div *ngIf="checklistItems.length === 0" class="py-8 text-center text-secondary italic text-xs">
+                        No checklist items assigned.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Financial Services Notes -->
+            <div class="bg-card shadow rounded-2xl p-8 border border-divider overflow-hidden flex flex-col">
+                <div class="flex items-center justify-between border-b border-divider pb-4 mb-6">
+                    <div class="flex flex-col">
+                        <span class="text-xl font-extrabold tracking-tight text-primary uppercase leading-tight">Financial Notes</span>
+                        <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Compliance & Audit Logs</span>
+                    </div>
+                </div>
+                <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div *ngFor="let note of fsNotes" class="p-4 rounded-xl border border-divider bg-gray-50/50 dark:bg-transparent flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 rounded bg-primary text-white text-[10px] font-bold uppercase tracking-wider">{{ note.noteType }}</span>
+                            <span class="text-[10px] font-bold text-secondary uppercase">{{ note.createdDateTime | date:'MMM dd, yyyy' }}</span>
+                        </div>
+                        <div class="text-sm text-gray-700 dark:text-gray-300 line-clamp-3 leading-relaxed">
+                            {{ note.noteContent }}
+                        </div>
+                        <div class="flex items-center gap-1.5 mt-1 text-[10px] font-bold text-secondary uppercase tracking-widest">
+                            <mat-icon class="icon-size-3" [svgIcon]="'heroicons_solid:user'"></mat-icon>
+                            <span>{{ note.createdByUserName || 'System' }}</span>
+                        </div>
+                    </div>
+                    <div *ngIf="fsNotes.length === 0" class="py-8 text-center text-secondary italic text-xs">
+                        No financial notes recorded.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 6: Service Portfolio -->
+        <div class="bg-card shadow rounded-2xl border border-divider overflow-hidden">
+            <div class="flex items-center justify-between p-8 border-b border-divider">
+                <div class="flex flex-col">
+                    <span class="text-xl font-extrabold tracking-tight text-primary uppercase leading-tight">Service Portfolio</span>
+                    <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Detailed billing & service assignments</span>
+                </div>
+            </div>
+            <div class="p-0 overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 dark:bg-gray-800/50 text-[10px] font-bold text-secondary uppercase border-b">
+                            <th class="px-8 py-4 border-r border-divider">Service Type</th>
+                            <th class="px-8 py-4 border-r border-divider">Frequency</th>
+                            <th class="px-8 py-4 border-r border-divider text-right">Fee (Excl. GST)</th>
+                            <th class="px-8 py-4">Internal Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-divider">
+                        <tr *ngFor="let s of services" class="hover:bg-gray-50 transition-colors">
+                            <td class="px-8 py-4 font-bold border-r border-divider text-sm">{{ s.serviceName }}</td>
+                            <td class="px-8 py-4 border-r border-divider">
+                                <span class="text-[10px] font-bold px-2 py-1 rounded bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-100 uppercase tracking-widest">
+                                    {{ s.unit === 'y' ? 'Yearly' : s.unit === 'q' ? 'Quarterly' : s.unit === 'm' ? 'Monthly' : 'Periodic' }}
+                                </span>
+                            </td>
+                            <td class="px-8 py-4 border-r border-divider text-right font-semibold text-sm">{{ s.amount | currency }}</td>
+                            <td class="px-8 py-4 italic text-secondary text-xs">{{ s.internalNotes || '-' }}</td>
+                        </tr>
+                        <tr *ngIf="services.length === 0">
+                            <td colspan="4" class="px-8 py-16 text-center text-secondary italic">No active services defined in portfolio.</td>
+                        </tr>
+                    </tbody>
+                    <tfoot *ngIf="services.length > 0">
+                        <tr class="bg-gray-50/50 dark:bg-gray-800/20 font-bold border-t border-divider">
+                            <td colspan="2" class="px-8 py-5 text-right uppercase text-[10px] tracking-widest text-secondary">Aggregate Annual Estimate</td>
+                            <td class="px-8 py-5 text-right text-lg text-primary">{{ totalFees | currency }}</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section 5: Recent Jobs -->
+        <div class="bg-card shadow rounded-2xl border border-divider overflow-hidden">
+            <div class="flex items-center justify-between p-8 border-b border-divider">
+                <div class="flex flex-col">
+                    <span class="text-xl font-extrabold tracking-tight text-primary uppercase leading-tight">Recent Activity</span>
+                    <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Latest jobs and lifecycle status</span>
+                </div>
+            </div>
+            <div class="p-0 overflow-x-auto">
+                <table class="w-full text-left border-collapse print:border">
+                    <thead>
+                        <tr class="bg-gray-50 dark:bg-gray-800/50 text-[10px] font-bold text-secondary uppercase border-b">
+                            <th class="px-8 py-4 border-r border-divider">Job Caption</th>
+                            <th class="px-8 py-4 border-r border-divider">Assign Date</th>
+                            <th class="px-8 py-4">Current Workflow Stage</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-divider">
+                        <tr *ngFor="let j of jobs" class="hover:bg-gray-50 transition-colors">
+                            <td class="px-8 py-4 border-r border-divider text-sm font-medium">{{ j.caption }}</td>
+                            <td class="px-8 py-4 border-r border-divider text-sm">{{ j.assignDate | date:'dd-MM-yyyy' }}</td>
+                            <td class="px-8 py-4">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full print:border" [style.background-color]="j.statusColor || '#94a3b8'" style="-webkit-print-color-adjust: exact;"></div>
+                                    <span class="uppercase font-bold text-[10px] tracking-widest" 
+                                          [style.color]="j.statusColor || '#64748b'" style="-webkit-print-color-adjust: exact;">
+                                        {{ j.statusName }}
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr *ngIf="jobs.length === 0">
+                            <td colspan="3" class="px-8 py-12 text-center text-secondary italic text-xs">No recent job activity recorded for this contact.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer Copyright (Only show on print) -->
+    <div class="hidden print:block mt-12 text-center text-[10px] text-gray-400 border-t border-divider pt-6">
+        &copy; {{ currentYear }} SuperSmartPlans CRM Portfolio Report · Confidential Document · Generated on {{ currentYear }}-{{ currentYear }}
+    </div>
+</div>
+
+

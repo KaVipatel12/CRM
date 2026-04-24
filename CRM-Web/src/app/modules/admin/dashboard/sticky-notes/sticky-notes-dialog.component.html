@@ -1,0 +1,108 @@
+<div class="flex flex-col h-full max-h-[85vh]">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b bg-card">
+        <div>
+            <div class="text-2xl font-bold tracking-tight">Sticky Notes</div>
+            <div class="text-sm text-secondary">Personal notices & reminders</div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button
+                mat-flat-button
+                [color]="'primary'"
+                (click)="addNote()">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                <span class="ml-1 font-semibold">Add Note</span>
+            </button>
+            <button mat-icon-button (click)="close()">
+                <mat-icon [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+            </button>
+        </div>
+    </div>
+
+    <!-- Notes List -->
+    <div class="flex flex-col flex-auto overflow-y-auto p-5 bg-gray-50 dark:bg-gray-900 space-y-4"
+         cdkDropList (cdkDropListDropped)="onDrop($event)">
+        <ng-container *ngIf="notes">
+
+            <!-- Empty State -->
+            <div *ngIf="notes.length === 0"
+                class="flex flex-col items-center justify-center py-16 text-center">
+                <mat-icon class="icon-size-16 text-hint opacity-40" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
+                <div class="mt-4 text-xl font-semibold text-secondary">No notes yet</div>
+                <div class="text-sm text-hint mt-1">Click "Add Note" to create your first personal notice.</div>
+            </div>
+
+            <!-- Note Cards -->
+            <div
+                *ngFor="let note of notes; let i = index"
+                cdkDrag
+                class="relative flex flex-col rounded-xl shadow-sm overflow-hidden ring-1 ring-black/5 dark:ring-white/5 hover:shadow-md hover:scale-[1.01] transition-all duration-200 group cursor-move"
+                [ngClass]="getNoteColorClass(i)"
+                (click)="editNote(note)">
+
+                <!-- Pinned Badge -->
+                <div *ngIf="note.isPinned"
+                    class="absolute top-0 right-0 bg-primary/90 backdrop-blur text-on-primary text-[10px] font-bold px-2 py-0.5 rounded-bl-lg shadow-sm z-10 tracking-widest">
+                    PINNED
+                </div>
+
+                <!-- Title Bar -->
+                <div class="flex items-center justify-center pt-4 pb-1 px-8">
+                    <div class="font-bold text-lg text-center tracking-tight flex-auto truncate border-b border-black/10 dark:border-white/10 pb-2">
+                        {{ note.title || 'Untitled Note' }}
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div
+                    class="px-6 py-4 prose prose-sm max-w-none text-default leading-relaxed min-h-16 text-center break-words flex flex-col justify-center"
+                    [innerHTML]="note.content">
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="flex items-center justify-between px-4 py-2 border-t border-black/5 dark:border-white/5 opacity-70 group-hover:opacity-100 transition-opacity">
+                    <div class="text-xs font-medium px-2 opacity-80">
+                        {{ note.createdDateTime | date:'MMM dd, yyyy' }}
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button
+                            mat-icon-button
+                            class="w-8 h-8 min-h-8"
+                            (click)="togglePin(note, $event)"
+                            [matTooltip]="note.isPinned ? 'Unpin' : 'Pin to top'">
+                            <mat-icon class="icon-size-4" [ngClass]="note.isPinned ? 'text-primary' : 'text-hint'"
+                                [svgIcon]="note.isPinned ? 'heroicons_solid:bookmark' : 'heroicons_outline:bookmark'">
+                            </mat-icon>
+                        </button>
+                        <button
+                            mat-icon-button
+                            class="w-8 h-8 min-h-8"
+                            (click)="convertToTodo(note.id, $event)"
+                            matTooltip="Convert to Todo List">
+                            <mat-icon class="icon-size-4 text-emerald-600 dark:text-emerald-500"
+                                [svgIcon]="'heroicons_outline:clipboard-document-list'">
+                            </mat-icon>
+                        </button>
+                        <button
+                            mat-icon-button
+                            class="w-8 h-8 min-h-8"
+                            (click)="deleteNote(note.id, $event)"
+                            matTooltip="Delete">
+                            <mat-icon class="icon-size-4 text-red-500"
+                                [svgIcon]="'heroicons_outline:trash'">
+                            </mat-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </ng-container>
+    </div>
+
+    <!-- Footer -->
+    <div class="flex items-center justify-end px-6 py-3 border-t bg-card">
+        <button mat-flat-button [color]="'warn'" (click)="close()">Close</button>
+    </div>
+
+</div>

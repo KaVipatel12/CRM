@@ -1,0 +1,105 @@
+<div class="flex flex-col max-w-240 md:min-w-160 max-h-screen -m-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between pl-8 pr-6 py-4 bg-primary text-on-primary">
+        <div class="text-lg font-medium">Migrate Customer Type</div>
+        <button
+            mat-icon-button
+            (click)="closeDialog()"
+            [tabIndex]="-1">
+            <mat-icon
+                class="text-current"
+                [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+        </button>
+    </div>
+
+    <!-- Content -->
+    <div class="flex flex-col flex-auto p-8 overflow-y-auto">
+
+        <!-- Current Type Info -->
+        <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg mb-8 flex items-center">
+            <mat-icon class="text-primary mr-4" [svgIcon]="'heroicons_outline:user-group'"></mat-icon>
+            <div>
+                <div class="text-xs font-bold text-secondary uppercase tracking-wider">Current Customer Type</div>
+                <div class="text-md font-extrabold uppercase">{{getCurrentTypeName()}}</div>
+            </div>
+        </div>
+
+        <!-- Selection -->
+        <mat-form-field class="fuse-mat-no-subscript w-full mb-8">
+            <mat-label>Select New Customer Type</mat-label>
+            <mat-select [(ngModel)]="selectedNewType" (selectionChange)="onTypeSelected()">
+                <mat-option *ngFor="let type of getAvailableTypes()" [value]="type.id">
+                    {{type.customerTypeNM}}
+                </mat-option>
+            </mat-select>
+            <mat-hint>Choose a new type to see the migration impact.</mat-hint>
+        </mat-form-field>
+
+        <!-- Impact Analysis -->
+        @if (showConfirmation) {
+            <div class="mt-4 border p-6 rounded-2xl bg-card shadow-sm border-divider">
+                <h3 class="text-lg font-bold mb-4 flex items-center">
+                    <mat-icon class="mr-2 text-amber-500" [svgIcon]="'heroicons_solid:exclamation-triangle'"></mat-icon>
+                    Migration Impact: {{getSelectedTypeName()}}
+                </h3>
+
+                <div class="space-y-6">
+                    <!-- Fields Lost -->
+                    @if (fieldsLost.length > 0) {
+                        <div class="p-3 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 rounded-xl">
+                            <span class="text-rose-700 dark:text-rose-400 font-extrabold text-xs uppercase tracking-widest block mb-2">Fields to be Cleared</span>
+                            <div class="flex flex-wrap gap-2">
+                                <span *ngFor="let f of fieldsLost" class="px-2 py-1 bg-white dark:bg-gray-900 text-rose-600 rounded text-xs font-bold shadow-sm">{{f}}</span>
+                            </div>
+                        </div>
+                    } @else {
+                        <div class="p-3 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-xl flex items-center italic text-emerald-700 dark:text-emerald-400 text-xs">
+                            <mat-icon class="icon-size-4 mr-2" [svgIcon]="'heroicons_solid:check-circle'"></mat-icon>
+                            No data will be lost during this migration.
+                        </div>
+                    }
+
+                    <!-- Fields Carried Over -->
+                    <div class="p-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl" *ngIf="fieldsCarriedOver.length > 0">
+                        <span class="text-blue-700 dark:text-blue-400 font-extrabold text-xs uppercase tracking-widest block mb-2">Data Carried Forward</span>
+                        <div class="flex flex-wrap gap-2 text-xs font-medium">
+                            <span *ngFor="let f of fieldsCarriedOver">{{f}} •</span>
+                        </div>
+                    </div>
+
+                    <!-- Fields Gained -->
+                    <div class="p-3 bg-gray-50 dark:bg-gray-800 border border-divider rounded-xl" *ngIf="fieldsGained.length > 0">
+                        <span class="text-secondary font-extrabold text-xs uppercase tracking-widest block mb-2">New Sections Enabled</span>
+                        <div class="flex flex-wrap gap-2">
+                             <span *ngFor="let f of fieldsGained" class="px-2 py-1 border border-divider rounded text-xs font-semibold">{{f}}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 p-4 bg-amber-50 dark:bg-amber-500/10 rounded-lg text-sm font-medium">
+                    Are you sure you want to proceed? Data associated with cleared fields will be permanently removed.
+                </div>
+            </div>
+        }
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end mt-8">
+            <button
+                mat-button
+                (click)="closeDialog()">
+                Cancel
+            </button>
+            <button
+                class="ml-2 px-8"
+                mat-flat-button
+                [color]="'primary'"
+                [disabled]="!selectedNewType || isSaving"
+                (click)="save()">
+                <span *ngIf="!isSaving">Apply Migration</span>
+                <span *ngIf="isSaving">Processing...</span>
+            </button>
+        </div>
+
+    </div>
+</div>

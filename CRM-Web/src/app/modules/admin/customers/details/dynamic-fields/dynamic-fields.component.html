@@ -1,0 +1,82 @@
+<div class="flex flex-col flex-auto p-6 sm:p-10">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-8 border-b">
+        <div>
+            <div class="text-3xl font-bold tracking-tight line-height-1">Additional Information</div>
+            <div class="mt-0.5 text-secondary">Manage custom fields and metadata for this contact.</div>
+        </div>
+    </div>
+
+    <!-- Loading Bar -->
+    <div *ngIf="isLoading" class="mt-8">
+        <div class="flex flex-col items-center justify-center p-12">
+            <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <div class="mt-4 text-xl font-medium">Loading fields...</div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <!-- Form Content Grouped by Category -->
+    <form *ngIf="!isLoading && categories.length > 0" [formGroup]="dynamicForm" class="mt-8 space-y-12">
+        
+        <div *ngFor="let category of categories" class="flex flex-col">
+            <!-- Category Header -->
+            <div *ngIf="category.name" class="flex items-center mb-6">
+                <div class="text-lg font-semibold text-primary mr-4 whitespace-nowrap">{{category.name}}</div>
+                <div class="h-px bg-gray-200 dark:bg-gray-700 w-full"></div>
+            </div>
+
+            <!-- Fields Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
+                <ng-container *ngFor="let field of category.fields">
+                    
+                    <!-- Boolean / Checkbox -->
+                    <div *ngIf="field.fieldType === 'boolean'" class="flex items-center min-h-[52px]">
+                        <mat-checkbox [formControlName]="field.id.toString()" [color]="'primary'" class="font-medium text-secondary">
+                            {{field.displayName}}
+                        </mat-checkbox>
+                    </div>
+
+                    <!-- Dropdown -->
+                    <mat-form-field *ngIf="field.fieldType === 'dropdown'" class="w-full" [subscriptSizing]="'dynamic'">
+                        <mat-label>{{field.displayName}}</mat-label>
+                        <mat-select [formControlName]="field.id.toString()">
+                            <mat-option [value]="null">-- Select --</mat-option>
+                            <mat-option *ngFor="let opt of parseOptions(field.options)" [value]="opt">{{opt}}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <!-- Textarea -->
+                    <mat-form-field *ngIf="field.fieldType === 'textarea'" class="w-full md:col-span-2 lg:col-span-3" [subscriptSizing]="'dynamic'">
+                        <mat-label>{{field.displayName}}</mat-label>
+                        <textarea matInput [formControlName]="field.id.toString()" [rows]="3" placeholder="Enter details..."></textarea>
+                    </mat-form-field>
+
+                    <!-- Default / String / Number -->
+                    <mat-form-field *ngIf="field.fieldType !== 'boolean' && field.fieldType !== 'dropdown' && field.fieldType !== 'textarea'" 
+                                    class="w-full" [subscriptSizing]="'dynamic'">
+                        <mat-label>{{field.displayName}}</mat-label>
+                        <input matInput [formControlName]="field.id.toString()" [type]="field.fieldType === 'number' ? 'number' : 'text'">
+                    </mat-form-field>
+
+                </ng-container>
+            </div>
+        </div>
+
+    </form>
+
+    <!-- Save Button (Optional if not auto-saving) -->
+    <div *ngIf="!isLoading && fields.length > 0 && customerId" class="flex items-center justify-end mt-8 pt-8 border-t">
+        <button mat-flat-button [color]="'primary'" [disabled]="isSaving" (click)="save()">
+            <mat-icon *ngIf="isSaving" class="animate-spin mr-2" [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
+            Save Changes
+        </button>
+    </div>
+
+    <!-- No Fields Message -->
+    <div *ngIf="!isLoading && fields.length === 0" class="flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-2xl">
+        <mat-icon class="icon-size-16 text-hint" [svgIcon]="'heroicons_outline:list-bullet'"></mat-icon>
+        <div class="mt-4 text-xl font-semibold text-secondary">No dynamic fields defined.</div>
+        <div class="mt-1 text-hint">Fields added in Master Settings will appear here.</div>
+    </div>
+</div>

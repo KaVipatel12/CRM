@@ -1,0 +1,252 @@
+<div class="absolute inset-0 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- Header -->
+    <div
+        class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <!-- Title -->
+        <div class="flex-1 min-w-0">
+            <!-- Breadcrumbs -->
+            <div class="flex flex-wrap items-center font-medium">
+                <div>
+                    <a class="whitespace-nowrap text-primary-500">Home</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+                    <a class="ml-1 text-secondary">Call Tracker</a>
+                </div>
+            </div>
+            <h2 class="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
+                Call Tracker
+            </h2>
+            <div class="flex items-center mt-0.5 font-medium text-secondary">
+                <ng-container *ngIf="totalCount > 0">
+                    {{totalCount}} total calls
+                </ng-container>
+            </div>
+        </div>
+        <!-- Actions -->
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4">
+            <button class="ml-3" mat-flat-button [color]="'primary'" (click)="openAddCallDialog()">
+                <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                <span class="ml-2">Add Call</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div class="flex flex-col flex-auto bg-card dark:bg-transparent">
+
+        <!-- Filters -->
+        <div
+            class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 sm:py-4 sm:px-10 border-b bg-card dark:bg-transparent">
+
+            <div class="flex flex-wrap items-center -m-2 w-full">
+                <!-- Search -->
+                <div class="m-2 min-w-64">
+                    <mat-form-field class="fuse-mat-no-subscript w-full" [floatLabel]="'always'">
+                        <mat-icon matPrefix [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+                        <input matInput [formControl]="searchInputControl" [placeholder]="'Search calls...'">
+                    </mat-form-field>
+                </div>
+
+                <!-- For Whom -->
+                <div class="m-2 min-w-40">
+                    <mat-form-field class="fuse-mat-no-subscript w-full">
+                        <mat-select [placeholder]="'For Whom'" [(ngModel)]="filter.forWhomId"
+                            (selectionChange)="getCalls()">
+                            <mat-option [value]="null">Everyone</mat-option>
+                            <mat-option *ngFor="let s of staff" [value]="s.id">
+                                {{s.firstName}} {{s.lastName}}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+
+                <!-- Purpose -->
+                <div class="m-2 min-w-40">
+                    <mat-form-field class="fuse-mat-no-subscript w-full">
+                        <mat-select [placeholder]="'Purpose'" [(ngModel)]="filter.purposeId"
+                            (selectionChange)="getCalls()">
+                            <mat-option [value]="null">All Purposes</mat-option>
+                            <mat-option *ngFor="let p of purposes" [value]="p.id">
+                                {{p.purposeName}}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+
+                <!-- Status Filter -->
+                <div class="m-2 min-w-40">
+                    <mat-form-field class="fuse-mat-no-subscript w-full">
+                        <mat-select [placeholder]="'View'" [(ngModel)]="filter.isClosed" (selectionChange)="getCalls()">
+                            <mat-option [value]="false">Active Calls</mat-option>
+                            <mat-option [value]="true">Closed Calls</mat-option>
+                            <mat-option [value]="null">All Calls</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+
+                <!-- Reset -->
+                <div class="m-2">
+                    <button mat-button (click)="resetFilters()">
+                        Reset Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="relative flex flex-col flex-auto overflow-hidden sm:overflow-y-auto sm:px-10">
+            <mat-progress-bar *ngIf="isLoading" class="absolute top-0 inset-x-0 h-1"
+                mode="indeterminate"></mat-progress-bar>
+
+            <div class="overflow-x-auto border rounded-xl shadow-sm bg-card mt-6">
+                <table mat-table [dataSource]="calls" class="w-full bg-transparent">
+
+                    <!-- Date Column -->
+                    <ng-container matColumnDef="date">
+                        <th mat-header-cell *matHeaderCellDef
+                            class="bg-gray-50 dark:bg-transparent px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                            Date
+                        </th>
+                        <td mat-cell *matCellDef="let call" class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex flex-col">
+                                <span class="font-medium text-default">{{call.receiveDate | date:'dd MMM yyyy'}}</span>
+                                <span class="text-xs text-secondary">{{call.receiveDate | date:'HH:mm'}}</span>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- For Whom Column -->
+                    <ng-container matColumnDef="forWhom">
+                        <th mat-header-cell *matHeaderCellDef
+                            class="bg-gray-50 dark:bg-transparent px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                            For Whom
+                        </th>
+                        <td mat-cell *matCellDef="let call" class="px-6 py-4 whitespace-nowrap">
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {{call.forWhomName || 'N/A'}}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Caller Info Column -->
+                    <ng-container matColumnDef="callerInfo">
+                        <th mat-header-cell *matHeaderCellDef
+                            class="bg-gray-50 dark:bg-transparent px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                            Caller Information
+                        </th>
+                        <td mat-cell *matCellDef="let call" class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-primary">{{call.name}}</span>
+                                <span class="text-xs text-secondary"
+                                    *ngIf="call.companyName">{{call.companyName}}</span>
+                                <div class="flex items-center space-x-2 mt-1 text-xs text-secondary">
+                                    <span *ngIf="call.mobileNo" class="flex items-center">
+                                        <mat-icon class="icon-size-3 mr-1"
+                                            [svgIcon]="'heroicons_solid:phone'"></mat-icon>
+                                        {{call.mobileNo}}
+                                    </span>
+                                    <span *ngIf="call.email" class="flex items-center">
+                                        <mat-icon class="icon-size-3 mr-1"
+                                            [svgIcon]="'heroicons_solid:envelope'"></mat-icon>
+                                        {{call.email}}
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Purpose Column -->
+                    <ng-container matColumnDef="purpose">
+                        <th mat-header-cell *matHeaderCellDef
+                            class="bg-gray-50 dark:bg-transparent px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                            Purpose
+                        </th>
+                        <td mat-cell *matCellDef="let call" class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-medium">{{call.purposeName}}</span>
+                                <span class="text-xs text-secondary italic"
+                                    *ngIf="call.otherPurpose">{{call.otherPurpose}}</span>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Receiver Column -->
+                    <ng-container matColumnDef="receiver">
+                        <th mat-header-cell *matHeaderCellDef
+                            class="bg-gray-50 dark:bg-transparent px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                            Taken By
+                        </th>
+                        <td mat-cell *matCellDef="let call" class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm text-secondary">{{call.receiverName}}</span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Status Column -->
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef
+                            class="bg-gray-50 dark:bg-transparent px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                            Status
+                        </th>
+                        <td mat-cell *matCellDef="let call" class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 rounded text-xs font-semibold"
+                                [ngStyle]="{'background-color': call.statusColor || '#eee', 'color': 'white'}">
+                                {{call.statusName || 'Pending'}}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Remark Column -->
+                    <ng-container matColumnDef="remark">
+                        <th mat-header-cell *matHeaderCellDef
+                            class="bg-gray-50 dark:bg-transparent px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                            Remark
+                        </th>
+                        <td mat-cell *matCellDef="let call" class="px-6 py-4 max-w-60">
+                            <p class="text-sm text-secondary truncate" [matTooltip]="call.remark">{{call.remark}}</p>
+                        </td>
+                    </ng-container>
+
+                    <!-- Actions Column -->
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef
+                            class="bg-gray-50 dark:bg-transparent px-6 py-3 text-right text-xs font-medium text-secondary uppercase tracking-wider">
+                            Actions
+                        </th>
+                        <td mat-cell *matCellDef="let call" class="px-6 py-4 whitespace-nowrap text-right">
+                            <button mat-icon-button [matMenuTriggerFor]="callMenu">
+                                <mat-icon [svgIcon]="'heroicons_outline:ellipsis-vertical'"></mat-icon>
+                            </button>
+                            <mat-menu #callMenu="matMenu">
+                                <button mat-menu-item (click)="openEditCallDialog(call)">
+                                    <mat-icon [svgIcon]="'heroicons_outline:pencil-square'"></mat-icon>
+                                    <span>Edit Details</span>
+                                </button>
+                                <button mat-menu-item (click)="openCommentsDialog(call)">
+                                    <mat-icon [svgIcon]="'heroicons_outline:chat-bubble-left-right'"></mat-icon>
+                                    <span>Comments ({{call.commentCount}})</span>
+                                </button>
+                                <mat-divider class="my-2"></mat-divider>
+                                <button mat-menu-item (click)="closeCall(call)" *ngIf="!call.isClosed">
+                                    <mat-icon [svgIcon]="'heroicons_outline:check-circle'"></mat-icon>
+                                    <span>Close Call</span>
+                                </button>
+                            </mat-menu>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                        class="hover:bg-gray-50 dark:hover:bg-hover transition-colors duration-150"></tr>
+                </table>
+            </div>
+
+            <mat-paginator class="sm:static border-t-0 bg-transparent mt-4 mb-8" [length]="totalCount"
+                [pageSize]="filter.pageSize" [pageSizeOptions]="[5, 10, 25, 100]" [showFirstLastButtons]="true"
+                (page)="onPageChange($event)"></mat-paginator>
+        </div>
+
+    </div>
+</div>

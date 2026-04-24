@@ -1,0 +1,81 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Header / Toolbar -->
+    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:pt-10 sm:pb-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex items-center">
+            <button mat-icon-button (click)="goBack()" matTooltip="Back">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-left'"></mat-icon>
+            </button>
+            <div class="ml-4">
+                <div class="text-4xl font-extrabold tracking-tight leading-none">{{form?.name}}</div>
+                <div class="mt-1.5 text-lg text-secondary flex items-center" *ngIf="customerData">
+                    <mat-icon class="icon-size-5 mr-2" [svgIcon]="'heroicons_solid:user'"></mat-icon>
+                    <span>Client: <span class="font-medium text-primary">{{customerData.name}}</span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-auto p-6 sm:p-10 bg-gray-50 dark:bg-transparent">
+        <div class="max-w-4xl mx-auto">
+            
+            <!-- Standard Fuse Card -->
+            <div class="flex flex-col bg-card shadow rounded-2xl overflow-hidden">
+                
+                <div class="flex flex-col md:flex-row items-center p-8 sm:p-12 gap-8">
+                    <!-- Icon Representation -->
+                    <div class="flex shrink-0 items-center justify-center w-32 h-32 rounded-full bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-100">
+                        <mat-icon class="icon-size-16 text-current" [svgIcon]="form?.icon || 'heroicons_outline:document-text'"></mat-icon>
+                    </div>
+
+                    <!-- Details & Action -->
+                    <div class="flex flex-col items-center md:items-start text-center md:text-left flex-auto">
+                        <div class="text-2xl font-bold tracking-tight mb-2">
+                            Your Document is Ready
+                        </div>
+                        <div class="text-lg text-secondary mb-8">
+                            We've pre-filled the <strong>{{form?.name}}</strong> for <strong>{{customerData?.name}}</strong>. You can now download the official PDF generated directly from the backend.
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                            <button mat-flat-button [color]="'primary'" (click)="download()" [disabled]="isLoading" class="w-full sm:w-auto px-8 h-12">
+                                <div class="flex items-center justify-center">
+                                    <mat-icon class="icon-size-5 mr-3" [svgIcon]="'heroicons_outline:arrow-down-tray'"></mat-icon>
+                                    <span class="font-semibold">Download PDF</span>
+                                </div>
+                            </button>
+                            <button mat-stroked-button (click)="email()" [disabled]="isLoading" class="w-full sm:w-auto px-8 h-12">
+                                <div class="flex items-center justify-center">
+                                    <mat-icon class="icon-size-5 mr-3" [svgIcon]="'heroicons_outline:envelope'"></mat-icon>
+                                    <span class="font-semibold">Email to Client</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Footer -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-8 border-t bg-gray-50 dark:bg-transparent">
+                    <div class="flex items-center gap-3">
+                        <mat-icon class="icon-size-5 text-green-600 dark:text-green-500" [svgIcon]="'heroicons_solid:check-circle'"></mat-icon>
+                        <span class="text-sm font-medium text-secondary">Auto-Filled Data</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <mat-icon class="icon-size-5 text-blue-600 dark:text-blue-500" [svgIcon]="'heroicons_solid:shield-check'"></mat-icon>
+                        <span class="text-sm font-medium text-secondary">Official Template</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <mat-icon class="icon-size-5 text-orange-600 dark:text-orange-500" [svgIcon]="'heroicons_solid:lightning-bolt'"></mat-icon>
+                        <span class="text-sm font-medium text-secondary">Live PDF Engine</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Help / Info -->
+            <div class="mt-8 text-center text-secondary text-sm">
+                The generated PDF includes all client profile data and specialized form fields from the backend system.
+            </div>
+        </div>
+    </div>
+</div>

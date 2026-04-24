@@ -1,0 +1,66 @@
+<div class="flex flex-col max-w-160 h-full overflow-hidden bg-card">
+    <div class="flex flex-row items-center justify-between p-6 sm:py-8 sm:px-10 border-b">
+        <div class="text-2xl font-semibold tracking-tight leading-none">{{ data.service ? 'Edit Service' : 'Add Service' }}</div>
+        <button
+            mat-icon-button
+            [matDialogClose]="null"
+            [tabIndex]="-1">
+            <mat-icon
+                class="icon-size-6"
+                [svgIcon]="'heroicons_outline:x'"></mat-icon>
+        </button>
+    </div>
+
+    <form [formGroup]="serviceForm" class="flex flex-col flex-auto p-6 sm:p-10 overflow-y-auto">
+        
+        <!-- Service Type -->
+        <mat-form-field class="w-full">
+            <mat-label>Service Type</mat-label>
+            <mat-select [formControlName]="'serviceId'">
+                <mat-option *ngFor="let m of masters" [value]="m.id">{{m.name}}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="serviceForm.get('serviceId').hasError('required')">Service type is required</mat-error>
+        </mat-form-field>
+
+        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+            <!-- Amount -->
+            <mat-form-field class="flex-auto">
+                <mat-label>Amount / Fee</mat-label>
+                <input matInput [formControlName]="'amount'" type="number" step="0.01" min="0">
+                <span matPrefix>$&nbsp;</span>
+                <mat-error *ngIf="serviceForm.get('amount').hasError('required')">Amount is required</mat-error>
+                <mat-error *ngIf="serviceForm.get('amount').hasError('min')">Amount cannot be negative</mat-error>
+            </mat-form-field>
+
+            <!-- Frequency -->
+            <mat-form-field class="flex-auto">
+                <mat-label>Frequency</mat-label>
+                <mat-select [formControlName]="'unit'">
+                    <mat-option *ngFor="let f of frequencies" [value]="f.value">{{f.label}}</mat-option>
+                </mat-select>
+                <mat-error *ngIf="serviceForm.get('unit').hasError('required')">Frequency is required</mat-error>
+            </mat-form-field>
+        </div>
+
+        <!-- Notes -->
+        <mat-form-field class="w-full mt-4">
+            <mat-label>Internal Notes</mat-label>
+            <textarea matInput [formControlName]="'internalNotes'" [rows]="3" placeholder="Specific instructions for this client..."></textarea>
+        </mat-form-field>
+
+        <div class="flex items-center justify-end mt-10">
+            <button
+                mat-button
+                [matDialogClose]="null">
+                Cancel
+            </button>
+            <button
+                class="ml-2"
+                mat-flat-button
+                [color]="'primary'"
+                (click)="save()">
+                {{ data.service ? 'Update' : 'Add' }}
+            </button>
+        </div>
+    </form>
+</div>

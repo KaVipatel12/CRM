@@ -1,0 +1,111 @@
+<!-- Customer Preview Dialog -->
+<div class="flex flex-col w-full max-w-lg">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between px-6 py-4 bg-primary/5 border-b border-primary/10">
+        <div class="flex items-center gap-3">
+            <mat-icon class="icon-size-6 text-primary" [svgIcon]="'heroicons_solid:user-circle'"></mat-icon>
+            <span class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Customer Preview</span>
+        </div>
+        <button mat-icon-button (click)="close()" class="text-gray-400 hover:text-gray-600">
+            <mat-icon [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+        </button>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="flex items-center justify-center p-12">
+        <mat-spinner [diameter]="40"></mat-spinner>
+    </div>
+
+    <!-- Content -->
+    <div *ngIf="!isLoading && customer" class="p-6 space-y-5">
+
+        <!-- Customer Identity -->
+        <div class="flex items-center gap-4">
+            <div class="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary font-bold text-2xl shadow-inner">
+                {{ customer.name?.charAt(0) | uppercase }}
+            </div>
+            <div class="flex flex-col">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl font-bold text-gray-900 dark:text-white">{{ customer.name }}</span>
+                </div>
+                <div class="flex items-center gap-2 mt-1">
+                    <span *ngIf="customer.code" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary/10 text-primary uppercase tracking-wider">{{ customer.code }}</span>
+                    <span *ngIf="customer.contactTypeName" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-secondary uppercase tracking-wider">{{ customer.contactTypeName }}</span>
+                </div>
+            </div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- Contact Info Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Email -->
+            <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-500/10">
+                    <mat-icon class="icon-size-5 text-blue-500" [svgIcon]="'heroicons_solid:envelope'"></mat-icon>
+                </div>
+                <div class="flex flex-col min-w-0">
+                    <span class="text-[10px] font-bold text-secondary uppercase tracking-wider">Email</span>
+                    <a *ngIf="customer.contactInfo?.email" href="mailto:{{customer.contactInfo.email}}"
+                       class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate hover:text-primary transition-colors">
+                        {{ customer.contactInfo.email }}
+                    </a>
+                    <span *ngIf="!customer.contactInfo?.email" class="text-sm text-gray-400 italic">Not provided</span>
+                </div>
+            </div>
+
+            <!-- Phone -->
+            <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-500/10">
+                    <mat-icon class="icon-size-5 text-emerald-500" [svgIcon]="'heroicons_solid:phone'"></mat-icon>
+                </div>
+                <div class="flex flex-col min-w-0">
+                    <span class="text-[10px] font-bold text-secondary uppercase tracking-wider">Phone</span>
+                    <a *ngIf="customer.contactInfo?.cellPhone || customer.contactInfo?.workPhone"
+                       href="tel:{{customer.contactInfo?.cellPhone || customer.contactInfo?.workPhone}}"
+                       class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate hover:text-primary transition-colors">
+                        {{ customer.contactInfo?.cellPhone || customer.contactInfo?.workPhone }}
+                    </a>
+                    <span *ngIf="!customer.contactInfo?.cellPhone && !customer.contactInfo?.workPhone" class="text-sm text-gray-400 italic">Not provided</span>
+                </div>
+            </div>
+
+            <!-- Address -->
+            <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 sm:col-span-2">
+                <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-500/10">
+                    <mat-icon class="icon-size-5 text-amber-500" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
+                </div>
+                <div class="flex flex-col min-w-0">
+                    <span class="text-[10px] font-bold text-secondary uppercase tracking-wider">Address</span>
+                    <span *ngIf="customer.contactInfo?.address" class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {{ customer.contactInfo.address }}
+                    </span>
+                    <span *ngIf="!customer.contactInfo?.address" class="text-sm text-gray-400 italic">Not provided</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div *ngIf="customer.activeJobCount !== undefined" class="flex items-center gap-4 p-3 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30">
+            <mat-icon class="icon-size-5 text-indigo-500" [svgIcon]="'heroicons_solid:briefcase'"></mat-icon>
+            <span class="text-sm font-bold text-indigo-700 dark:text-indigo-300">{{ customer.activeJobCount }} Active Jobs</span>
+        </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="!isLoading && !customer" class="p-8 text-center">
+        <mat-icon class="icon-size-12 text-gray-300 mb-4" [svgIcon]="'heroicons_outline:exclamation-circle'"></mat-icon>
+        <p class="text-secondary">Unable to load customer details.</p>
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="flex items-center justify-end gap-3 px-6 py-4 border-t bg-gray-50 dark:bg-transparent">
+        <button mat-stroked-button (click)="close()">Close</button>
+        <button mat-flat-button color="primary" (click)="goToFullProfile()" [disabled]="!customer"
+                class="shadow-md hover:shadow-lg transition-shadow">
+            <mat-icon class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:arrow-top-right-on-square'"></mat-icon>
+            View Full Profile
+        </button>
+    </div>
+</div>

@@ -1,0 +1,95 @@
+<div class="flex flex-col max-w-240 md:min-w-160 max-h-screen -m-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between pl-8 pr-6 py-4 bg-primary text-on-primary">
+        <div class="text-lg font-medium">{{data?.account ? 'Edit' : 'Add'}} Bank Account</div>
+        <button
+            mat-icon-button
+            (click)="close()"
+            [tabIndex]="-1">
+            <mat-icon
+                class="text-current"
+                [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+        </button>
+    </div>
+
+    <!-- Compose form -->
+    <form
+        class="flex flex-col flex-auto p-8 overflow-y-auto"
+        [formGroup]="bankAccountForm">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+            <!-- Account Name -->
+            <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+                <mat-label>Account Name</mat-label>
+                <input
+                    matInput
+                    [formControlName]="'accountName'"
+                    [placeholder]="'Account Name'">
+                <mat-icon
+                    matPrefix
+                    class="icon-size-5"
+                    [svgIcon]="'heroicons_outline:user'"></mat-icon>
+            </mat-form-field>
+
+            <!-- Bank Name -->
+            <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+                <mat-label>Bank Name</mat-label>
+                <input
+                    matInput
+                    [formControlName]="'bankName'"
+                    [placeholder]="'Bank Name'">
+                <mat-icon
+                    matPrefix
+                    class="icon-size-5"
+                    [svgIcon]="'heroicons_outline:building-library'"></mat-icon>
+            </mat-form-field>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+            <!-- BSB -->
+            <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+                <mat-label>BSB</mat-label>
+                <input
+                    matInput
+                    [formControlName]="'bsb'"
+                    [placeholder]="'BSB'">
+                <mat-icon
+                    matPrefix
+                    class="icon-size-5"
+                    [svgIcon]="'heroicons_outline:hashtag'"></mat-icon>
+            </mat-form-field>
+
+            <!-- Account Number -->
+            <mat-form-field class="fuse-mat-no-subscript w-full mb-6">
+                <mat-label>Account Number</mat-label>
+                <input
+                    matInput
+                    [formControlName]="'accountNumber'"
+                    [placeholder]="'Account Number'">
+                <mat-icon
+                    matPrefix
+                    class="icon-size-5"
+                    [svgIcon]="'heroicons_outline:credit-card'"></mat-icon>
+            </mat-form-field>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end mt-4">
+            <button
+                mat-button
+                (click)="close()">
+                Cancel
+            </button>
+            <button
+                class="ml-2"
+                mat-flat-button
+                [color]="'primary'"
+                [disabled]="bankAccountForm.invalid"
+                (click)="save()">
+                {{data?.account ? 'Update' : 'Add'}}
+            </button>
+        </div>
+
+    </form>
+</div>

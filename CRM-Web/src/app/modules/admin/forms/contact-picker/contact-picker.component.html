@@ -1,0 +1,47 @@
+<div class="flex flex-col w-full overflow-hidden">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between pl-8 pr-3 py-4 bg-primary text-on-primary">
+        <div class="text-xl font-semibold">Select Client</div>
+        <button mat-icon-button (click)="close()" [tabIndex]="-1">
+            <mat-icon class="text-current" [svgIcon]="'heroicons_outline:x'"></mat-icon>
+        </button>
+    </div>
+
+    <!-- Content -->
+    <div class="flex flex-col p-8 bg-card">
+        
+        <div class="text-secondary mb-6 text-sm">
+            Please search and select a client to pre-fill the form, or choose to generate a blank form.
+        </div>
+
+        <!-- Searchable Select (Jobs Style) -->
+        <searchable-select 
+            class="w-full" 
+            [(ngModel)]="selectedCustomerId"
+            (ngModelChange)="onContactSelected($event)"
+            [items]="customers"
+            [label]="'Select Client'"
+            [placeholder]="'Type client name...'"
+            [displayKey]="'name'"
+            [valueKey]="'id'"
+            [required]="true">
+        </searchable-select>
+
+        <!-- Divider -->
+        <div class="flex items-center my-8">
+            <div class="flex-auto border-t border-gray-200"></div>
+            <div class="mx-4 text-secondary font-medium uppercase tracking-wider text-[10px]">OR</div>
+            <div class="flex-auto border-t border-gray-200"></div>
+        </div>
+
+        <!-- Blank Form Button -->
+        <button mat-flat-button 
+                class="w-full h-12 bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-200 hover:border-primary hover:bg-primary-50 transition-all rounded-xl"
+                (click)="continueBlank()">
+            <mat-icon class="icon-size-5 mr-2 text-primary" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
+            <span class="font-bold text-gray-700 dark:text-gray-200">Generate Blank Form</span>
+        </button>
+
+    </div>
+</div>

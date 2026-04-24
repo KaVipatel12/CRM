@@ -1,0 +1,69 @@
+<div class="p-6 md:p-10 min-h-[500px]">
+    
+    <!-- Header -->
+    <div class="flex flex-col mb-10">
+        <div class="text-2xl font-extrabold tracking-tight text-primary">Manage Checklist</div>
+        <div class="text-sm text-secondary font-medium">Complete required administrative and compliance tasks for this contact.</div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex justify-center items-center py-20">
+        <mat-progress-spinner mode="indeterminate" [diameter]="40"></mat-progress-spinner>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && groupedItems.length === 0" class="flex flex-col items-center justify-center py-20 border-2 border-dashed border-divider rounded-3xl bg-card">
+        <div class="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center mb-6">
+            <mat-icon class="icon-size-10 text-primary/30" [svgIcon]="'heroicons_outline:clipboard-document-check'"></mat-icon>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200">No Checklist Items Found</h3>
+        <p class="text-secondary text-sm mt-2 font-medium">There are no administrative tasks assigned for this contact type.</p>
+    </div>
+
+    <!-- Grid Layout for Categories -->
+    <div *ngIf="!isLoading && groupedItems.length > 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        
+        <div *ngFor="let group of groupedItems" class="bg-card shadow-sm border border-divider rounded-2xl overflow-hidden flex flex-col h-fit">
+            
+            <!-- Category Header -->
+            <div class="bg-primary/5 dark:bg-primary-500/10 px-6 py-4 border-b border-divider">
+                <span class="text-sm font-extrabold text-primary uppercase tracking-widest">{{ group.category }}</span>
+            </div>
+
+            <!-- Tasks List -->
+            <div class="flex flex-col p-2">
+                <div *ngFor="let item of group.items" class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-colors group/item">
+                    
+                    <mat-checkbox 
+                        class="flex-auto"
+                        [color]="'primary'" 
+                        [disabled]="!isAdmin"
+                        [(ngModel)]="item.isCompleted" 
+                        (change)="toggleStatus(item)">
+                        <div class="flex flex-col ml-2">
+                            <span class="text-sm font-semibold transition-colors" 
+                                  [ngClass]="item.isCompleted ? 'text-secondary line-through' : 'text-gray-800 dark:text-gray-200'">
+                                {{ item.taskName }}
+                            </span>
+                            <span *ngIf="item.description" class="text-[11px] text-secondary font-medium leading-tight mt-0.5">
+                                {{ item.description }}
+                            </span>
+                        </div>
+                    </mat-checkbox>
+
+                    <!-- Audit Trail Indicator (Only visible if completed) -->
+                    <div *ngIf="item.isCompleted && item.completedDT" 
+                         class="flex flex-col items-end ml-4 shrink-0 text-right">
+                        <div class="flex items-center text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 px-2 py-0.5 rounded-md mb-1">
+                            <mat-icon class="icon-size-3 mr-1 text-emerald-500" [svgIcon]="'heroicons_solid:check-circle'"></mat-icon>
+                            {{ item.completedByUserName || 'System' }}
+                        </div>
+                        <span class="text-[9px] text-secondary font-bold">{{ item.completedDT | date:'MMM dd, yyyy HH:mm' }}</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>

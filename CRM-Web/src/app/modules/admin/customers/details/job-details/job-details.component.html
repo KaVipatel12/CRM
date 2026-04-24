@@ -1,0 +1,279 @@
+<div class="flex flex-col flex-auto h-full w-full bg-card dark:bg-transparent overflow-hidden" style="max-height: 90vh;">
+
+    <!-- Header -->
+    <div class="flex flex-0 items-center justify-between h-18 px-6 bg-gray-50 dark:bg-transparent border-b border-gray-200 dark:border-gray-800">
+        <div class="flex items-center gap-3">
+            <button mat-icon-button (click)="close()">
+                <mat-icon [svgIcon]="'heroicons_outline:arrow-left'"></mat-icon>
+            </button>
+            <div class="flex flex-col leading-none">
+                <div class="text-xl font-bold truncate max-w-40 md:max-w-80">Job Detail</div>
+                <div class="flex items-center gap-2 mt-1">
+                    <div class="text-[10px] font-bold text-secondary uppercase tracking-widest">{{ job?.jobTypeName }}</div>
+                    <div *ngIf="job" class="w-1 h-1 rounded-full bg-gray-300"></div>
+                    <div *ngIf="job" class="text-[10px] font-bold text-primary uppercase tracking-widest truncate max-w-40">{{ job?.caption }}</div>
+                </div>
+                <div *ngIf="job" class="flex items-center gap-1.5 mt-2 text-[10px] text-gray-500 font-medium tracking-wide">
+                    <mat-icon class="icon-size-3" [svgIcon]="'heroicons_outline:pencil-square'"></mat-icon>
+                    <span>Created by <span class="font-bold text-gray-700 dark:text-gray-300">{{ job.createdUserName || 'System' }}</span> on {{ job.createdDateTime | date:'MMM dd, yyyy' }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <!-- Status Selector -->
+            <div *ngIf="job" class="flex items-center">
+                <mat-form-field class="fuse-mat-no-subscript fuse-mat-dense w-32 md:w-40" appearance="outline">
+                    <mat-select [value]="job.currentStage" (selectionChange)="updateStatus($event.value)" [disabled]="!canChangeStatus()">
+                        <mat-select-trigger>
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full" [ngClass]="'bg-' + (job.statusColor || 'gray') + '-500 shadow-[0_0_8px_rgba(var(--fuse-primary-rgb),0.5)]'"></div>
+                                <span class="text-[11px] font-extrabold uppercase tracking-tight truncate">{{ job.statusName }}</span>
+                            </div>
+                        </mat-select-trigger>
+                        <mat-optgroup *ngFor="let group of statusGroups" [label]="group.name" class="status-group-header">
+                            <mat-option *ngFor="let status of group.statuses" [value]="status.id">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full" [ngClass]="'bg-' + (status.color || 'gray') + '-500'"></div>
+                                    <span class="text-xs font-bold uppercase tracking-tight">{{ status.statusName }}</span>
+                                </div>
+                            </mat-option>
+                        </mat-optgroup>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+            <!-- Priority Badge -->
+            <span *ngIf="job" class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide mr-2"
+                  [ngClass]="{
+                    'bg-gray-100 text-gray-600': job.priority === 0,
+                    'bg-blue-100 text-blue-600': job.priority === 1,
+                    'bg-amber-100 text-amber-600': job.priority === 2,
+                    'bg-rose-100 text-rose-600': job.priority === 3
+                  }">
+                {{ job.priority === 0 ? 'Low' : job.priority === 1 ? 'Medium' : job.priority === 2 ? 'High' : 'Overdue' }}
+            </span>
+            <button mat-icon-button (click)="close()">
+                <mat-icon [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+            </button>
+        </div>
+    </div>
+
+    <!-- Progress Ribbon -->
+    <div *ngIf="!isLoading && job" class="flex flex-0 items-center px-8 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800 overflow-x-auto no-scrollbar">
+        <div class="flex items-center w-full min-w-max">
+            <ng-container *ngFor="let phase of phases; let i = index; let last = last">
+                <div class="flex items-center">
+                    <!-- Phase Circle & Label -->
+                    <div class="flex flex-col items-center group">
+                        <div class="flex items-center justify-center w-6 h-6 rounded-full border-2 transition-all duration-300"
+                             [ngClass]="{
+                                'bg-primary border-primary text-white shadow-[0_0_12px_rgba(var(--fuse-primary-rgb),0.4)]': i === currentPhaseIndex,
+                                'bg-emerald-500 border-emerald-500 text-white': i < currentPhaseIndex,
+                                'bg-white dark:bg-transparent border-gray-300 dark:border-gray-600 text-gray-400': i > currentPhaseIndex
+                             }">
+                            <mat-icon *ngIf="i < currentPhaseIndex" class="icon-size-4" [svgIcon]="'heroicons_solid:check'"></mat-icon>
+                            <span *ngIf="i >= currentPhaseIndex" class="text-[10px] font-bold">{{ i + 1 }}</span>
+                        </div>
+                        <span class="mt-1.5 text-[9px] font-bold uppercase tracking-tight whitespace-nowrap transition-colors duration-300"
+                              [ngClass]="{
+                                'text-primary': i === currentPhaseIndex,
+                                'text-emerald-600': i < currentPhaseIndex,
+                                'text-gray-400': i > currentPhaseIndex
+                              }">
+                            {{ phase }}
+                        </span>
+                    </div>
+
+                    <!-- Connector Line -->
+                    <div *ngIf="!last" class="w-8 md:w-16 h-0.5 mx-2 -mt-4 rounded-full transition-colors duration-500"
+                         [ngClass]="{
+                            'bg-emerald-500': i < currentPhaseIndex,
+                            'bg-gray-200 dark:bg-gray-700': i >= currentPhaseIndex
+                         }">
+                    </div>
+                </div>
+            </ng-container>
+
+            <!-- Special state for Issues/On Hold -->
+            <ng-container *ngIf="currentPhase === 'Issues / On Hold'">
+                <div class="flex items-center ml-4 pl-4 border-l border-gray-300">
+                    <div class="flex flex-col items-center">
+                        <div class="flex items-center justify-center w-6 h-6 rounded-full bg-rose-500 border-2 border-rose-500 text-white animate-pulse">
+                            <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:exclamation-triangle'"></mat-icon>
+                        </div>
+                        <span class="mt-1.5 text-[9px] font-bold uppercase text-rose-600 tracking-tight">On Hold</span>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-auto overflow-y-auto" fuseScrollbar>
+        
+        <!-- Loading -->
+        <div *ngIf="isLoading" class="p-8 space-y-4">
+            <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse w-1/4"></div>
+            <div class="h-32 bg-gray-100 dark:bg-gray-900 rounded animate-pulse w-full"></div>
+            <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse w-1/3"></div>
+            <div class="h-32 bg-gray-100 dark:bg-gray-900 rounded animate-pulse w-full"></div>
+        </div>
+
+        <div *ngIf="!isLoading && job" class="flex flex-col flex-auto">
+            
+            <!-- Premium Customer Preview Card -->
+            <div *ngIf="!job.isInternal && job.customerId" class="m-6 mb-2 p-5 bg-white dark:bg-card border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm flex items-center justify-between group hover:border-primary/30 transition-colors">
+                <div class="flex items-center gap-4">
+                    <!-- Avatar -->
+                    <div class="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary font-bold text-lg shadow-inner">
+                        {{ job.customerName?.charAt(0) | uppercase }}
+                    </div>
+                    <!-- Details -->
+                    <div class="flex flex-col">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-md text-gray-900 dark:text-gray-100">{{ job.customerName }}</span>
+                            <span *ngIf="job.customerCode" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-secondary uppercase tracking-wider">{{ job.customerCode }}</span>
+                        </div>
+                        <div class="flex items-center gap-4 mt-1 text-xs text-secondary font-medium">
+                            <div class="flex items-center gap-1.5" *ngIf="job.customerEmail">
+                                <mat-icon class="icon-size-3.5 text-gray-400" [svgIcon]="'heroicons_solid:envelope'"></mat-icon>
+                                <a href="mailto:{{job.customerEmail}}" class="hover:text-primary transition-colors" (click)="$event.stopPropagation()">{{ job.customerEmail }}</a>
+                            </div>
+                            <div class="flex items-center gap-1.5" *ngIf="job.customerPhone">
+                                <mat-icon class="icon-size-3.5 text-gray-400" [svgIcon]="'heroicons_solid:phone'"></mat-icon>
+                                <a href="tel:{{job.customerPhone}}" class="hover:text-primary transition-colors" (click)="$event.stopPropagation()">{{ job.customerPhone }}</a>
+                            </div>
+                            <div class="flex items-center gap-1.5" *ngIf="!job.customerEmail && !job.customerPhone">
+                                <mat-icon class="icon-size-3.5 text-gray-400" [svgIcon]="'heroicons_solid:information-circle'"></mat-icon>
+                                <span class="italic text-gray-400">No contact info available</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Action Button -->
+                <button mat-icon-button class="bg-gray-50 dark:bg-gray-900 text-primary hover:bg-primary hover:text-white transition-all shadow-sm" (click)="goToCustomer(job.customerId)" matTooltip="Open Full Profile">
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:arrow-top-right-on-square'"></mat-icon>
+                </button>
+            </div>
+
+            <!-- Internal Operation Banner -->
+            <div *ngIf="job.isInternal" class="m-6 mb-2 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 rounded-2xl flex items-center gap-3 text-indigo-700 dark:text-indigo-300">
+                <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:building-office'"></mat-icon>
+                <span class="text-sm font-bold tracking-wide">Internal Office Operation</span>
+            </div>
+
+            <mat-tab-group class="fuse-mat-no-subscript" [animationDuration]="'0ms'">
+                
+                <!-- Tasks Tab -->
+                <mat-tab label="Tasks">
+                    <div class="p-6 md:p-8 space-y-6">
+                        
+                        <!-- Recurring settings removed as per request -->
+
+                        <!-- Add Task Input -->
+                        <div class="bg-gray-50 dark:bg-transparent border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm">
+                            <form [formGroup]="taskForm" (ngSubmit)="addTask()" class="flex items-start gap-2">
+                                <mat-form-field class="fuse-mat-no-subscript w-full" appearance="outline">
+                                    <input matInput formControlName="task" placeholder="Add a new task...">
+                                </mat-form-field>
+                                <button type="submit" mat-flat-button color="primary" class="h-12 w-12 min-w-12 px-0 rounded-lg shadow-sm mt-0.5" [disabled]="taskForm.invalid">
+                                    <mat-icon class="icon-size-6" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Task List -->
+                        <div class="flex flex-col gap-3">
+                            <div class="text-sm font-semibold text-secondary uppercase tracking-wider mb-2 flex items-center">
+                                Task Checklist
+                                <span class="ml-2 text-xs text-gray-400 font-normal">({{ job.tasks?.length || 0 }} total)</span>
+                            </div>
+
+                            <div *ngIf="!job.tasks || job.tasks.length === 0" class="p-8 text-center border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl">
+                                <mat-icon class="icon-size-12 text-gray-300 mb-2" [svgIcon]="'heroicons_outline:clipboard-document-list'"></mat-icon>
+                                <div class="text-secondary">No tasks assigned to this job yet.</div>
+                            </div>
+
+                            <div *ngFor="let task of job.tasks" class="group flex items-start gap-3 p-4 bg-white dark:bg-card border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm transition-all hover:border-indigo-200 dark:hover:border-indigo-900 font-medium">
+                                <mat-checkbox [checked]="task.isCompleted" (change)="toggleTask(task)" color="primary" class="mt-1"></mat-checkbox>
+                                <div class="flex-1 text-sm leading-snug cursor-pointer pt-1" [ngClass]="{'line-through text-secondary italic': task.isCompleted}" (click)="toggleTask(task)">
+                                    {{ task.description }}
+                                </div>
+                                <button mat-icon-button class="h-8 w-8 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity" (click)="deleteTask(task.id)">
+                                    <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </mat-tab>
+
+                <!-- Comments Tab -->
+                <mat-tab label="Comments">
+                    <div class="p-6 md:p-8 space-y-6">
+                        
+                        <!-- Add Comment -->
+                        <div class="bg-gray-50 dark:bg-transparent border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm">
+                            <form [formGroup]="commentForm" (ngSubmit)="addComment()" class="flex items-start gap-2">
+                                <mat-form-field class="fuse-mat-textarea fuse-mat-no-subscript w-full" appearance="outline">
+                                    <textarea matInput formControlName="comment" rows="3" placeholder="Write a comment or note..."></textarea>
+                                </mat-form-field>
+                                <button type="submit" mat-flat-button color="primary" class="h-10 px-6 rounded-lg shadow-sm whitespace-nowrap mt-0.5" [disabled]="commentForm.invalid">
+                                    Post
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Comment Feed -->
+                        <div class="flex flex-col gap-6">
+                            <div *ngIf="!job.comments || job.comments.length === 0" class="p-8 text-center text-secondary border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl italic">
+                                Be the first to add a comment!
+                            </div>
+
+                            <div *ngFor="let comment of job.comments" class="flex gap-4 group">
+                                <div class="flex flex-col flex-0 items-center h-full">
+                                    <div class="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold uppercase text-xs">
+                                        {{ comment.userName?.substring(0, 1) || 'U' }}
+                                    </div>
+                                    <div class="w-px flex-1 bg-gray-200 dark:bg-gray-800 mt-2"></div>
+                                </div>
+                                <div class="flex flex-col flex-auto pb-4">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm font-bold">{{ comment.userName || 'Unknown User' }}</span>
+                                            <span class="text-[10px] text-secondary">{{ comment.createdAt | date:'MMM dd, yyyy HH:mm' }}</span>
+                                        </div>
+                                        <button *ngIf="canDeleteComment(comment)" 
+                                            mat-icon-button 
+                                            class="h-7 w-7 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            (click)="deleteComment(comment.id)"
+                                            matTooltip="Delete comment">
+                                            <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                                        </button>
+                                    </div>
+                                    <div class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-3 rounded-lg rounded-tl-none whitespace-pre-wrap leading-relaxed">
+                                        {{ comment.text }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </mat-tab>
+
+                <!-- History Tab -->
+                <mat-tab label="History">
+                    <div class="p-6 md:p-8">
+                        <div class="flex flex-col gap-6 border-l-2 border-gray-100 dark:border-gray-800 ml-4 pl-8 pt-4">
+                            <div *ngFor="let audit of job.history" class="relative group">
+                                <div class="absolute -left-[41px] top-0 w-3 h-3 rounded-full bg-white dark:bg-card border-2 border-indigo-500 shadow-sm transition-transform group-hover:scale-125"></div>
+                                <div class="flex flex-col mb-1">
+                                    <div class="text-sm font-bold text-gray-800 dark:text-gray-100 leading-none mb-1">{{ audit.event }}</div>
+                                    <div class="text-[10px] text-secondary font-semibold uppercase tracking-wider">{{ audit.timestamp | date:'MMM dd, yyyy HH:mm:ss' }}</div>
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">By {{ audit.userName || 'System' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </mat-tab>
+            </mat-tab-group>
+        </div>
+    </div>
+</div>

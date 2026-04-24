@@ -1,0 +1,80 @@
+<div class="flex flex-col max-h-96 overflow-y-auto">
+    <ng-container *ngIf="(notes$ | async) as notes">
+
+        <!-- Empty State -->
+        <div *ngIf="notes.length === 0" class="flex flex-col items-center justify-center py-10 px-4 text-center">
+            <mat-icon class="icon-size-12 text-hint" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
+            <div class="mt-3 text-lg font-medium text-secondary">No notes yet</div>
+            <div class="text-sm text-hint">Click "Add Note" to create your first one.</div>
+        </div>
+
+        <!-- Note Cards -->
+        <div
+            *ngFor="let note of notes"
+            class="flex items-start gap-3 px-4 py-3 border-b cursor-pointer hover:bg-hover transition-colors"
+            (click)="editNote(note)">
+
+            <!-- Pin Indicator -->
+            <mat-icon
+                *ngIf="note.isPinned"
+                class="icon-size-4 text-primary mt-0.5 shrink-0"
+                [svgIcon]="'heroicons_solid:bookmark'">
+            </mat-icon>
+            <mat-icon
+                *ngIf="!note.isPinned"
+                class="icon-size-4 text-hint mt-0.5 shrink-0"
+                [svgIcon]="'heroicons_outline:document-text'">
+            </mat-icon>
+
+            <!-- Note Content Preview -->
+            <div class="flex flex-col flex-auto min-w-0">
+                <div class="font-medium text-sm leading-tight truncate">
+                    {{ note.title || 'Untitled Note' }}
+                </div>
+                <div
+                    class="text-xs text-secondary mt-0.5 line-clamp-2 prose-sm"
+                    [innerHTML]="note.content">
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center shrink-0 -mr-1">
+                <button
+                    mat-icon-button
+                    class="w-7 h-7 min-h-7"
+                    [matMenuTriggerFor]="noteActionMenu"
+                    (click)="$event.stopPropagation()">
+                    <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:ellipsis-vertical'"></mat-icon>
+                </button>
+                <mat-menu #noteActionMenu="matMenu">
+                    <button mat-menu-item (click)="togglePin(note, $event)">
+                        <mat-icon class="icon-size-5" [svgIcon]="note.isPinned ? 'heroicons_solid:bookmark' : 'heroicons_outline:bookmark'"></mat-icon>
+                        <span>{{ note.isPinned ? 'Unpin' : 'Pin to top' }}</span>
+                    </button>
+                    <button mat-menu-item (click)="convertToTodo(note.id, $event)">
+                        <mat-icon class="icon-size-5 text-green-600" [svgIcon]="'heroicons_outline:check-circle'"></mat-icon>
+                        <span>Convert to Task</span>
+                    </button>
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item (click)="deleteNote(note.id, $event)">
+                        <mat-icon class="icon-size-5 text-red-600" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                        <span>Delete</span>
+                    </button>
+                </mat-menu>
+            </div>
+        </div>
+
+    </ng-container>
+</div>
+
+<!-- Add Note Button -->
+<div class="flex items-center justify-center p-3 border-t">
+    <button
+        mat-flat-button
+        [color]="'primary'"
+        class="w-full"
+        (click)="addNote()">
+        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+        <span class="ml-1">Add Note</span>
+    </button>
+</div>

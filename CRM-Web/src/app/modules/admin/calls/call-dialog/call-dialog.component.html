@@ -1,0 +1,138 @@
+<div class="flex flex-col max-w-240 md:min-w-160 max-h-160 -m-6">
+
+    <!-- Header -->
+    <div class="flex flex-0 items-center justify-between h-16 pr-3 sm:pr-5 pl-6 sm:pl-8 bg-primary text-on-primary">
+        <div class="text-lg font-medium">{{isEdit ? 'Edit Call Log' : 'New Call Log'}}</div>
+        <button mat-icon-button (click)="close()" [tabIndex]="-1">
+            <mat-icon class="text-current" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+        </button>
+    </div>
+
+    <!-- Compose form -->
+    <form class="flex flex-col flex-auto p-6 sm:p-8 overflow-y-auto" [formGroup]="callForm">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+            <!-- Date -->
+            <mat-form-field class="fuse-mat-no-subscript w-full">
+                <mat-label>Date</mat-label>
+                <input matInput [matDatepicker]="datePicker" formControlName="receiveDate">
+                <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
+                <mat-datepicker #datePicker></mat-datepicker>
+            </mat-form-field>
+
+            <!-- Taken By -->
+            <mat-form-field class="fuse-mat-no-subscript w-full">
+                <mat-label>Taken By (Receiver)</mat-label>
+                <mat-select formControlName="receiverId">
+                    <mat-option *ngFor="let s of staff" [value]="s.id">
+                        {{s.firstName}} {{s.lastName}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <!-- For Whom -->
+            <mat-form-field class="fuse-mat-no-subscript w-full">
+                <mat-label>For Whom</mat-label>
+                <mat-select formControlName="forWhomId">
+                    <mat-option *ngFor="let s of staff" [value]="s.id">
+                        {{s.firstName}} {{s.lastName}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <!-- Caller Name -->
+            <mat-form-field class="fuse-mat-no-subscript w-full">
+                <mat-label>Caller Name</mat-label>
+                <input matInput formControlName="name">
+            </mat-form-field>
+
+            <!-- Company Name -->
+            <mat-form-field class="fuse-mat-no-subscript w-full">
+                <mat-label>Company Name</mat-label>
+                <input matInput formControlName="companyName">
+            </mat-form-field>
+
+            <!-- Mobile -->
+            <mat-form-field class="fuse-mat-no-subscript w-full">
+                <mat-label>Mobile No.</mat-label>
+                <input matInput formControlName="mobileNo">
+            </mat-form-field>
+
+            <!-- Email -->
+            <mat-form-field class="fuse-mat-no-subscript w-full">
+                <mat-label>Email</mat-label>
+                <input matInput formControlName="email">
+            </mat-form-field>
+
+            <!-- Purpose -->
+            <mat-form-field class="fuse-mat-no-subscript w-full">
+                <mat-label>Purpose</mat-label>
+                <mat-select formControlName="purposeId">
+                    <mat-option *ngFor="let p of purposes" [value]="p.id">
+                        {{p.purposeName}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <!-- Status -->
+            <mat-form-field class="fuse-mat-no-subscript w-full">
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="statusId">
+                    <mat-option *ngFor="let s of statusMasters" [value]="s.id">
+                        {{s.statusName}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+        </div>
+
+        <!-- Nature of Business -->
+        <div class="mt-8">
+            <span class="font-bold text-secondary uppercase tracking-wider text-xs">Nature of Business</span>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
+                <mat-checkbox *ngFor="let item of natureOfBusinessList" [checked]="isCheckboxChecked(item.id, 'nature')"
+                    (change)="onCheckboxChange($event, item.id, 'nature')">
+                    {{item.name}}
+                </mat-checkbox>
+            </div>
+            <mat-form-field class="fuse-mat-no-subscript w-full mt-4" *ngIf="isCheckboxChecked(7, 'nature')">
+                <mat-label>Specify Other Nature of Business</mat-label>
+                <input matInput formControlName="otherNatureOfBusiness">
+            </mat-form-field>
+        </div>
+
+        <!-- Hear About Us -->
+        <div class="mt-8">
+            <span class="font-bold text-secondary uppercase tracking-wider text-xs">How did you hear about us?</span>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-4">
+                <mat-checkbox *ngFor="let item of hearAboutUsList" [checked]="isCheckboxChecked(item.id, 'hear')"
+                    (change)="onCheckboxChange($event, item.id, 'hear')">
+                    {{item.name}}
+                </mat-checkbox>
+            </div>
+            <mat-form-field class="fuse-mat-no-subscript w-full mt-4" *ngIf="isCheckboxChecked(6, 'hear')">
+                <mat-label>Specify Other Referral Source</mat-label>
+                <input matInput formControlName="otherHearAboutUs">
+            </mat-form-field>
+        </div>
+
+        <!-- Remark -->
+        <mat-form-field class="mt-8 w-full">
+            <mat-label>Remark / Notes</mat-label>
+            <textarea matInput [formControlName]="'remark'" [rows]="3" [spellcheck]="false"></textarea>
+        </mat-form-field>
+
+    </form>
+
+    <!-- Actions -->
+    <div
+        class="flex flex-0 items-center justify-end h-16 pr-4 sm:pr-6 pl-4 sm:pl-6 border-t bg-gray-50 dark:bg-transparent">
+        <button mat-button (click)="close()">
+            Cancel
+        </button>
+        <button class="ml-2" mat-flat-button [color]="'primary'" [disabled]="callForm.invalid" (click)="save()">
+            {{isEdit ? 'Update Call' : 'Save Call'}}
+        </button>
+    </div>
+</div>

@@ -1,0 +1,941 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <style>
+        body {
+            font-size: 14px;
+            font-family: "Helvetica Neue", "Helvetica", "Arial", sans-serif, "-apple-system", "BlinkMacSystemFont";
+        }
+
+        .page-A4-landscape {
+            width: 29.7cm;
+            height: 21cm;
+            margin: 0 auto;
+        }
+
+        .page-A4 {
+            width: 25cm;
+            height: 29.7cm;
+            margin: 0 auto;
+            /*border:1px solid #ddd;*/
+        }
+
+        h3 {
+            font-size: 1.53125rem;
+        }
+
+        h5 {
+            font-size: 1.09375rem;
+        }
+
+        .custom-border {
+            border-top: 2px solid #8dd86b;
+        }
+
+        .mt-30 {
+            margin-top: 30px;
+        }
+
+        .textbox {
+            border: 0;
+            outline: 0;
+            background: transparent;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table.tblclass td > span {
+            vertical-align: sub;
+            /*display: inline-flex;*/
+        }
+
+        .w-13 {
+            width: 13%;
+        }
+
+        .w-15 {
+            width: 15%;
+        }
+
+        .w-18 {
+            width: 18%;
+        }
+
+        .w-20 {
+            width: 20%
+        }
+
+        .w-21 {
+            width: 21%
+        }
+
+        .w-24 {
+            width: 24%
+        }
+
+        .w-30 {
+            width: 30%
+        }
+
+        .w-31 {
+            width: 31%
+        }
+
+        .w-34 {
+            width: 34%
+        }
+
+        .w-40 {
+            width: 40%
+        }
+
+        .w-41 {
+            width: 41%
+        }
+
+        .w-43 {
+            width: 43%
+        }
+
+        .w-45 {
+            width: 45%
+        }
+
+        .w-47 {
+            width: 47%
+        }
+
+        .w-51 {
+            width: 51%
+        }
+
+        .w-52 {
+            width: 52%
+        }
+
+        .w-55 {
+            width: 55%
+        }
+
+        .w-54 {
+            width: 54%
+        }
+
+        .w-56 {
+            width: 56%
+        }
+
+        .w-58 {
+            width: 58%
+        }
+
+        .w-60 {
+            width: 60%
+        }
+
+        .w-62 {
+            width: 62%
+        }
+
+        .w-64 {
+            width: 64%
+        }
+
+        .w-67 {
+            width: 67%
+        }
+
+        .w-70 {
+            width: 70%
+        }
+
+        .w-75-9 {
+            width: 75.9%
+        }
+
+        .w-78-5 {
+            width: 78.5%
+        }
+
+        .w-80 {
+            width: 80%
+        }
+
+        .w-82 {
+            width: 82%
+        }
+
+        .w-83 {
+            width: 83%
+        }
+
+        .w-87 {
+            width: 87%
+        }
+
+        .w-88 {
+            width: 88%
+        }
+
+        .w-92 {
+            width: 92%
+        }
+
+        .w-95 {
+            width: 95%
+        }
+
+        .w-98 {
+            width: 98%
+        }
+
+        .w-38 {
+            width: 38%;
+        }
+
+        .font-size-1-21 {
+            font-size: 1.2025rem !important;
+        }
+
+        .custom-verticlealign-super {
+            vertical-align: super;
+        }
+
+        .custom-verticlealign-top {
+            vertical-align: top;
+        }
+
+        table.custom-table-border td {
+            border: 2px solid #8dd86b;
+        }
+
+        table.custom-table-border-1 td {
+            /*border: 1px solid #ddd;*/
+            border: none;
+        }
+
+        .custom-checkbox-label {
+            margin-bottom: 0px !important;
+        }
+
+        .textbox-border {
+            background: transparent;
+            border: 1px solid #ddd;
+        }
+
+        .custom-width-35 {
+            width: 35px;
+        }
+
+        .custom-width-50 {
+            width: 50px;
+        }
+
+        .content-container {
+            position: relative;
+            overflow: auto;
+            min-height: 0;
+            border-radius: 4px;
+            background-color: #fff;
+            height: calc(100vh - 55px);
+        }
+
+        .content-container {
+            position: relative;
+            min-height: 0;
+            border: 1px solid #ccc;
+        }
+
+        .scroll-container {
+            position: relative;
+        }
+
+        .scrollable-content {
+            padding: 16px;
+            margin: 0;
+        }
+
+        .e-input-group.e-control-wrapper {
+            border-bottom: 1px solid #ddd !important;
+            border-top: none !important;
+            border-left: none !important;
+            border-radius: 0 !important;
+            border-right: none !important;
+            height: 23px !important;
+        }
+
+            .e-input-group.e-control-wrapper .e-input-group-icon {
+                color: #495057;
+                border-top: none !important;
+                border-left: none !important;
+                border-radius: 0 !important;
+                border-right: none !important;
+                border-bottom: 1px solid #ddd !important;
+                height: 23px !important;
+                display: none;
+            }
+
+        .hidden_content {
+            position: absolute;
+            left: -2000px;
+            top: 0;
+        }
+
+        .h-23 {
+            height: 23px;
+        }
+
+        .custom-border-right {
+            border-right: 2px solid #8dd86b;
+        }
+
+        .custom-border-bottom {
+            border-bottom: 2px solid #8dd86b !important;
+        }
+
+        .custom-minhieght-125 {
+            height: 125px;
+        }
+
+        .custom-minhieght-50 {
+            min-height: 50px;
+        }
+
+        .row-height-custom {
+            height: 1.5cm;
+        }
+
+        .row-height-1 {
+            height: 1cm;
+        }
+
+
+        .border-radius-1 {
+            border-radius: 1px;
+        }
+
+        .width-perc-20 {
+            width: 20%;
+        }
+
+        .width-perc-40 {
+            width: 40%;
+        }
+
+        .w-33_33 {
+            width: 33.33%;
+        }
+
+        .bb-1 {
+            border-bottom: 1px dotted;
+        }
+
+        .d-flex {
+            display: flex !important;
+        }
+
+        .wrap {
+            word-wrap: normal !important;
+        }
+
+        .w-50 {
+            width: 50%;
+        }
+
+        .mt-2, .my-2 {
+            margin-top: 0.5rem !important;
+        }
+
+        .ml-2, .mx-2 {
+            margin-left: 0.5rem !important;
+        }
+
+        .mb-2, .my-2 {
+            margin-bottom: 0.5rem !important;
+        }
+
+        .mr-2, .mx-2 {
+            margin-right: 0.5rem !important;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: -15px;
+            margin-left: -15px;
+        }
+
+        .w-74 {
+            width: 74%;
+        }
+
+        .pull-left {
+            float: left;
+        }
+
+        .pull-right {
+            float: right;
+        }
+
+        .w-36 {
+            width: 36%;
+        }
+
+        .text-uppercase {
+            text-transform: uppercase;
+        }
+
+        .pr-2 {
+            padding-right: 0.5rem;
+        }
+
+        .w-100 {
+            width: 100%;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .height-1_5 {
+            height: 1.5rem;
+        }
+
+        .border-bottom-1 {
+            border-bottom: 1px solid;
+        }
+
+        .border {
+            border: 1px solid #c8ced3 !important;
+        }
+
+        .mb-0, .my-0 {
+            margin-bottom: 0 !important;
+        }
+
+        .mt-3, .my-3 {
+            margin-top: 1rem !important;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        h6, .h6 {
+            font-size: 0.875rem;
+        }
+
+        .mt-0 {
+            margin-top: 0px !important;
+        }
+
+        hr {
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .w-5 {
+            width: 5%;
+        }
+
+
+
+        /*Alpesh*/
+        .w-44-5 {
+            width: 44.5%
+        }
+
+        .custom-border-bottom {
+            border-bottom: 1px solid #ddd !important;
+        }
+
+        .pr-10 {
+            padding-right: 10px !important;
+        }
+
+        .pt-10 {
+            padding-top: 10px !important;
+        }
+
+        .bg-transparent {
+            outline: 0;
+            background: transparent;
+        }
+
+        .w-22 {
+            width: 22%;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        /*Alpesh - 2020-07-07 */
+        .height-1_8 {
+            height: 1.8rem;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .intput-box {
+            height: 25px;
+            width: 25px;
+            border: 1px solid #ddd;
+            text-align: center;
+            display: table-cell;
+            vertical-align: inherit;
+        }
+
+        .font-size-32 {
+            font-size: 32px;
+        }
+
+        .font-size-24 {
+            font-size: 24px;
+        }
+
+        .font-size-22 {
+            font-size: 22px;
+        }
+
+        .font-size-20 {
+            font-size: 20px;
+        }
+
+        .font-size-18 {
+            font-size: 18px;
+        }
+
+        .height-2_5 {
+            height: 2.5rem;
+        }
+
+        h1 {
+            font-size: 2em;
+            font-weight: bolder;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            font-weight: bolder;
+        }
+
+        /*h3 {
+            font-size: 1.17em;
+            font-weight: bolder;
+        }*/
+
+        h4 {
+            font-size: 1.0em;
+            font-weight: bolder;
+        }
+
+        @media print {
+            footer {
+                position: fixed;
+                bottom: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="page-A4">
+
+    <!-- Page 1 -->
+    <div style="margin-left:1rem; margin-right:1rem;">
+        <div style="
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 0.5rem !important;
+        border-top: 2px solid #8dd86b;
+      ">
+            <div class="w-100">
+                <h1 class="text-center font-size-32">BOOKKEEPING SET</h1>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="page-break"></div>
+
+    <!-- Page 2 -->
+    <div style="margin-left:1rem; margin-right:1rem;">
+
+        <div style="
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 0.5rem !important;
+        border-top: 2px solid #8dd86b;
+      ">
+            <div class="w-100" style="margin:0 auto; margin-top: 1.0rem !important;">
+                <table class="w-100">
+                    <tr class="height-2_5">
+                        <td> <label class="font-size-22"> The following documents are included in a set;</label></td>
+                        <td><b class="font-size-22"> PAGE</b></td>
+                    </tr>
+                    <tr class="height-2_5">
+                        <td> <label class="font-size-22"> 1. Record keeping for small business booklet</label></td>
+                        <td class="font-size-22">(as attached)</td>
+                    </tr>
+                    <tr class="height-2_5">
+                        <td><label class="font-size-22"> 2. PAYG withholding booklet</label></td>
+                        <td class="font-size-22"> (as attached)</td>
+                    </tr>
+                    <tr class="height-2_5">
+                        <td><label class="font-size-22"> 3. Tax file number declaration</label></td>
+                        <td class="font-size-22"> (as attached)</td>
+                    </tr>
+                    <tr class="height-2_5">
+                        <td>
+
+                            <label class="font-size-22">
+                                4. Weekly tax table after 1 July 2012 <br />
+                                &nbsp;&nbsp;&nbsp;&nbsp;(This weekly tax table will change every financial year)
+                            </label>
+
+                        </td>
+                        <td class="font-size-22">(as attached)</td>
+                    </tr>
+                    <tr class="height-2_5">
+                        <td colspan="2"><label class="font-size-22"> 5. Instruction for required documents</label></td>
+                    </tr>
+
+                    <tr class="height-2_5">
+                        <td>
+                            <label class="font-size-22">
+                                &nbsp;&nbsp;&nbsp;&nbsp;5.1 Instructions for submitting a business activity statement<br />
+                                &nbsp;&nbsp;&nbsp;&nbsp; (Bas) document (English Version)
+                            </label>
+                        </td>
+                        <td><label class="font-size-22">3</label></td>
+                    </tr>
+                    <tr class="height-2_5">
+                        <td>
+                            <label class="font-size-22">
+                                &nbsp;&nbsp;&nbsp;&nbsp;5.2 Instructions for submitting a business activity statement<br />
+                                &nbsp;&nbsp;&nbsp;&nbsp; (Bas) document (Thai Version)
+                            </label>
+                        </td>
+                        <td><label class="font-size-22">5</label></td>
+                    </tr>
+                    <tr class="height-2_5">
+                        <td><label class="font-size-22"> 6. Business related links document</label></td>
+                        <td><label class="font-size-22">7</label></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Page 3 -->
+    <div style="margin-left:1rem; margin-right:1rem;">
+        <div style="
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 0.5rem !important;
+        border-top: 2px solid #8dd86b;
+      ">
+            <div class="w-100" style="margin:0 auto; margin-top: 1.0rem !important;">
+                <table class="w-100">
+                    <tr class="height-1_8">
+                        <td> <h1> 5. Instruction for required documents</h1></td>
+                    </tr>
+                    <tr class="height-1_5">
+                        <td></td>
+                    </tr>
+                    <tr class="height-1_8">
+                        <td><h2>5.1 Instructions for submitting a business activity statement (Bas) document (English Version)</h2></td>
+                    </tr>
+                    <tr class="height-1_5">
+                        <td></td>
+                    </tr>
+                    <tr class="height-1_8 font-size-22">
+                        <td>
+                            <span>
+                                In order to compliance with the current ATO’s rules and regulations, follow our procedures are very
+                                much appreciated to ensure the highest level of accuracy with your transaction records.
+                            </span><br /><br />
+                            <span>
+                                - Please provide a <b>complete</b> set of bank statement for the specific period** as well as specify the
+                                type of each transaction <b>especially if payments are made via cheque.</b> Examples of purchasing
+                                details/type includes the following:
+                            </span><br />
+                            <br />
+                            <span>
+                                ✓ Cost of sales (which are main cost) (please specify.....)
+                            </span><br />
+                            <span>✓ Rent and Utilities (Rent, Gas, Electricity, Water, Telephone, Internet)</span><br />
+                            <span>✓ Advertising (Business card, printing, leaflet)</span><br />
+                            <span>
+                                ✓ Motor Vehicle expense (RTA, Compulsory Third Party, Repair service, Petrol). We recommend
+                                that you provide us with your log book or percentage of business use.
+                            </span><br />
+                            <span>✓ Travel expense (toll fees, car parking, taxi)</span><br />
+                            <span>✓ Insurance (Business, Car, etc.)</span><br />
+                            <span>✓ Repair and Maintenance</span><br />
+                            <span>✓ Furniture and Equipment at cost price</span><br />
+                            <span>✓ Staff Amenities</span><br />
+                            <span>✓ Business Loan (Please notify us of your principle and interest amount)</span><br />
+                            <span>✓ Bank charges and Merchant fees (Please provide bank statement for the entire period)</span><br />
+                            <span>✓ Withdrawal/drawings: Please specify whether it was for business or personal use.</span><br />
+                            <span>
+                                ✓ Deposit: please specify where the money comes from such as cash sales deposit, additional
+                                contribution or loan from.
+                            </span><br />
+                            <span>
+                                ✓ Others: Please specify ______. This is to ensure that your transactions are recorded as
+                                accurately as possible.
+                            </span><br />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="page-break"></div>
+
+    <!-- Page 4 -->
+    <div style="margin-left:1rem; margin-right:1rem;">
+        <div style="
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 0.5rem !important;
+        border-top: 2px solid #8dd86b;
+      ">
+            <div class="w-100" style="margin:0 auto; margin-top: 1.0rem !important;">
+                <table class="w-100">
+                    <tr class="height-1_8">
+                        <td></td>
+                    </tr>
+                    <tr class="height-1_8 font-size-22">
+                        <td>
+                            <span>
+                                - Please cross-referencing your payment (Paid amount, Payment date and payment method) on
+                                invoices and separate all invoices into the following three (3) categories:
+                            </span><br />
+                            <span>
+                                ✓ Invoices paid via bank including Electronic Transfer and internet banking (Please attach invoices
+                                with the bank statement according to date)
+                            </span><br />
+                            <span>✓ Invoices paid by cash by each categories such as Petrol and electricity bill</span><br />
+                            <span>✓ Invoices paid by credit card (Please attach invoices with the bank statement)</span><br />
+                            <span>
+                                - For all credit card payments, please inform us the amount that you have paid off and the
+                                remaining balance.
+                            </span><br />
+                            <span>
+                                - If you have any loans, please provide your loan statements. Also, for new loans, you would also
+                                need to provide us with the new agreement.
+                            </span><br />
+                            <span>- For sales record, please separate the amount of cash sales and credit sales on a daily basis.</span><br />
+                            <span>
+                                - In case of hiring new staff, it is your responsibility to declare their Tax File Number (TFN) and send
+                                to ATO directly. Also, the employee must provide you with a copy of their passport and visa. Then
+                                you make a copy of TFN declaration or you can provide the details of your employees’ including
+                                their name, date of birth, address, TFN. Furthermore, you have to provide us the date in which they
+                                commenced work, details of employment such as Wage rate and hour working
+                            </span><br /><br />
+                            <span>
+                                <b> Things to be aware of:</b>
+                            </span><br />
+                            <br />
+                            <span>
+                                Please provide us with all the relevant documents ASAP. This is to ensure your BAS lodgement is on
+                                time otherwise you may be charged with a late penalty from the ATO.
+                            </span><br />
+                            <br />
+                            <span>
+                                ** Specific period<br />
+                                BAS Q1 1 July – 30 Sept<br />
+                                BAS Q2 1 Oct – 31 Dec<br />
+                                BAS Q3 1 Jan – 31 Mar<br />
+                                BAS Q4 1 Apr – 30 Jun<br />
+                            </span><br />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="page-break"></div>
+
+    <!-- Page 5 -->
+    <div style="margin-left:1rem; margin-right:1rem;">
+        <div style="
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 0.5rem !important;
+        border-top: 2px solid #8dd86b;
+      ">
+            <div class="w-100" style="margin:0 auto; margin-top: 1.0rem !important;">
+                <table class="w-100">
+                    <tr class="height-1_8">
+                        <td>
+                            <h2>
+                                5.2 Instructions for submitting a business activity statement (Bas) document (Thai Version)
+                            </h2>
+                        </td>
+                    </tr>
+                    <tr class="height-1_8">
+                        <td></td>
+                    </tr>
+                    <tr class="height-1_8 font-size-22">
+                        <td>
+                            <span>
+                                วิธีการเตรียมเอกสารเพื่อส่งภาษี<b>BAS</b>เอกสารท่ีลูกค้าจา เป็นที่จะต้องนามา
+                                เพื่อที่จะให้รายการบัญชีและการนาส่งภาษีของลูกคา้ทกุ ท่านเป็นไปตามกฎระเบียบของ <b>ATO</b> ทางเราจึงใคร่ขอความร่วมมือ
+                                จากลูกคา้ทกุ ท่านใหจ้ดัเตรียมเอกสารตามขบวนการเพือ่ ความถูกตอ้งทีส่ ดุ ในการบนัทึกบญั ชี
+                            </span><br />
+                            <span>
+                                - กรุณาส่ง <b>Bank Statement</b> ของตามช่วงระยะเวลาที่ กาหนดไว้** ให้ครบ พร้อมทั ้งชี ้แจงแต่ละรายการ โดยเฉพาะ
+                                รายการที่จ่ายโดยเช็ค ดังตัวอย่างต่อไปนี
+                            </span><br />
+                            <br />
+                            <span>
+                                ✓ จ่ายเพื่อซื ้อสินค้าต้นทุน
+                            </span><br />
+                            <span>✓ จ่ายค่าสาธารณูปโภค เช่น ค่าเช่าร้าน แก็ส ค่าโทรศัพท์ค่าน้าค่าไฟ ค่าอินเตอร์เนต เป็ นต้น</span><br />
+                            <span>✓ ค่าโฆษณา (รวม ค่านามบัตร ใบปลิว)</span><br />
+                            <span>
+                                ✓ ค่าใช้จ่ายเกี่ยวกับค่าใช้จ่ายของรถที่ใช้เพื่อธุรกิจ,ค่าใช้จ่ายของ <b>RTA</b> ค่าช่อมรถ ค่าน้ามัน (ถ้ามีการบันทึก <b>
+                                    log book </b> กรุณานามาให้เรา หรือแจ้ง %ที่ใช้กับธุรกิจ)
+                            </span><br />
+                            <span>✓ ค่าใช้จ่ายในการเดินทาง เช่น ค่าทางด่วน ค่าจอดรถ ค่าแท็กซี่</span><br />
+                            <span>✓ ค่าประกัน สาหรับธุรกิจและค่าประกันรถ</span><br />
+                            <span>✓ ค่าซ่อมแซมและบารุงร้าน</span><br />
+                            <span>✓ ค่าอุปกรณ์เฟอร์นิเจอร์และอื่นๆ ที่เป็ นสินทรัพย์</span><br />
+                            <span>✓ ค่าใช้จ่ายทั่วไปสา หรับพนักงาน</span><br />
+                            <span>✓ เอกสารการกู้เงิน กรุณาแจ้งยอดกู้จริง ยอดที่จ่ายแล้ว และดอกเบี ้ยที่ถูกต้อง</span><br />
+                            <span>✓ ค่าธรรมเนียมของธนาคารต่างๆ</span><br />
+                            <span>✓ รายการของการถอนเงิน โปรดระบุว่าเป็ นการเบิกส่วนตัวหรือเพื่อธุรกิจ</span><br />
+                            <span>
+                                ✓ การฝากเงิน โปรดระบุว่ามาจากที่ใด มาจากการเงินสด การลงทุนเพิ่มเติม หรือ กู้ยืม
+                            </span><br />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Page 6 -->
+    <div style="margin-left:1rem; margin-right:1rem;">
+        <div style="
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 0.5rem !important;
+        border-top: 2px solid #8dd86b;
+      ">
+            <div class="w-100" style="margin:0 auto; margin-top: 1.0rem !important;">
+                <table class="w-100">
+                    <tr class="height-1_8">
+                        <td></td>
+                    </tr>
+                    <tr class="height-1_8 font-size-22">
+                        <td>
+                            <span>
+                                ✓ ถ้าหากท่านมีรายการอื่นๆที่นอกเหนือจากที่ทางเราระบุมาข้างต้นนี ้ เราขอความกรุณาให้ท่านแจ้งให้เราทราบ โดยเร็ว
+                                ที่สุด ทั ้ งนี ้เพื่อการลงบัญชีถูกต้องของลูกค้าเอง
+                            </span><br />
+                            <span>
+                                - ใบแจ้งหนี ้ทุกใบจะต้องขีดฆ่าใบนั ้ นแล้วเขียนข้างหน้าเกี่ยวกับหลักฐานการจ่ายเงิน (จานวนการจ่ายเงินม จ่ายวันที่ เท่าไหร่
+                                และวีธีการจ่ายเงิน) และกรุณาแยกใบเสร็จเป็ น 3 กลุ่ม ดังต่อไปนี
+                            </span><br />
+                            <span>
+                                ✓ ใบเสร็จที่จ่ายผ่าน ธนาคาร รวมถึง การจ่ายเงินผ่านอินเตอร์เนต (กรุณาแนบใบเสร็จกับ <b>Bank Statement</b> ตาม
+                                วัน)
+                            </span><br />
+                            <span>✓ ใบเสร็จที่จ่ายด้วย เงินสด เรียงตาม ค่าใช้จ่ายในแต่ละกลุ่ม เช่น ค่าน้ามันรถ ค่าไฟ</span><br />
+                            <span>✓ ใบเสร็จที่จ่ายด้วย บัตรเครดิต ให้เรียงตามวัน และแนบกับ <b>Credit Card Statement</b></span><br />
+                            <span>
+                                - สาหรับรายการที่จ่ายผ่านบัตรเครดิต กรุณาแจ้งจานวนเงินที่ชาระคืน และยอดคงค้างบัตรเครดิต
+                            </span><br />
+                            <span>
+                                - แจ้งรายละเอียดการกู้เงิน โดยนาใบแจ้งรายละเอี ยดการกู้เงินมาให้ ถ้ามีการทาสัญญากู้ใหม่เกิดขึ ้ นให้นา ใบ เอกสาร
+                                สัญญามาให้ด้วย
+                            </span><br />
+                            <span>- สาหรับการแจ้งรายได้กรุณาแยกรายได้ออกเป็ นสองส่วน ส่วนที่เป็ นเงินสด และส่วนที่ได้รับจากบัตรเครดิต</span><br />
+                            <span>
+                                - สาหรับการจ้างพนักงานใหม่ ท่านต้องให้พนักงานกรอก <b>Tax File Number Declaration</b> และส่งให้ <b>ATO</b>                                โดยตรง นอกจากนี ้ท่านต้องเก็บและ รวบรวมหลักฐานของพนักงานทุกคน เช่น สา เนาหนังสือเดินทาง วีซ่า หลังจากนั ้ นส่ง สา
+                                เนา<b>Tax File Number Declaration</b> หรือ ให้ข้อมูลพนักงาน ชื่อ นามสกุล, วันเกิด ที่ อยู่และ เลขประจาตัวผู้เสีย
+                                ภาษีของพนักงาน นอกจากนี ้ ลูกค้าต้องแจ้งรายละเอียดวันเริ่มทางาน การจ่ายเงิน พนักงาน เช่นค่าแรงต่อชั่วโมง จานวนเวลา
+                                ที่ทางาน
+                            </span><br /><br />
+                            <span>
+                                <b> ข้อควรระวัง:</b>
+                            </span><br />
+                            <br />
+                            <span>
+                                เอกสารควรจะถูกนาส่งมาให้ทางสานักงานอย่างรวดเร็วที่สุดเท่าที่ท่านจะทาได้ เพราะหากนาส่งล่าช้าท่านอาจมีผลทาให้ ต้อง
+                                เสียค่าปรับจากกรมสรรพากร
+                            </span><br />
+                            <br />
+                            <span>
+                                ** ช่วงเวลาการยื่นภาษี<br />
+                                ยื่นภาษี ไตรมาส 1 1 กค –30 กย<br />
+                                ยื่นภาษี ไตรมาส 2 1 ตค –31 ธค<br />
+                                ยื่นภาษี ไตรมาส 3 1 มค –31 มีค<br />
+                                ยื่นภาษีไตรมาส 4 1 เมษ –30 มิย<br />
+                            </span><br />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+    <!-- Page 7 -->
+    <div style="margin-left:1rem; margin-right:1rem;">
+        <div style="
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 0.5rem !important;
+        border-top: 2px solid #8dd86b;
+      ">
+            <div class="w-100" style="margin:0 auto; margin-top: 1.0rem !important;">
+                <table class="w-100">
+                    <tr class="height-2_5">
+                        <td> <h2> BUSINESS RELATED LINKS</h2></td>
+                    </tr>
+                    <tr class="height-2_5">
+                        <td></td>
+                    </tr>
+                    <tr class="height-2_5">
+                        <td>
+                            <span class="font-size-22">
+                                1) PAYG tax table (Update in each Financial Year)<br />
+                                <a class="font-size-20" href="http://www.ato.gov.au/businesses/content.asp?doc=/content/33283.htm&alias=taxtables"> http://www.ato.gov.au/businesses/content.asp?doc=/content/33283.htm&alias=taxtables</a>
+                                <br /><br />
+                                2) Employees rate of Office of Industrial Relations<br />
+                                <a class="font-size-20" href="http://www.lawlink.nsw.gov.au/lawlink/irc/ll_irc.nsf/pages/IRC_procedures_legislation_awards_index_all#R"> http://www.lawlink.nsw.gov.au/lawlink/irc/ll_irc.nsf/pages/IRC_procedures_legislation_awards_index_all#R</a>
+                                <br /><br />
+                                3) Benchmark from ATO<br />
+                                <a class="font-size-20" href="https://www.ato.gov.au/businesses/content.asp?doc=/content/00214689.htm&page=10&H10">  https://www.ato.gov.au/businesses/content.asp?doc=/content/00214689.htm&page=10&H10</a>
+                                <br /><br />
+                                4) The records you must keep for reporting to ATO (Pg 11 of Record keeping of Small Bus)<br /><br />
+                                5) Car logbook sample (Pg 13 of Record keeping of Small Bus)<br /><br />
+                                6) Worker payment record (Pg 20 of Record keeping of Small Bus)<br /><br />
+                                7) Cross-referencing your payment on invoices (Pg 27 of Record keeping of Small Bus)<br /><br />
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Header -->
+    <div class="relative flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b bg-card dark:bg-transparent">
+        <div class="flex flex-col">
+            <!-- Breadcrumbs -->
+            <div class="flex items-center text-sm font-medium text-secondary whitespace-nowrap">
+                <a class="text-primary cursor-pointer hover:underline" [routerLink]="['/dashboard']">Home</a>
+                <mat-icon class="icon-size-4 mx-1" [svgIcon]="'heroicons_mini:chevron-right'"></mat-icon>
+                <span>Settings</span>
+                <mat-icon class="icon-size-4 mx-1" [svgIcon]="'heroicons_mini:chevron-right'"></mat-icon>
+                <span>Email Configuration</span>
+            </div>
+            <!-- Title -->
+            <div class="mt-2 text-4xl font-extrabold tracking-tight leading-none text-slate-900 dark:text-white">Email Configuration</div>
+            <div class="mt-1 text-secondary font-medium">Manage your SMTP server, security keys, and default CC recipients.</div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-auto p-6 sm:p-10">
+        
+        <form [formGroup]="settingsForm">
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- SMTP Credentials Section (Left) -->
+                <div class="flex flex-col bg-card shadow rounded-2xl overflow-hidden">
+                    <div class="p-8 pb-0">
+                        <div class="text-xl font-bold">SMTP Server Credentials</div>
+                        <div class="text-secondary">Provide your Gmail or office email server details.</div>
+                    </div>
+                    
+                    <div class="flex flex-col p-8 pt-6 space-y-6">
+                        <!-- Provider Name -->
+                        <mat-form-field class="w-full">
+                            <mat-label>Provider Name</mat-label>
+                            <input matInput [readonly]="isReadOnly" [disabled]="isReadOnly" formControlName="providerName" placeholder="e.g. Gmail Production">
+                            <mat-icon matPrefix class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:office-building'"></mat-icon>
+                        </mat-form-field>
+
+                        <!-- Host -->
+                        <mat-form-field class="w-full">
+                            <mat-label>SMTP Host</mat-label>
+                            <input matInput [readonly]="isReadOnly" [disabled]="isReadOnly" formControlName="host" placeholder="smtp.gmail.com">
+                            <mat-icon matPrefix class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:cloud'"></mat-icon>
+                        </mat-form-field>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <!-- Port -->
+                            <mat-form-field class="w-full">
+                                <mat-label>Port</mat-label>
+                                <input type="number" matInput [readonly]="isReadOnly" [disabled]="isReadOnly" formControlName="port" placeholder="587">
+                                <mat-icon matPrefix class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:hashtag'"></mat-icon>
+                            </mat-form-field>
+
+                            <!-- Username -->
+                            <mat-form-field class="w-full sm:col-span-2">
+                                <mat-label>Login Username / Email</mat-label>
+                                <input matInput [readonly]="isReadOnly" [disabled]="isReadOnly" formControlName="username" placeholder="email@example.com">
+                                <mat-icon matPrefix class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:mail'"></mat-icon>
+                            </mat-form-field>
+                        </div>
+
+                        <!-- Password -->
+                        <mat-form-field class="w-full">
+                            <mat-label>App Password (Encrypted)</mat-label>
+                            <input matInput [readonly]="isReadOnly" [disabled]="isReadOnly" [type]="hidePassword ? 'password' : 'text'" formControlName="encryptedPassword">
+                            <mat-icon matPrefix class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:lock-closed'"></mat-icon>
+                            <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button" class="min-w-10">
+                                <mat-icon class="icon-size-5" [svgIcon]="hidePassword ? 'heroicons_solid:eye-off' : 'heroicons_solid:eye'"></mat-icon>
+                            </button>
+                            <mat-hint>Use a 16-character Google App Password for security.</mat-hint>
+                        </mat-form-field>
+                    </div>
+                </div>
+
+                <!-- Default Recipients & Branding Section (Right) -->
+                <div class="flex flex-col bg-card shadow rounded-2xl overflow-hidden self-start">
+                    <div class="p-8 pb-0">
+                        <div class="text-xl font-bold">Email Branding & Recipients</div>
+                        <div class="text-secondary">Configure how emails appear to clients and who gets CC'd.</div>
+                    </div>
+
+                    <div class="flex flex-col p-8 pt-6 space-y-6">
+                        <!-- From Email -->
+                        <mat-form-field class="w-full">
+                            <mat-label>From Email</mat-label>
+                            <input matInput [readonly]="isReadOnly" [disabled]="isReadOnly" formControlName="fromEmail" placeholder="support@ssp.com">
+                            <mat-icon matPrefix class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:mail'"></mat-icon>
+                        </mat-form-field>
+
+                        <!-- From Name -->
+                        <mat-form-field class="w-full">
+                            <mat-label>From Name (Display Name)</mat-label>
+                            <input matInput [readonly]="isReadOnly" [disabled]="isReadOnly" formControlName="fromName" placeholder="SSP CRM Team">
+                            <mat-icon matPrefix class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:identification'"></mat-icon>
+                        </mat-form-field>
+
+                        <!-- CC Emails Array (Chips) -->
+                        <div class="flex flex-col">
+                            <mat-form-field class="w-full">
+                                <mat-label>Automatic CC Recipients</mat-label>
+                                <mat-chip-grid #chipGrid aria-label="Enter CC emails">
+                                    <mat-chip-row *ngFor="let email of ccEmails" [editable]="!isReadOnly" (removed)="removeCC(email)">
+                                        {{email}}
+                                        <button matChipRemove *ngIf="!isReadOnly">
+                                            <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:x-circle'"></mat-icon>
+                                        </button>
+                                    </mat-chip-row>
+                                    <input [placeholder]="isReadOnly ? '' : 'New email...'"
+                                           [matChipInputFor]="chipGrid"
+                                           [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                                           [readonly]="isReadOnly"
+                                           [disabled]="isReadOnly"
+                                           (matChipInputTokenEnd)="addCC($event)">
+                                </mat-chip-grid>
+                                <mat-icon matPrefix class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:users'"></mat-icon>
+                                <button *ngIf="!isReadOnly" mat-icon-button matSuffix (click)="addCCFromButton(ccInput)" type="button">
+                                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:plus-circle'"></mat-icon>
+                                </button>
+                                <mat-hint>Every email sent by the system will be CC'd. Hit Enter or (+) to add.</mat-hint>
+                            </mat-form-field>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Actions -->
+            <div *ngIf="!isReadOnly" class="flex items-center justify-start mt-8">
+                <button mat-flat-button [color]="'primary'" (click)="save()" [disabled]="settingsForm.invalid || isSaving" class="px-8 h-11 rounded-lg font-semibold shadow-lg shadow-primary-500/30">
+                    <mat-icon *ngIf="!isSaving" class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:save'"></mat-icon>
+                    <mat-icon *ngIf="isSaving" class="animate-spin icon-size-5 mr-2" [svgIcon]="'heroicons_outline:refresh'"></mat-icon>
+                    <span>Save Configuration</span>
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>

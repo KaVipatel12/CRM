@@ -1,0 +1,241 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <!-- Header -->
+    <div class="relative flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between py-8 px-6 md:px-8 border-b">
+        <!-- Title -->
+        <div class="flex flex-col">
+            <div class="flex items-center">
+                <div class="text-4xl font-extrabold tracking-tight">{{ isGlobalView ? 'Office Overview' : 'My Jobs Overview' }}</div>
+            </div>
+            <div class="text-secondary font-medium" *ngIf="!isGlobalView">A summary of your personally assigned tasks</div>
+            <div class="text-secondary font-medium" *ngIf="isGlobalView">A summary of all active jobs in the office</div>
+        </div>
+
+        <!-- Admin Toggle -->
+        <div class="flex items-center mt-6 sm:mt-0" *ngIf="isAdmin">
+            <div class="mr-3 font-semibold text-secondary">My Tasks</div>
+            <mat-slide-toggle
+                [color]="'primary'"
+                [checked]="isGlobalView"
+                (change)="onGlobalViewChange($event)">
+                Office Overview
+            </mat-slide-toggle>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div class="flex-auto p-6 sm:p-10">
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-6 w-full mt-8" *ngIf="stats">
+            
+            <!-- Current Tasks -->
+            <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden border-l-4 border-primary cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                [ngClass]="{'ring-2 ring-primary ring-inset': selectedCategory === 'current'}" (click)="setCategory('current')">
+                <div class="flex items-start justify-between">
+                    <div class="flex flex-col">
+                        <div class="text-lg font-semibold leading-tight tracking-tight">Current Jobs</div>
+                        <div class="mt-0.5 text-secondary">{{ isGlobalView ? 'Total Active' : 'My Active Work' }}</div>
+                    </div>
+                    <mat-icon class="icon-size-10 text-primary opacity-20" [svgIcon]="'heroicons_outline:briefcase'"></mat-icon>
+                </div>
+                <div class="flex flex-col items-center mt-4">
+                    <div class="text-5xl font-bold tracking-tighter leading-tight">{{stats.totalActive}}</div>
+                </div>
+            </div>
+
+            <!-- Overdue -->
+            <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden border-l-4 border-rose-500 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                [ngClass]="{'ring-2 ring-rose-500 ring-inset': selectedCategory === 'overdue'}" (click)="setCategory('overdue')">
+                <div class="flex items-start justify-between">
+                    <div class="flex flex-col">
+                        <div class="text-lg font-semibold leading-tight tracking-tight text-rose-600">Overdue</div>
+                        <div class="mt-0.5 text-secondary">{{ isGlobalView ? 'Office Overdue' : 'My Attention!' }}</div>
+                    </div>
+                    <mat-icon class="icon-size-10 text-rose-500 opacity-20" [svgIcon]="'heroicons_outline:clock'"></mat-icon>
+                </div>
+                <div class="flex flex-col items-center mt-4 text-rose-600">
+                    <div class="text-5xl font-bold tracking-tighter leading-tight">{{stats.overdue}}</div>
+                </div>
+            </div>
+
+            <!-- High Priority -->
+            <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden border-l-4 border-amber-500 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                [ngClass]="{'ring-2 ring-amber-500 ring-inset': selectedCategory === 'highPriority'}" (click)="setCategory('highPriority')">
+                <div class="flex items-start justify-between">
+                    <div class="flex flex-col">
+                        <div class="text-lg font-semibold leading-tight tracking-tight text-amber-600">High Priority</div>
+                        <div class="mt-0.5 text-secondary">{{ isGlobalView ? 'Office High' : 'My Urgent Tasks' }}</div>
+                    </div>
+                    <mat-icon class="icon-size-10 text-amber-500 opacity-20" [svgIcon]="'heroicons_outline:exclamation-triangle'"></mat-icon>
+                </div>
+                <div class="flex flex-col items-center mt-4 text-amber-600">
+                    <div class="text-5xl font-bold tracking-tighter leading-tight">{{stats.highPriority}}</div>
+                </div>
+            </div>
+
+            <!-- Temporary Tasks -->
+            <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden border-l-4 border-indigo-500 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                [ngClass]="{'ring-2 ring-indigo-500 ring-inset': selectedCategory === 'temporary'}" (click)="setCategory('temporary')">
+                <div class="flex items-start justify-between">
+                    <div class="flex flex-col">
+                        <div class="text-lg font-semibold leading-tight tracking-tight text-indigo-600">Temporary</div>
+                        <div class="mt-0.5 text-secondary">{{ isGlobalView ? 'Temp. Assignments' : 'Assigned To Me' }}</div>
+                    </div>
+                    <mat-icon class="icon-size-10 text-indigo-500 opacity-20" [svgIcon]="'heroicons_outline:user-group'"></mat-icon>
+                </div>
+                <div class="flex flex-col items-center mt-4 text-indigo-600">
+                    <div class="text-5xl font-bold tracking-tighter leading-tight">{{stats.temporaryTasks}}</div>
+                </div>
+            </div>
+
+            <!-- Todo List -->
+            <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden border-l-4 border-slate-500 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                [ngClass]="{'ring-2 ring-slate-500 ring-inset': selectedCategory === 'todo'}" (click)="setCategory('todo')">
+                <div class="flex items-start justify-between">
+                    <div class="flex flex-col">
+                        <div class="text-lg font-semibold leading-tight tracking-tight">Todo List</div>
+                        <div class="mt-0.5 text-secondary">{{ isGlobalView ? 'Office Future' : 'Planned Work' }}</div>
+                    </div>
+                    <mat-icon class="icon-size-10 text-slate-500 opacity-20" [svgIcon]="'heroicons_outline:list-bullet'"></mat-icon>
+                </div>
+                <div class="flex flex-col items-center mt-4">
+                    <div class="text-5xl font-bold tracking-tighter leading-tight">{{stats.todoLater}}</div>
+                </div>
+            </div>
+
+            <!-- Created By Me -->
+            <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden border-l-4 border-emerald-500 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                [ngClass]="{'ring-2 ring-emerald-500 ring-inset': selectedCategory === 'createdByMe'}" (click)="setCategory('createdByMe')">
+                <div class="flex items-start justify-between">
+                    <div class="flex flex-col">
+                        <div class="text-lg font-semibold leading-tight tracking-tight text-emerald-600">Initiated</div>
+                        <div class="mt-0.5 text-secondary">Created By Me</div>
+                    </div>
+                    <mat-icon class="icon-size-10 text-emerald-500 opacity-20" [svgIcon]="'heroicons_outline:pencil-square'"></mat-icon>
+                </div>
+                <div class="flex flex-col items-center mt-4 text-emerald-600">
+                    <div class="text-5xl font-bold tracking-tighter leading-tight">{{stats.createdByMe}}</div>
+                </div>
+            </div>
+
+            <!-- Owned By Me -->
+            <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden border-l-4 border-cyan-500 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                [ngClass]="{'ring-2 ring-cyan-500 ring-inset': selectedCategory === 'ownedByMe'}" (click)="setCategory('ownedByMe')">
+                <div class="flex items-start justify-between">
+                    <div class="flex flex-col">
+                        <div class="text-lg font-semibold leading-tight tracking-tight text-cyan-600">Managed</div>
+                        <div class="mt-0.5 text-secondary">Owned By Me</div>
+                    </div>
+                    <mat-icon class="icon-size-10 text-cyan-500 opacity-20" [svgIcon]="'heroicons_outline:shield-check'"></mat-icon>
+                </div>
+                <div class="flex flex-col items-center mt-4 text-cyan-600">
+                    <div class="text-5xl font-bold tracking-tighter leading-tight">{{stats.ownedByMe}}</div>
+                </div>
+            </div>
+
+            <!-- Personal Reminders (NEW) -->
+            <div class="flex flex-col flex-auto p-6 bg-indigo-50 dark:bg-indigo-900 shadow rounded-2xl overflow-hidden border-l-4 border-indigo-600 cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors"
+                [ngClass]="{'ring-2 ring-indigo-600 ring-inset': selectedCategory === 'personalTodo'}" (click)="setCategory('personalTodo')">
+                <div class="flex items-start justify-between">
+                    <div class="flex flex-col">
+                        <div class="text-lg font-semibold leading-tight tracking-tight text-indigo-700 dark:text-indigo-300">Personal</div>
+                        <div class="mt-0.5 text-secondary">To-Do Reminders</div>
+                    </div>
+                    <mat-icon class="icon-size-10 text-indigo-600 opacity-40" [svgIcon]="'heroicons_outline:clipboard-document-check'"></mat-icon>
+                </div>
+                <div class="flex flex-col items-center mt-4 text-indigo-700 dark:text-indigo-300">
+                    <div class="text-5xl font-bold tracking-tighter leading-tight">{{personalTodoCount}}</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Skeleton Loader Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6 w-full animate-pulse" *ngIf="!stats">
+            <div class="h-44 bg-gray-200 dark:bg-gray-800 rounded-2xl" *ngFor="let i of [1,2,3,4,5,6]"></div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full mt-10" *ngIf="stats">
+            <!-- Jobs by Stage -->
+            <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                <div class="flex flex-col">
+                    <div class="text-xl font-bold tracking-tight">{{ isGlobalView ? 'Office Distribution' : 'My Jobs Breakdown' }}</div>
+                    <div class="text-secondary font-medium">Visual insights by current stage</div>
+                </div>
+                <div class="flex flex-col flex-auto mt-6 h-80" *ngIf="chartByStage?.series?.length">
+                    <apx-chart
+                        [series]="chartByStage.series"
+                        [chart]="chartByStage.chart"
+                        [labels]="chartByStage.labels"
+                        [colors]="chartByStage.colors"
+                        [legend]="chartByStage.legend"
+                        [plotOptions]="chartByStage.plotOptions"
+                        [stroke]="chartByStage.stroke"
+                        [type]="chartByStage.chart.type">
+                    </apx-chart>
+                </div>
+                <!-- No Data for Chart -->
+                <div class="flex flex-col items-center justify-center h-80 opacity-40" *ngIf="!chartByStage?.series?.length">
+                    <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:chart-pie'"></mat-icon>
+                    <div class="mt-2 font-medium">No stage data for visualization</div>
+                </div>
+            </div>
+
+            <!-- Jobs by Type -->
+            <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                <div class="flex flex-col">
+                    <div class="text-xl font-bold tracking-tight">{{ isGlobalView ? 'Job Types (Global)' : 'My Job Types' }}</div>
+                    <div class="text-secondary font-medium">Breakdown by engagement type</div>
+                </div>
+                <div class="flex flex-col flex-auto mt-6 h-80" *ngIf="chartByType?.series?.length">
+                    <apx-chart
+                        [series]="chartByType.series"
+                        [chart]="chartByType.chart"
+                        [labels]="chartByType.labels"
+                        [colors]="chartByType.colors"
+                        [legend]="chartByType.legend"
+                        [stroke]="chartByType.stroke"
+                        [type]="chartByType.chart.type">
+                    </apx-chart>
+                </div>
+                <!-- No Data for Chart -->
+                <div class="flex flex-col items-center justify-center h-80 opacity-40" *ngIf="!chartByType?.series?.length">
+                    <mat-icon class="icon-size-12" [svgIcon]="'heroicons_outline:chart-bar'"></mat-icon>
+                    <div class="mt-2 font-medium">No type data for visualization</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skeleton Loader Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full mt-10 animate-pulse" *ngIf="!stats">
+            <div class="h-96 bg-gray-200 dark:bg-gray-800 rounded-2xl"></div>
+            <div class="h-96 bg-gray-200 dark:bg-gray-800 rounded-2xl"></div>
+        </div>
+
+        <!-- Work Items Section (Partitioned) -->
+        <div class="flex flex-col mt-10 border-t pt-10">
+            <div class="flex items-center justify-between mb-6">
+                <div class="text-2xl font-bold tracking-tight">{{ isGlobalView ? 'Office Work Items' : 'My Work Items' }}</div>
+                
+                <!-- Category Tabs -->
+                <div class="flex items-center p-0.5 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-x-auto max-w-full">
+                    <button mat-button class="px-4 py-1 rounded-md transition-shadow shrink-0"
+                        [ngClass]="{'bg-white dark:bg-gray-700 shadow': selectedCategory === 'myJobs'}"
+                        (click)="setCategory('myJobs')">My Jobs</button>
+                    <button mat-button class="px-4 py-1 rounded-md transition-shadow shrink-0"
+                        [ngClass]="{'bg-white dark:bg-gray-700 shadow': selectedCategory === 'createdByMe'}"
+                        (click)="setCategory('createdByMe')">Created By Me</button>
+                    <button mat-button class="px-4 py-1 rounded-md transition-shadow shrink-0"
+                        [ngClass]="{'bg-white dark:bg-gray-700 shadow': selectedCategory === 'ownedByMe'}"
+                        (click)="setCategory('ownedByMe')">Owned By Me</button>
+                </div>
+            </div>
+
+            <!-- Full-featured Jobs List Component -->
+            <div class="bg-card shadow rounded-2xl overflow-hidden min-h-160 border relative">
+                <jobs-list [dashboardMode]="true" [externalFilter]="jobsFilter"></jobs-list>
+            </div>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,61 @@
+<div class="flex flex-col flex-auto p-6 sm:p-10 max-w-4xl mx-auto">
+    
+    <!-- New Note Input (Visible only in Edit Mode) -->
+    <div *ngIf="customerId" class="flex flex-col p-6 bg-card shadow rounded-2xl overflow-hidden border">
+        <form [formGroup]="noteForm" class="flex flex-col items-end">
+            <mat-form-field class="w-full fuse-mat-no-subscript">
+                <textarea matInput [formControlName]="'noteText'" [placeholder]="'Type a new note here...'" [rows]="3"></textarea>
+            </mat-form-field>
+            <button class="mt-4" mat-flat-button [color]="'primary'" [disabled]="noteForm.invalid || isSaving" (click)="addNote()">
+                <mat-icon *ngIf="isSaving" class="animate-spin mr-2" [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
+                Add Note
+            </button>
+        </form>
+    </div>
+
+    <!-- Notes List -->
+    <div class="mt-10 flex flex-col space-y-6">
+        
+        <ng-container *ngIf="!isLoading">
+            <div *ngFor="let note of notes" class="flex flex-col p-6 bg-card shadow rounded-2xl border transition-all duration-200" [ngClass]="{'border-primary shadow-md': note.isPinned}">
+                
+                <!-- Note Header -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="flex flex-col">
+                            <div class="font-bold text-md tracking-tight">{{note.createdUserName || 'System User'}}</div>
+                            <div class="text-xs text-secondary">{{formatDate(note.createdDateTime)}}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <button mat-icon-button (click)="togglePin(note)" [matTooltip]="note.isPinned ? 'Unpin' : 'Pin'">
+                            <mat-icon class="icon-size-5" [ngClass]="{'text-primary': note.isPinned}" [svgIcon]="note.isPinned ? 'heroicons_solid:bookmark' : 'heroicons_outline:bookmark'"></mat-icon>
+                        </button>
+                        <button mat-icon-button (click)="deleteNote(note.id)" [color]="'warn'" matTooltip="Delete">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Note Content -->
+                <div class="mt-4 text-md leading-relaxed text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                    {{note.noteText}}
+                </div>
+
+            </div>
+        </ng-container>
+
+        <!-- Loading / Empty States -->
+        <div *ngIf="isLoading" class="flex flex-col items-center justify-center p-12">
+            <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <div class="mt-4 text-secondary font-medium">Loading notes...</div>
+        </div>
+
+        <div *ngIf="!isLoading && notes.length === 0" class="flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-3xl">
+            <mat-icon class="icon-size-16 text-hint" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
+            <div class="mt-4 text-xl font-semibold text-secondary">No notes found for this contact.</div>
+            <div class="mt-1 text-hint">Capture important details or updates here.</div>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,144 @@
+<div class="flex flex-col flex-auto p-6 sm:p-10">
+    
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-8 border-b">
+        <div>
+            <div class="text-3xl font-bold tracking-tight">Relationships</div>
+            <div class="text-secondary font-medium">Manage family, business and ownership links</div>
+        </div>
+    </div>
+
+    <!-- New Relationship Form -->
+    <div class="mt-8 flex flex-col p-6 bg-card shadow rounded-2xl border">
+        <form [formGroup]="relationshipForm" class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            
+            <!-- Customer Search -->
+            <mat-form-field class="sm:col-span-2 fuse-mat-dense">
+                <mat-label>Related Contact</mat-label>
+                <input matInput 
+                       [matAutocomplete]="auto" 
+                       formControlName="targetCustomerName" 
+                       placeholder="Search for a contact..."
+                       (focus)="triggerSearch()"
+                       #contactInput>
+                <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onCustomerSelected($event)">
+                    <mat-option *ngFor="let customer of filteredCustomers" [value]="customer">
+                        {{customer.name}} ({{customer.code}})
+                    </mat-option>
+                </mat-autocomplete>
+                <div matSuffix class="flex items-center">
+                    <button mat-icon-button (click)="triggerSearch(); $event.stopPropagation()" type="button" class="w-8 h-8 min-w-8">
+                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:chevron-down'"></mat-icon>
+                    </button>
+                    <mat-icon class="icon-size-5 ml-1" [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+                </div>
+            </mat-form-field>
+
+            <!-- Relationship Type -->
+            <mat-form-field class="fuse-mat-dense">
+                <mat-label>Relationship Type</mat-label>
+                <mat-select formControlName="relationshipTypeId">
+                    <mat-option *ngFor="let type of relationshipTypes" [value]="type.id">{{type.name}}</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <!-- Share % -->
+            <mat-form-field class="fuse-mat-dense">
+                <mat-label>Share/Ownership %</mat-label>
+                <input matInput type="number" formControlName="noOfShare" placeholder="0-100">
+                <span matSuffix>%</span>
+            </mat-form-field>
+
+            <!-- Dates -->
+            <mat-form-field class="fuse-mat-dense">
+                <mat-label>Start Date</mat-label>
+                <input matInput [matDatepicker]="startPicker" formControlName="startDate">
+                <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+                <mat-datepicker #startPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field class="fuse-mat-dense">
+                <mat-label>End Date</mat-label>
+                <input matInput [matDatepicker]="endPicker" 
+                       formControlName="endDate"
+                       [min]="relationshipForm.get('startDate').value">
+                <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+                <mat-datepicker #endPicker></mat-datepicker>
+            </mat-form-field>
+
+            <!-- Note -->
+            <mat-form-field class="sm:col-span-2 fuse-mat-dense">
+                <mat-label>Internal Note</mat-label>
+                <input matInput formControlName="note" placeholder="Add some context...">
+            </mat-form-field>
+
+            <div class="flex items-center justify-end sm:col-span-4 mt-2">
+                <button mat-flat-button [color]="'primary'" [disabled]="relationshipForm.invalid || isSaving" (click)="addRelationship()">
+                    <mat-icon *ngIf="isSaving" class="animate-spin mr-2" [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
+                    Link Contacts
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Relationships List -->
+    <div class="mt-8 overflow-x-auto">
+        <table class="w-full bg-card rounded-2xl shadow border overflow-hidden">
+            <thead>
+                <tr class="bg-gray-50 dark:bg-gray-800 text-left text-xs font-semibold text-secondary uppercase tracking-wider border-b">
+                    <th class="px-6 py-4">Related To</th>
+                    <th class="px-6 py-4">Relationship</th>
+                    <th class="px-6 py-4">Share %</th>
+                    <th class="px-6 py-4">Period</th>
+                    <th class="px-6 py-4">Notes</th>
+                    <th class="px-6 py-4 text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                <tr *ngFor="let rel of relationships" class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="font-bold text-primary cursor-pointer hover:underline">{{rel.targetCustomerName}}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
+                            {{rel.relationshipTypeName}}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap font-medium">
+                        {{rel.noOfShare ? rel.noOfShare + '%' : '-'}}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                        <div class="flex flex-col">
+                            <span>{{formatDate(rel.startDate)}} - {{formatDate(rel.endDate)}}</span>
+                            <span *ngIf="rel.endDate && isExpired(rel.endDate)" 
+                                  class="mt-1 w-min px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border shadow-sm"
+                                  style="background-color: #fee2e2; color: #dc2626; border-color: #fecaca; display: inline-block;">
+                                Expired
+                            </span>
+                            <span *ngIf="!rel.endDate || !isExpired(rel.endDate)" 
+                                  class="mt-1 w-min px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border shadow-sm"
+                                  style="background-color: #dcfce7; color: #16a34a; border-color: #bbf7d0; display: inline-block;">
+                                Active
+                            </span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 max-w-xs truncate text-sm text-secondary" [matTooltip]="rel.note">
+                        {{rel.note || '-'}}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                        <button mat-icon-button [color]="'warn'" (click)="deleteRelationship(rel.id)">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Empty State -->
+        <div *ngIf="!isLoading && relationships.length === 0" class="flex flex-col items-center justify-center p-12 bg-card rounded-2xl border-2 border-dashed mt-4">
+            <mat-icon class="icon-size-16 text-hint" [svgIcon]="'heroicons_outline:users'"></mat-icon>
+            <div class="mt-4 text-xl font-semibold text-secondary">No relationships established.</div>
+            <div class="mt-1 text-hint text-center max-w-sm">Connect this customer with other contacts, family members, or business entities.</div>
+        </div>
+    </div>
+</div>

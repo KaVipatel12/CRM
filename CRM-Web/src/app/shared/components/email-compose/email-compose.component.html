@@ -1,0 +1,74 @@
+<div class="flex flex-col max-h-screen -m-6 email-compose-dialog">
+
+    <!-- Header -->
+    <div class="flex flex-0 items-center justify-between h-16 pr-3 sm:pr-5 pl-6 sm:pl-8 bg-primary text-on-primary">
+        <div class="flex items-center">
+            <!-- Checking for logo.svg or logo-text.svg, defaulting to logo.svg from public dir -->
+            <img src="images/logo/logo.svg" alt="SSP CRM" class="h-8 w-auto mr-4 brightness-0 invert">
+            <div class="text-lg font-medium">Compose Email</div>
+        </div>
+        <button mat-icon-button (click)="close()">
+            <mat-icon [svgIcon]="'heroicons_outline:x-mark'" class="text-current"></mat-icon>
+        </button>
+    </div>
+
+    <!-- Content -->
+    <div class="flex flex-col flex-auto p-6 sm:p-8 overflow-y-auto">
+        <form [formGroup]="composeForm" class="flex flex-col space-y-4">
+            
+            <!-- Recipient Field -->
+            <ng-container *ngIf="data?.toEmail; else searchableTo">
+                <mat-form-field class="w-full fuse-mat-dense">
+                    <mat-label>To</mat-label>
+                    <input matInput formControlName="to" type="email">
+                </mat-form-field>
+            </ng-container>
+            <ng-template #searchableTo>
+                <searchable-select
+                    [items]="customers"
+                    [label]="'To'"
+                    [placeholder]="'Search client by name or email...'"
+                    [displayKey]="'name'"
+                    [valueKey]="'id'"
+                    [required]="true"
+                    formControlName="to">
+                </searchable-select>
+            </ng-template>
+
+            <mat-form-field class="w-full fuse-mat-dense">
+                <mat-label>Subject</mat-label>
+                <input matInput formControlName="subject" type="text">
+            </mat-form-field>
+
+            <div class="flex flex-col mt-2">
+                <div class="text-secondary font-medium mb-2">Message</div>
+                <quill-editor class="w-full border rounded flex flex-col"
+                              [modules]="modules"
+                              formControlName="body"
+                              placeholder="Write your message here...">
+                </quill-editor>
+            </div>
+
+            <!-- Attachment Card -->
+            <div *ngIf="data?.attachmentName" class="mt-6 flex items-center p-4 bg-gray-50 border rounded-xl shadow-sm">
+                <div class="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 text-red-600 mr-4 shrink-0">
+                    <mat-icon class="text-current icon-size-6" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
+                </div>
+                <div class="flex flex-col overflow-hidden w-full">
+                    <span class="font-medium text-md truncate">{{ data.attachmentName }}</span>
+                    <span class="text-sm text-secondary truncate">PDF Document (Auto-generated and attached securely)</span>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center justify-end h-16 px-6 border-t bg-gray-50 mt-auto">
+        <button mat-button class="mr-2" (click)="close()">Cancel</button>
+        <button mat-flat-button color="primary" [disabled]="composeForm.invalid" (click)="send()">
+            <mat-icon class="icon-size-5 mr-2" [svgIcon]="'heroicons_outline:paper-airplane'"></mat-icon>
+            Send Email
+        </button>
+    </div>
+</div>

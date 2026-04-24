@@ -1,0 +1,100 @@
+<div class="flex flex-col max-w-160 md:min-w-120 max-h-[90vh] -m-6">
+
+    <!-- Header -->
+    <div class="flex flex-0 items-center justify-between h-16 pr-3 sm:pr-5 pl-6 sm:pl-8 bg-primary text-on-primary">
+        <div class="text-lg font-medium">Comments for {{callName}}</div>
+        <button
+            mat-icon-button
+            (click)="close()"
+            [tabIndex]="-1">
+            <mat-icon
+                class="text-current"
+                [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+        </button>
+    </div>
+
+    <!-- Comments List -->
+    <div class="flex flex-col flex-auto p-6 sm:p-8 overflow-y-auto bg-gray-50 dark:bg-transparent min-h-60">
+        
+        <!-- List -->
+        <div class="space-y-4">
+            <div *ngIf="comments.length === 0 && !isLoading" class="text-center py-8 text-secondary italic">
+                No comments yet.
+            </div>
+
+            <ng-container *ngFor="let comment of comments">
+                <div class="flex flex-col bg-card p-4 rounded shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center">
+                                <span class="font-bold text-primary">{{comment.updateUserName}}</span>
+                                <span class="ml-2 text-xs text-secondary">{{comment.updateDateTime | date:'dd MMM yyyy HH:mm'}}</span>
+                                <span *ngIf="comment.updateDateTime !== comment.createdDateTime" class="ml-2 text-xs text-amber-600 italic">(edited)</span>
+                            </div>
+                            <div class="mt-1 text-sm text-default whitespace-pre-wrap">
+                                {{comment.comment}}
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="flex items-center ml-4 space-x-1" *ngIf="!editingCommentId">
+                            <button
+                                *ngIf="canEdit(comment)"
+                                mat-icon-button
+                                (click)="editComment(comment)"
+                                [matTooltip]="'Edit'">
+                                <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+                            </button>
+                            <button
+                                *ngIf="canDelete(comment)"
+                                mat-icon-button
+                                (click)="deleteComment(comment.id)"
+                                [matTooltip]="'Delete'">
+                                <mat-icon class="icon-size-4 text-error" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+
+        <!-- Add/Edit Comment -->
+        <div class="mt-8 border-t pt-6">
+            <form [formGroup]="commentForm" (ngSubmit)="addComment()">
+                <mat-form-field class="fuse-mat-no-subscript w-full" [floatLabel]="'always'">
+                    <mat-label>{{ editingCommentId ? 'Update Comment' : 'Add Note / Comment' }}</mat-label>
+                    <textarea
+                        matInput
+                        formControlName="comment"
+                        [placeholder]="'Type your note here...'"
+                        [rows]="3"></textarea>
+                </mat-form-field>
+                <div class="flex items-center justify-end mt-4">
+                    <button
+                        *ngIf="editingCommentId"
+                        type="button"
+                        mat-button
+                        (click)="cancelEdit()"
+                        class="mr-2">
+                        Cancel
+                    </button>
+                    <button
+                        mat-flat-button
+                        [color]="'primary'"
+                        [disabled]="commentForm.invalid">
+                        {{ editingCommentId ? 'Update' : 'Post Comment' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-0 items-center justify-end h-16 pr-4 sm:pr-6 pl-4 sm:pl-6 border-t bg-white dark:bg-transparent">
+        <button
+            mat-flat-button
+            (click)="close()">
+            Close
+        </button>
+    </div>
+</div>

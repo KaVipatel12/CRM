@@ -1,0 +1,33 @@
+/* ----------------------------------------------------------------------------------------------------- */
+/*  @ Import/write your custom styles here.
+/*  @ Styles from this file will override 'vendors.scss' and Fuse's base styles.
+/* ----------------------------------------------------------------------------------------------------- */
+
+/* FS Note Dialog - remove scrollbar */
+.fs-note-dialog-panel .mat-mdc-dialog-container .mdc-dialog__surface {
+    overflow: hidden !important;
+}
+
+/* Contact Picker Dialog - remove default padding */
+.contact-picker-dialog .mat-mdc-dialog-container .mdc-dialog__surface {
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-radius: 16px !important;
+}
+
+.contact-picker-dialog .mat-mdc-dialog-container .mdc-dialog__content {
+    padding: 0 !important;
+    max-height: unset !important;
+}
+
+/* Dynamic Field Dialog - remove scrollbar */
+.dynamic-field-dialog-panel .mat-mdc-dialog-container .mdc-dialog__surface {
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+
+.dynamic-field-dialog-panel .mat-mdc-dialog-container .mdc-dialog__content {
+    padding: 0 !important;
+    max-height: unset !important;
+    overflow: hidden !important;
+}
